@@ -59,7 +59,6 @@
         "clsx": "^2.1.1",
         "dayjs": "^1.11.10",
         "lucide-vue-next": "^0.372.0",
-        "posthog-js": "^1.223.4",
         "radix-vue": "^1.7.0",
         "reka-ui": "^2.2.1",
         "tailwind-merge": "^2.6.0",
