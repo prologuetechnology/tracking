@@ -96,7 +96,7 @@ const { mutate: updateTheme, isPending: updateThemeIsPending } =
       onSuccess: () => {
         queryClient.invalidateQueries(`themes`)
 
-        router.visit(route(`admin.theme.index`))
+        router.visit(route(`admin.themes.index`))
       },
     },
   })
@@ -439,7 +439,7 @@ watch(
         size="sm"
         :disabled="createThemeIsPending || updateThemeIsPending"
       >
-        <Link :href="route(`admin.theme.index`)">Cancel</Link>
+        <Link :href="route(`admin.themes.index`)">Cancel</Link>
       </Button>
 
       <Button

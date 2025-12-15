@@ -10,8 +10,8 @@ const { userCan } = useRolesAndPermissions()
 </script>
 
 <template>
-  <Button variant="default" as-child size="sm">
-    <Link v-if="userCan(`theme:create`)" :href="route('admin.theme.create')">
+  <Button v-if="userCan(`theme:store`)" variant="default" as-child size="sm">
+    <Link :href="route('admin.themes.create')">
       <FontAwesomeIcon :icon="faPlus" class="mr-2" fixed-width />
 
       <span>Create Theme</span></Link

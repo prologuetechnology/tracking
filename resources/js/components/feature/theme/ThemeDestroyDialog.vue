@@ -38,7 +38,7 @@ const { mutate: destroyTheme } = useThemeDestroyMutation({
         queryKey: [`themes`],
       })
 
-      router.visit(route(`admin.theme.index`))
+      router.visit(route(`admin.themes.index`))
     },
   },
 })

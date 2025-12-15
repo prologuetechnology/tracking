@@ -56,7 +56,7 @@ Route::prefix('admin')
 
         // Company create
         Route::get('/companies/create', function () {
-            if (Auth::user()->cannot('company:create')) {
+            if (Auth::user()->cannot('company:store')) {
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to create companies.');
             }
 
@@ -92,7 +92,7 @@ Route::prefix('admin')
 
         // Theme create
         Route::get('themes/create', function (Theme $theme) {
-            if (Auth::user()->cannot('theme:create')) {
+            if (Auth::user()->cannot('theme:store')) {
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to create themes.');
             }
 
