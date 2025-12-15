@@ -56,7 +56,7 @@ Route::prefix('admin')
 
         // Company create
         Route::get('/companies/create', function () {
-            if (Auth::user()->cannot('company:create')) {
+            if (Auth::user()->cannot('company:store')) {
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to create companies.');
             }
 
