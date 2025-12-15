@@ -92,7 +92,7 @@ Route::prefix('admin')
 
         // Theme create
         Route::get('themes/create', function (Theme $theme) {
-            if (Auth::user()->cannot('theme:create')) {
+            if (Auth::user()->cannot('theme:store')) {
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to create themes.');
             }
 
