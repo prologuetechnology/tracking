@@ -22,6 +22,7 @@ import {
   useCompanyCreateMutation,
   useCompanyUpdateMutation,
 } from '@/composables/mutations/company'
+import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
 
 const props = defineProps({
   company: {
@@ -63,7 +64,7 @@ const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
     website: props.company?.website,
     phone: props.company?.phone,
     email: props.company?.email,
-    requires_brand: Boolean(props.company?.requires_brand),
+    requires_brand: hasCompanyFeature(props.company, `requires_brand`),
     brand: props.company?.brand,
   },
   keepValuesOnUnmount: true,
@@ -150,7 +151,7 @@ watch(
           phone: newCompany.phone,
           email: newCompany.email,
           logo_image_id: `${newCompany.logo?.id}`,
-          requires_brand: Boolean(newCompany?.requires_brand),
+          requires_brand: hasCompanyFeature(newCompany, `requires_brand`),
           brand: newCompany?.brand,
         },
       })

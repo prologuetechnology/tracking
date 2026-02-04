@@ -20,7 +20,7 @@ class CompanyController extends Controller
      */
     public function index(): JsonResponse
     {
-        $companies = Company::with(['logo', 'theme'])->get();
+        $companies = Company::with(['logo', 'theme', 'features'])->get();
 
         return response()->json($companies, Response::HTTP_OK);
     }
@@ -42,6 +42,8 @@ class CompanyController extends Controller
 
         $company->save();
 
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
+
         return response()->json($company, Response::HTTP_CREATED);
     }
 
@@ -50,7 +52,7 @@ class CompanyController extends Controller
      */
     public function show(Company $company): JsonResponse
     {
-        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken']);
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
         return response()->json($company, Response::HTTP_OK);
     }
@@ -61,6 +63,8 @@ class CompanyController extends Controller
     public function update(UpdateCompanyRequest $request, Company $company): JsonResponse
     {
         $company->update($request->validated());
+
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
         return response()->json($company, Response::HTTP_OK);
     }
@@ -73,6 +77,8 @@ class CompanyController extends Controller
         $company->theme_id = $request->theme_id;
 
         $company->save();
+
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
         return response()->json($company, Response::HTTP_OK);
     }
@@ -107,6 +113,8 @@ class CompanyController extends Controller
 
         $company->save();
 
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
+
         return response()->json($company, Response::HTTP_OK);
     }
 
@@ -118,6 +126,8 @@ class CompanyController extends Controller
         $company->is_active = ! $company->is_active;
 
         $company->save();
+
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
         return response()->json($company, Response::HTTP_OK);
     }
@@ -131,6 +141,8 @@ class CompanyController extends Controller
 
         $company->save();
 
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
+
         return response()->json($company, Response::HTTP_OK);
     }
 
@@ -142,6 +154,8 @@ class CompanyController extends Controller
         $company->enable_documents = ! $company->enable_documents;
 
         $company->save();
+
+        $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
         return response()->json($company, Response::HTTP_OK);
     }

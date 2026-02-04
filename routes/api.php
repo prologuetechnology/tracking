@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AllowedDomainController;
 use App\Http\Controllers\Api\CompanyApiTokenController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\CompanyFeatureController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ImagesController;
 use App\Http\Controllers\Api\ImageTypesController;
@@ -27,6 +28,15 @@ Route::as('api.')
         Route::post('shipmentTracking', [TrackingController::class, 'trackingStatuses'])->name('shipmentTracking');
         Route::post('shipmentDocuments', [DocumentController::class, 'shipmentDocuments'])->name('shipmentDocuments');
         Route::post('shipmentCoordinates', [TrackingController::class, 'shipmentCoordinates'])->name('shipmentCoordinates');
+
+        Route::get('companies/features', [CompanyFeatureController::class, 'index'])
+            ->name('companies.features.index');
+        Route::get('companies/{company}/features', [CompanyFeatureController::class, 'show'])
+            ->name('companies.features.show');
+        Route::put('companies/{company}/features', [CompanyFeatureController::class, 'sync'])
+            ->name('companies.features.sync');
+        Route::patch('companies/{company}/features/{feature:slug}', [CompanyFeatureController::class, 'toggle'])
+            ->name('companies.features.toggle');
 
         Route::patch('companies/{company}/toggleMapOption', [CompanyController::class, 'toggleMapOption'])->name('companies.toggleMapOption');
         Route::patch('companies/{company}/toggleDocumentsOption', [CompanyController::class, 'toggleDocumentsOption'])->name('companies.toggleDocumentsOption');

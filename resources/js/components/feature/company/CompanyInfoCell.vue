@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/tooltip'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { imageAssetUrl } from '@/composables/hooks/disks'
+import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
 
 const { userCan } = useRolesAndPermissions()
 
@@ -138,7 +139,7 @@ defineProps({
               </p>
 
               <p
-                v-if="company.brand && company.requires_brand"
+                v-if="company.brand && hasCompanyFeature(company, `requires_brand`)"
                 class="flex flex-col items-start justify-start"
               >
                 <span class="font-semibold">Brand: </span>

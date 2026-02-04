@@ -15,6 +15,7 @@ import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vu
 import { Label } from '@/components/ui/label'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompanyQuery } from '@/composables/queries/company'
+import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
 
 const props = defineProps({
   companyInitialValues: {
@@ -143,7 +144,7 @@ const { data: company, isError } = useCompanyQuery({
               id="enable_map"
               name="enable_map"
               :company-id="company?.id"
-              :value="Boolean(company?.enable_map)"
+              :value="hasCompanyFeature(company, `enable_map`)"
             />
           </div>
         </div>
@@ -164,7 +165,7 @@ const { data: company, isError } = useCompanyQuery({
               id="enable_documents"
               name="enable_documents"
               :company-id="company?.id"
-              :value="Boolean(company?.enable_documents)"
+              :value="hasCompanyFeature(company, `enable_documents`)"
             />
           </div>
         </div>

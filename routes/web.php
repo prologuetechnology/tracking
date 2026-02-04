@@ -47,7 +47,7 @@ Route::prefix('admin')
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view companies.');
             }
 
-            $companies = Company::with(['logo', 'theme'])->get();
+            $companies = Company::with(['logo', 'theme', 'features'])->get();
 
             return Inertia::render('admin/companies/Index', [
                 'initialCompanies' => $companies,
@@ -69,7 +69,7 @@ Route::prefix('admin')
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view companies.');
             }
 
-            $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken']);
+            $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
             return Inertia::render('admin/companies/Edit', [
                 'companyInitialValues' => $company,

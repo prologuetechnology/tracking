@@ -6,6 +6,7 @@ import {
   faCalendarArrowUp,
   faCalendarCheck,
   faExclamationTriangle,
+  faFileLines,
   faFileSignature,
   faMapLocationDot,
   faTruckContainer,
@@ -23,6 +24,7 @@ import StatusStepper from '@/components/feature/tracking/StatusStepper.vue'
 import TrackingMap from '@/components/feature/tracking/TrackingMap.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
 import { useTrackShipmentQuery } from '@/composables/queries/trackShipment'
 
 const props = defineProps({
@@ -167,6 +169,17 @@ const numberOfPieces = computed(() => {
               label="Total Weight"
               :icon="faWeightScale"
             />
+
+            <ShipmentDetail
+              v-if="hasCompanyFeature(company, `customer_pos`)"
+              :detail="`${
+                trackingData?.poNumbers?.length
+                  ? trackingData?.poNumbers.join(`, `)
+                  : `N/A`
+              }`"
+              label="Customer POs"
+              :icon="faFileLines"
+            />
           </div>
 
           <div
@@ -239,7 +252,12 @@ const numberOfPieces = computed(() => {
     </section>
 
     <!-- Shipment Documents -->
-    <section v-if="shipmentDocuments?.length >= 1">
+    <section
+      v-if="
+        shipmentDocuments?.length >= 1 &&
+        hasCompanyFeature(company, `enable_documents`)
+      "
+    >
       <ShipmentDocuments
         :documents="shipmentDocuments"
         :bol-number="bolNumber"
@@ -248,7 +266,7 @@ const numberOfPieces = computed(() => {
 
     <!-- Shipment Tracking Map -->
     <Card
-      v-if="shipmentCoordinates && company?.enable_map"
+      v-if="shipmentCoordinates && hasCompanyFeature(company, `enable_map`)"
       class="w-full shadow-lg"
     >
       <CardHeader>
