@@ -134,9 +134,7 @@ const numberOfPieces = computed(() => {
 
       <CardContent>
         <section class="grid grid-cols-1 gap-4 md:grid-cols-[1fr,auto]">
-          <div
-            class="grid grid-flow-col grid-cols-1 grid-rows-6 gap-x-8 gap-y-4 md:grid-cols-2 md:grid-rows-3"
-          >
+          <div class="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
             <ShipmentDetail
               v-if="proNumber"
               :detail="proNumber"
