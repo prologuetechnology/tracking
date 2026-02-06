@@ -3,7 +3,10 @@ import axios from 'axios'
 
 const toggleCompanyEnableDocuments = async (companyId) => {
   const { data } = await axios.patch(
-    route(`api.companies.toggleDocumentsOption`, companyId),
+    route(`api.companies.features.toggle`, {
+      company: companyId,
+      feature: `enable_documents`,
+    }),
   )
 
   return data

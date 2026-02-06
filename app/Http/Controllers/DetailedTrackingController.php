@@ -48,7 +48,7 @@ class DetailedTrackingController extends Controller
         $shipmentCoordinates = null;
 
         // Get shipment coordinate data if enable_map option is active.
-        if ($company?->enable_map) {
+        if ($company?->hasFeature('enable_map')) {
             $pipelineApiShipmentCoordinates = new PipelineApiShipmentCoordinates;
 
             $shipmentCoordinatesResponse = $pipelineApiShipmentCoordinates->getCoordinates(
@@ -61,7 +61,7 @@ class DetailedTrackingController extends Controller
             $shipmentCoordinates = $shipmentCoordinatesResponse->json();
         }
 
-        if ($company?->apiToken()->exists() && $company->enable_documents) {
+        if ($company?->apiToken()->exists() && $company->hasFeature('enable_documents')) {
             $selectedDocuments = [];
 
             $shipmentDocumentsClient = new PipelineApiShipmentDocuments(apiKey: $company?->apiToken?->api_token);

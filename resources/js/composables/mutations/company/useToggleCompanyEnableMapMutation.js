@@ -3,7 +3,10 @@ import axios from 'axios'
 
 const toggleCompanyEnableMap = async (companyId) => {
   const { data } = await axios.patch(
-    route(`api.companies.toggleMapOption`, companyId),
+    route(`api.companies.features.toggle`, {
+      company: companyId,
+      feature: `enable_map`,
+    }),
   )
 
   return data
