@@ -2319,7 +2319,8 @@ namespace PHPSTORM_META {
 'role_or_permission',);
         registerArgumentsSet('routes', 
 'sanctum.csrf-cookie','api.shipmentTracking','api.shipmentDocuments','api.shipmentCoordinates',
-'api.companies.toggleMapOption','api.companies.toggleActive','api.companies.setTheme','api.companies.setImageAsset','api.companies.index',
+'api.companies.features.index','api.companies.features.show','api.companies.features.sync','api.companies.features.toggle','api.companies.toggleMapOption',
+'api.companies.toggleDocumentsOption','api.companies.toggleActive','api.companies.setTheme','api.companies.setImageAsset','api.companies.index',
 'api.companies.store','api.companies.show','api.companies.update','api.companies.destroy','api.imageTypes.index',
 'api.imageTypes.store','api.imageTypes.show','api.imageTypes.update','api.imageTypes.destroy','api.images.index',
 'api.images.store','api.images.show','api.images.update','api.images.destroy','api.themes.index',
