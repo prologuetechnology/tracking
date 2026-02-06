@@ -22,7 +22,7 @@ import { imageAssetUrl } from '@/composables/hooks/disks'
 
 const { userCan } = useRolesAndPermissions()
 
-defineProps({
+const props = defineProps({
   company: {
     type: Object,
     required: true,

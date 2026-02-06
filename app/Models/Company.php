@@ -7,10 +7,14 @@ use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
+ * 
+ *
  * @property int $id
  * @property string $uuid
  * @property int $is_active
@@ -24,6 +28,7 @@ use Illuminate\Support\Facades\Log;
  * @property int|null $footer_image_id
  * @property int|null $theme_id
  * @property int $enable_map
+ * @property int $enable_documents
  * @property int $requires_brand
  * @property string|null $brand
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -33,7 +38,6 @@ use Illuminate\Support\Facades\Log;
  * @property-read \App\Models\Image|null $footer
  * @property-read \App\Models\Image|null $logo
  * @property-read \App\Models\Theme|null $theme
- *
  * @method static CompanyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company newQuery()
@@ -55,7 +59,9 @@ use Illuminate\Support\Facades\Log;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereUuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereWebsite($value)
- *
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CompanyFeature> $features
+ * @property-read int|null $features_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereEnableDocuments($value)
  * @mixin \Eloquent
  */
 class Company extends Model
@@ -80,6 +86,56 @@ class Company extends Model
         'brand',
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+        'enable_map' => 'boolean',
+        'enable_documents' => 'boolean',
+        'requires_brand' => 'boolean',
+    ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Company $company) {
+            if (! Schema::hasTable('company_features') || ! Schema::hasTable('company_has_feature')) {
+                return;
+            }
+
+            $defaultFeatureIds = CompanyFeature::query()
+                ->where('default_enabled', true)
+                ->pluck('id')
+                ->all();
+
+            if (! empty($defaultFeatureIds)) {
+                $company->features()->syncWithoutDetaching($defaultFeatureIds);
+            }
+        });
+
+        static::saved(function (Company $company) {
+            if (! Schema::hasTable('company_features') || ! Schema::hasTable('company_has_feature')) {
+                return;
+            }
+
+            $featureMap = [
+                'enable_map' => 'enable_map',
+                'enable_documents' => 'enable_documents',
+            ];
+
+            foreach ($featureMap as $field => $slug) {
+                if (! $company->wasChanged($field)) {
+                    continue;
+                }
+
+                $enabled = (bool) $company->getAttribute($field);
+
+                if ($enabled) {
+                    $company->enableFeature($slug);
+                } else {
+                    $company->disableFeature($slug);
+                }
+            }
+        });
+    }
+
     public function logo(): BelongsTo
     {
         return $this->belongsTo(Image::class, 'logo_image_id');
@@ -100,6 +156,12 @@ class Company extends Model
         return $this->belongsTo(Theme::class);
     }
 
+    public function features(): BelongsToMany
+    {
+        return $this->belongsToMany(CompanyFeature::class, 'company_has_feature')
+            ->withTimestamps();
+    }
+
     public function apiToken(): HasOne
     {
         return $this->hasOne(CompanyApiToken::class);
@@ -109,7 +171,117 @@ class Company extends Model
     {
         return [
             'enable_map',
+            'enable_documents',
+            'requires_brand',
         ];
+    }
+
+    public static function featureBackedBooleanFields(): array
+    {
+        return [
+            'enable_map',
+            'enable_documents',
+        ];
+    }
+
+    public function syncLegacyFeatureColumns(array $slugs): void
+    {
+        $updates = [];
+        foreach (self::featureBackedBooleanFields() as $field) {
+            $updates[$field] = in_array($field, $slugs, true);
+        }
+
+        $this->forceFill($updates)->saveQuietly();
+    }
+
+    public function syncLegacyFeatureColumn(string $slug, bool $enabled): void
+    {
+        if (! in_array($slug, self::featureBackedBooleanFields(), true)) {
+            return;
+        }
+
+        $this->forceFill([$slug => $enabled])->saveQuietly();
+    }
+
+    public function hasFeature(string $slug): bool
+    {
+        if ($this->relationLoaded('features')) {
+            return $this->features->contains('slug', $slug);
+        }
+
+        return $this->features()->where('slug', $slug)->exists();
+    }
+
+    public function hasAnyFeature(array $slugs): bool
+    {
+        if ($this->relationLoaded('features')) {
+            return $this->features->whereIn('slug', $slugs)->isNotEmpty();
+        }
+
+        return $this->features()->whereIn('slug', $slugs)->exists();
+    }
+
+    public function hasAllFeatures(array $slugs): bool
+    {
+        if (empty($slugs)) {
+            return true;
+        }
+
+        if ($this->relationLoaded('features')) {
+            $available = $this->features->pluck('slug')->unique()->all();
+
+            return empty(array_diff($slugs, $available));
+        }
+
+        $count = $this->features()->whereIn('slug', $slugs)->count();
+
+        return $count === count(array_unique($slugs));
+    }
+
+    public function enableFeature(string|array $slugs): void
+    {
+        $slugs = is_array($slugs) ? $slugs : [$slugs];
+
+        if (empty($slugs)) {
+            return;
+        }
+
+        $featureIds = CompanyFeature::query()
+            ->whereIn('slug', $slugs)
+            ->pluck('id')
+            ->all();
+
+        if (! empty($featureIds)) {
+            $this->features()->syncWithoutDetaching($featureIds);
+        }
+    }
+
+    public function disableFeature(string|array $slugs): void
+    {
+        $slugs = is_array($slugs) ? $slugs : [$slugs];
+
+        if (empty($slugs)) {
+            return;
+        }
+
+        $featureIds = CompanyFeature::query()
+            ->whereIn('slug', $slugs)
+            ->pluck('id')
+            ->all();
+
+        if (! empty($featureIds)) {
+            $this->features()->detach($featureIds);
+        }
+    }
+
+    public function syncFeatures(array $slugs): void
+    {
+        $featureIds = CompanyFeature::query()
+            ->whereIn('slug', $slugs)
+            ->pluck('id')
+            ->all();
+
+        $this->features()->sync($featureIds);
     }
 
     public static function findByIdentifier(?string $brand = null, ?int $companyId = null, ?int $pipelineCompanyId = null): ?self
@@ -117,7 +289,7 @@ class Company extends Model
         try {
             $query = self::query()
                 ->where('is_active', true)
-                ->with(['logo', 'banner', 'footer', 'theme', 'apiToken']);
+                ->with(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
             switch (true) {
                 case $brand:

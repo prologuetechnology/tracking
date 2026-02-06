@@ -150,7 +150,7 @@ watch(
           phone: newCompany.phone,
           email: newCompany.email,
           logo_image_id: `${newCompany.logo?.id}`,
-          requires_brand: Boolean(newCompany?.requires_brand),
+          requires_brand: Boolean(newCompany.requires_brand),
           brand: newCompany?.brand,
         },
       })

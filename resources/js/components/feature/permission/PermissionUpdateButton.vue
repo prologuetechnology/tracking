@@ -40,6 +40,7 @@ import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompanyUpdateMutation } from '@/composables/mutations/company'
 import { useImagesQuery } from '@/composables/queries/image'
 import { useThemesQuery } from '@/composables/queries/theme'
+import { hasCompanyFeature } from '@/composables/helpers/useCompanyFeatures'
 
 import PermissionDestroyDialog from './PermissionDestroyDialog.vue'
 import PermissionSetImageAsset from './PermissionSetImageAsset.vue'
@@ -82,7 +83,7 @@ const { isFieldDirty, handleSubmit, resetForm } = useForm({
     phone: props.company.phone,
     email: props.company.email,
     theme_id: `${props.company.theme_id}`,
-    enable_map: Boolean(props.company.enable_map),
+    enable_map: hasCompanyFeature(props.company, `enable_map`),
     logo_image_id: props.company.logo?.id ? `${props.company.logo?.id}` : null,
   },
   keepValuesOnUnmount: true,
@@ -126,7 +127,7 @@ watch(
           phone: newCompany.phone,
           email: newCompany.email,
           theme_id: `${newCompany.theme_id}`,
-          enable_map: Boolean(newCompany.enable_map),
+          enable_map: hasCompanyFeature(newCompany, `enable_map`),
           logo_image_id: `${newCompany.logo?.id}`,
         },
       })
@@ -144,7 +145,7 @@ const cancelDialog = () => {
       phone: props.company.phone,
       email: props.company.email,
       theme_id: `${props.company.theme_id}`,
-      enable_map: Boolean(props.company.enable_map),
+      enable_map: hasCompanyFeature(props.company, `enable_map`),
       logo_image_id: `${props.company.logo?.id}`,
     },
   })

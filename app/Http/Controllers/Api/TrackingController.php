@@ -42,7 +42,7 @@ class TrackingController extends Controller
         $shipmentCoordinates = null;
 
         // Get shipment coordinate data if enable_map option is active.
-        if ($company?->enable_map) {
+        if ($company?->hasFeature('enable_map')) {
             $pipelineApiShipmentCoordinates = new PipelineApiShipmentCoordinates;
 
             $shipmentCoordinatesResponse = $pipelineApiShipmentCoordinates->getCoordinates(
@@ -55,7 +55,7 @@ class TrackingController extends Controller
             $shipmentCoordinates = $shipmentCoordinatesResponse->json();
         }
 
-        if ($company?->apiToken()->exists() && $company->enable_documents) {
+        if ($company?->apiToken()->exists() && $company->hasFeature('enable_documents')) {
             $selectedDocuments = [];
 
             $shipmentDocumentsClient = new PipelineApiShipmentDocuments(apiKey: $company?->apiToken?->api_token);
@@ -89,7 +89,7 @@ class TrackingController extends Controller
 
         $company = Company::findByIdentifier(null, null, $request->input('pipelineCompanyId'));
 
-        if (! $company || $company->enable_map === false) {
+        if (! $company || ! $company->hasFeature('enable_map')) {
             return response()->json([
                 'error' => 'Map feature is disabled for this company.',
             ], Response::HTTP_FORBIDDEN);
