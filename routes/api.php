@@ -36,6 +36,7 @@ Route::as('api.')
         Route::put('companies/{company}/features', [CompanyFeatureController::class, 'sync'])
             ->name('companies.features.sync');
         Route::patch('companies/{company}/features/{feature:slug}', [CompanyFeatureController::class, 'toggle'])
+            ->withoutScopedBindings()
             ->name('companies.features.toggle');
 
         Route::patch('companies/{company}/toggleMapOption', [CompanyController::class, 'toggleMapOption'])->name('companies.toggleMapOption');

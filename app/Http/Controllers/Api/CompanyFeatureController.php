@@ -51,6 +51,7 @@ class CompanyFeatureController extends Controller
         }
 
         $company->syncLegacyFeatureColumn($feature->slug, ! $isEnabled);
+
         $company->load('features');
 
         return response()->json($company, Response::HTTP_OK);

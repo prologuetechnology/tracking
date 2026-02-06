@@ -5,6 +5,7 @@ use App\Http\Controllers\DetailedTrackingController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Models\AllowedDomain;
 use App\Models\Company;
+use App\Models\CompanyFeature;
 use App\Models\Image;
 use App\Models\Theme;
 use App\Models\User;
@@ -69,10 +70,13 @@ Route::prefix('admin')
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view companies.');
             }
 
+            $companyFeatures = CompanyFeature::all();
+
             $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
             return Inertia::render('admin/companies/Edit', [
                 'companyInitialValues' => $company,
+                'companyFeaturesInitialValues' => $companyFeatures,
             ]);
         })->name('companies.show');
 

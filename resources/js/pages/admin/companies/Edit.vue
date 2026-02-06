@@ -6,16 +6,17 @@ import { Head } from '@inertiajs/vue3'
 import CompanyForm from '@/components/feature/company/CompanyForm.vue'
 import CompanySetImageAsset from '@/components/feature/company/CompanySetImageAsset.vue'
 import ToggleCompanyIsActive from '@/components/feature/company/ToggleCompanyIsActive.vue'
-import ToggleDocumentsSwitch from '@/components/feature/company/ToggleDocumentsSwitch.vue'
-import ToggleMapSwitch from '@/components/feature/company/ToggleMapSwitch.vue'
+// import ToggleDocumentsSwitch from '@/components/feature/company/ToggleDocumentsSwitch.vue'
+// import ToggleMapSwitch from '@/components/feature/company/ToggleMapSwitch.vue'
 import CompanyApiTokenForm from '@/components/feature/companyApiToken/CompanyApiTokenForm.vue'
+import CompanyFeatures from '@/components/feature/companyFeature/CompanyFeatures.vue'
 import ImageDestroyDialog from '@/components/feature/image/ImageDestroyDialog.vue'
 import SelectThemeDialog from '@/components/feature/theme/SelectThemeDialog.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { Label } from '@/components/ui/label'
+import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompanyQuery } from '@/composables/queries/company'
-import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
 
 const props = defineProps({
   companyInitialValues: {
@@ -37,7 +38,7 @@ const { data: company, isError } = useCompanyQuery({
   <Head :title="`${company?.name} - Manage Company`" />
 
   <AuthenticatedLayout :title="company?.name">
-    <div v-if="company && !isError" class="group relative h-72">
+    <div v-if="company && !isError" class="group relative mb-32 h-72">
       <div
         class="absolute left-8 top-40 mb-4 flex flex-col items-stretch justify-start space-y-4"
       >
@@ -105,30 +106,29 @@ const { data: company, isError } = useCompanyQuery({
       </div>
     </div>
 
-    <section v-if="company && !isError" class="mt-32">
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-4">
-        <div
-          class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
-        >
-          <div class="w-full space-y-0.5">
-            <Label class="text-base">Enabled</Label>
+    <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-4">
+      <div
+        class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
+      >
+        <div class="w-full space-y-0.5">
+          <Label class="text-base">Enabled</Label>
 
-            <p class="text-sm text-muted-foreground">
-              Enable company tracking portal.
-            </p>
-          </div>
-
-          <div>
-            <ToggleCompanyIsActive
-              id="is_active"
-              name="is_active"
-              :company-id="company?.id"
-              :value="Boolean(company?.is_active)"
-            />
-          </div>
+          <p class="text-sm text-muted-foreground">
+            Enable company tracking portal.
+          </p>
         </div>
 
-        <div
+        <div>
+          <ToggleCompanyIsActive
+            id="is_active"
+            name="is_active"
+            :company-id="company?.id"
+            :value="Boolean(company?.is_active)"
+          />
+        </div>
+      </div>
+
+      <!-- <div
           class="flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4"
         >
           <div class="w-full space-y-0.5">
@@ -168,28 +168,31 @@ const { data: company, isError } = useCompanyQuery({
               :value="hasCompanyFeature(company, `enable_documents`)"
             />
           </div>
+        </div> -->
+
+      <div
+        class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
+      >
+        <div class="w-full space-y-0.5">
+          <Label class="text-base">Theme</Label>
+
+          <p class="text-sm text-muted-foreground">
+            Set the color theme for the company's tracking portal.
+          </p>
         </div>
 
-        <div
-          class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
-        >
-          <div class="w-full space-y-0.5">
-            <Label class="text-base">Theme</Label>
-
-            <p class="text-sm text-muted-foreground">
-              Set the color theme for the company's tracking portal.
-            </p>
-          </div>
-
-          <div>
-            <SelectThemeDialog
-              :company-id="company?.id"
-              :current-theme="company?.theme"
-            />
-          </div>
+        <div>
+          <SelectThemeDialog
+            :company-id="company?.id"
+            :current-theme="company?.theme"
+          />
         </div>
       </div>
+    </div>
 
+    <CompanyFeatures />
+
+    <section v-if="company && !isError">
       <div class="mx-2 mt-4 md:mx-0">
         <Label>Footer</Label>
 
