@@ -24,7 +24,7 @@ import StatusStepper from '@/components/feature/tracking/StatusStepper.vue'
 import TrackingMap from '@/components/feature/tracking/TrackingMap.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
+import { useCompanyFeatures } from '@/composables/helpers'
 import { useTrackShipmentQuery } from '@/composables/queries/trackShipment'
 
 const props = defineProps({
@@ -56,6 +56,10 @@ const props = defineProps({
     required: false,
     default: null,
   },
+})
+
+const { companyHasFeature } = useCompanyFeatures({
+  company: props.company,
 })
 
 const { refetch, dataUpdatedAt, isRefetching } = useTrackShipmentQuery({
@@ -171,7 +175,10 @@ const numberOfPieces = computed(() => {
             />
 
             <ShipmentDetail
-              v-if="hasCompanyFeature(company, `customer_pos`)"
+              v-if="
+                companyHasFeature(`customer_pos`) &&
+                trackingData?.poNumbers?.length
+              "
               :detail="`${
                 trackingData?.poNumbers?.length
                   ? trackingData?.poNumbers.join(`, `)
@@ -233,6 +240,23 @@ const numberOfPieces = computed(() => {
       </CardContent>
     </Card>
 
+    <!-- Special Instructions -->
+    <Card
+      v-if="
+        companyHasFeature(`special_instructions`) &&
+        trackingData.specialInstructions
+      "
+      class="w-full shadow-lg"
+    >
+      <CardHeader>
+        <CardTitle>Special Instructions</CardTitle>
+      </CardHeader>
+
+      <CardContent>
+        <p>{{ trackingData.specialInstructions }}</p>
+      </CardContent>
+    </Card>
+
     <!-- Address Cards -->
     <section
       class="flex flex-col items-stretch justify-between space-x-0 space-y-8 md:flex-row md:space-x-8 md:space-y-0"
@@ -255,7 +279,7 @@ const numberOfPieces = computed(() => {
     <section
       v-if="
         shipmentDocuments?.length >= 1 &&
-        hasCompanyFeature(company, `enable_documents`)
+        companyHasFeature(company, `enable_documents`)
       "
     >
       <ShipmentDocuments
@@ -266,7 +290,7 @@ const numberOfPieces = computed(() => {
 
     <!-- Shipment Tracking Map -->
     <Card
-      v-if="shipmentCoordinates && hasCompanyFeature(company, `enable_map`)"
+      v-if="shipmentCoordinates && companyHasFeature(company, `enable_map`)"
       class="w-full shadow-lg"
     >
       <CardHeader>

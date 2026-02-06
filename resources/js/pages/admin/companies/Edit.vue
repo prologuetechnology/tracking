@@ -14,7 +14,7 @@ import ImageDestroyDialog from '@/components/feature/image/ImageDestroyDialog.vu
 import SelectThemeDialog from '@/components/feature/theme/SelectThemeDialog.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { Label } from '@/components/ui/label'
-import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
+import { useCompanyFeatures } from '@/composables/helpers'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompanyQuery } from '@/composables/queries/company'
 

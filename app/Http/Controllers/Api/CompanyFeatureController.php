@@ -14,7 +14,7 @@ class CompanyFeatureController extends Controller
     public function index(): JsonResponse
     {
         $features = CompanyFeature::query()
-            ->orderBy('name')
+            ->orderBy('id', 'asc')
             ->get();
 
         return response()->json($features, Response::HTTP_OK);

@@ -40,7 +40,7 @@ import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompanyUpdateMutation } from '@/composables/mutations/company'
 import { useImagesQuery } from '@/composables/queries/image'
 import { useThemesQuery } from '@/composables/queries/theme'
-import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
+import { hasCompanyFeature } from '@/composables/helpers/useCompanyFeatures'
 
 import PermissionDestroyDialog from './PermissionDestroyDialog.vue'
 import PermissionSetImageAsset from './PermissionSetImageAsset.vue'

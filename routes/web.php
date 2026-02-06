@@ -70,7 +70,7 @@ Route::prefix('admin')
                 abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view companies.');
             }
 
-            $companyFeatures = CompanyFeature::all();
+            $companyFeatures = CompanyFeature::orderBy('id', 'desc')->get();
 
             $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
 
