@@ -135,7 +135,7 @@ const numberOfPieces = computed(() => {
       <CardContent>
         <section class="grid grid-cols-1 gap-4 md:grid-cols-[1fr,auto]">
           <div
-            class="grid grid-flow-col grid-cols-1 grid-rows-5 gap-x-8 gap-y-4 md:grid-cols-2 md:grid-rows-3"
+            class="grid grid-flow-col grid-cols-1 grid-rows-6 gap-x-8 gap-y-4 md:grid-cols-2 md:grid-rows-3"
           >
             <ShipmentDetail
               v-if="proNumber"
@@ -278,8 +278,7 @@ const numberOfPieces = computed(() => {
     <!-- Shipment Documents -->
     <section
       v-if="
-        shipmentDocuments?.length >= 1 &&
-        companyHasFeature(`enable_documents`)
+        shipmentDocuments?.length >= 1 && companyHasFeature(`enable_documents`)
       "
     >
       <ShipmentDocuments
