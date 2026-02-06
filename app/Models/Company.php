@@ -115,7 +115,6 @@ class Company extends Model
             $featureMap = [
                 'enable_map' => 'enable_map',
                 'enable_documents' => 'enable_documents',
-                'requires_brand' => 'requires_brand',
             ];
 
             foreach ($featureMap as $field => $slug) {
@@ -174,10 +173,18 @@ class Company extends Model
         ];
     }
 
+    public static function featureBackedBooleanFields(): array
+    {
+        return [
+            'enable_map',
+            'enable_documents',
+        ];
+    }
+
     public function syncLegacyFeatureColumns(array $slugs): void
     {
         $updates = [];
-        foreach (self::booleanFields() as $field) {
+        foreach (self::featureBackedBooleanFields() as $field) {
             $updates[$field] = in_array($field, $slugs, true);
         }
 
@@ -186,7 +193,7 @@ class Company extends Model
 
     public function syncLegacyFeatureColumn(string $slug, bool $enabled): void
     {
-        if (! in_array($slug, self::booleanFields(), true)) {
+        if (! in_array($slug, self::featureBackedBooleanFields(), true)) {
             return;
         }
 
@@ -306,7 +313,7 @@ class Company extends Model
                     return null;
             }
 
-            if ($company && $company->hasFeature('requires_brand') && ! $brand) {
+            if ($company && $company->requires_brand && ! $brand) {
                 return null;
             }
 

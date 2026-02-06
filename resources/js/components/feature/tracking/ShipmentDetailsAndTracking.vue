@@ -279,7 +279,7 @@ const numberOfPieces = computed(() => {
     <section
       v-if="
         shipmentDocuments?.length >= 1 &&
-        companyHasFeature(company, `enable_documents`)
+        companyHasFeature(`enable_documents`)
       "
     >
       <ShipmentDocuments
@@ -290,7 +290,7 @@ const numberOfPieces = computed(() => {
 
     <!-- Shipment Tracking Map -->
     <Card
-      v-if="shipmentCoordinates && companyHasFeature(company, `enable_map`)"
+      v-if="shipmentCoordinates && companyHasFeature(`enable_map`)"
       class="w-full shadow-lg"
     >
       <CardHeader>

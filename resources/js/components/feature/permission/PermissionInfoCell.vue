@@ -18,7 +18,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { imageAssetUrl } from '@/composables/hooks/disks'
-import { hasCompanyFeature } from '@/composables/helpers/useCompanyFeatures'
 
 defineProps({
   company: {
@@ -133,9 +132,7 @@ defineProps({
               </p>
 
               <p
-                v-if="
-                  company.brand && hasCompanyFeature(company, `requires_brand`)
-                "
+                v-if="company.brand && company.requires_brand"
                 class="flex flex-col items-start justify-start"
               >
                 <span class="font-semibold">Brand: </span>

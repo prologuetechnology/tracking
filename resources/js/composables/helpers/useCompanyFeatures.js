@@ -1,7 +1,3 @@
-import { usePage } from '@inertiajs/vue3'
-
-import { useCompanyQuery } from '@/composables/queries/company'
-
 const normalizeFeaturesToCheck = (features) =>
   Array.isArray(features) ? features : [features]
 
@@ -27,10 +23,37 @@ const doesNotHaveCompanyFeature = (company, features) => {
 }
 
 const useCompanyFeatures = ({ company = null } = {}) => {
-  const companyHasFeature = (features) => hasCompanyFeature(company, features)
+  const resolveArgs = (companyOrFeatures, maybeFeatures) => {
+    if (typeof maybeFeatures === 'undefined') {
+      return {
+        companyToCheck: company,
+        featuresToCheck: companyOrFeatures,
+      }
+    }
 
-  const companyDoesNotHaveFeature = (features) =>
-    doesNotHaveCompanyFeature(company, features)
+    return {
+      companyToCheck: companyOrFeatures,
+      featuresToCheck: maybeFeatures,
+    }
+  }
+
+  const companyHasFeature = (companyOrFeatures, maybeFeatures) => {
+    const { companyToCheck, featuresToCheck } = resolveArgs(
+      companyOrFeatures,
+      maybeFeatures,
+    )
+
+    return hasCompanyFeature(companyToCheck, featuresToCheck)
+  }
+
+  const companyDoesNotHaveFeature = (companyOrFeatures, maybeFeatures) => {
+    const { companyToCheck, featuresToCheck } = resolveArgs(
+      companyOrFeatures,
+      maybeFeatures,
+    )
+
+    return doesNotHaveCompanyFeature(companyToCheck, featuresToCheck)
+  }
 
   return {
     company,
@@ -39,4 +62,5 @@ const useCompanyFeatures = ({ company = null } = {}) => {
   }
 }
 
+export { doesNotHaveCompanyFeature, hasCompanyFeature, useCompanyFeatures }
 export default useCompanyFeatures

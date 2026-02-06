@@ -46,21 +46,13 @@ return new class extends Migration
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
-            [
-                'name' => 'Requires Brand',
-                'slug' => 'requires_brand',
-                'description' => 'Require a brand query parameter for tracking.',
-                'default_enabled' => false,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
         ];
 
         DB::table('company_features')->insert($features);
 
         $featureIds = DB::table('company_features')->pluck('id', 'slug');
         $companies = DB::table('companies')
-            ->select('id', 'enable_map', 'enable_documents', 'requires_brand')
+            ->select('id', 'enable_map', 'enable_documents')
             ->get();
 
         $pivotRows = [];
@@ -68,7 +60,6 @@ return new class extends Migration
             $featureMap = [
                 'enable_map' => 'enable_map',
                 'enable_documents' => 'enable_documents',
-                'requires_brand' => 'requires_brand',
             ];
 
             foreach ($featureMap as $field => $slug) {

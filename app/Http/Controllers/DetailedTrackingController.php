@@ -41,7 +41,7 @@ class DetailedTrackingController extends Controller
         $company = Company::findByIdentifier($brand, $companyId, $pipelineCompanyId);
 
         // If company requires brand and brand is not provided, redirect to error page.
-        if ($company?->hasFeature('requires_brand') && ! $brand) {
+        if ($company?->requires_brand && ! $brand) {
             return redirect(route('trackShipment.notFound', $trackingNumber));
         }
 

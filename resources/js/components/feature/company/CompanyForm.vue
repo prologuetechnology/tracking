@@ -18,7 +18,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/toast'
-import { useCompanyFeatures } from '@/composables/helpers'
 import {
   useCompanyCreateMutation,
   useCompanyUpdateMutation,
@@ -34,8 +33,6 @@ const props = defineProps({
     default: `Company Information`,
   },
 })
-
-const { companyHasFeature } = useCompanyFeatures()
 
 const queryClient = useQueryClient()
 
@@ -66,7 +63,7 @@ const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
     website: props.company?.website,
     phone: props.company?.phone,
     email: props.company?.email,
-    requires_brand: companyHasFeature(props.company, `requires_brand`),
+    requires_brand: Boolean(props.company?.requires_brand),
     brand: props.company?.brand,
   },
   keepValuesOnUnmount: true,
@@ -153,7 +150,7 @@ watch(
           phone: newCompany.phone,
           email: newCompany.email,
           logo_image_id: `${newCompany.logo?.id}`,
-          requires_brand: companyHasFeature(newCompany, `requires_brand`),
+          requires_brand: Boolean(newCompany.requires_brand),
           brand: newCompany?.brand,
         },
       })

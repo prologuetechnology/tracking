@@ -17,7 +17,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useCompanyFeatures } from '@/composables/helpers'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 
@@ -28,10 +27,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-})
-
-const { companyHasFeature } = useCompanyFeatures({
-  company: props.company,
 })
 </script>
 
@@ -143,7 +138,7 @@ const { companyHasFeature } = useCompanyFeatures({
               </p>
 
               <p
-                v-if="company.brand && companyHasFeature(`requires_brand`)"
+                v-if="company.brand && company.requires_brand"
                 class="flex flex-col items-start justify-start"
               >
                 <span class="font-semibold">Brand: </span>
