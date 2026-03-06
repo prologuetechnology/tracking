@@ -6,9 +6,9 @@ import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vu
 </script>
 
 <template>
-  <Head title="Tracking" />
+  <Head title="Permissions" />
 
-  <AuthenticatedLayout>
+  <AuthenticatedLayout title="Permissions">
     <PermissionsDataTable />
   </AuthenticatedLayout>
 </template>

@@ -1,9 +1,7 @@
 <script setup>
-import { computed } from 'vue'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const props = defineProps({
+defineProps({
   type: {
     type: String,
     required: true,

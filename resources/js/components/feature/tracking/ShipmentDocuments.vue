@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-const props = defineProps({
+defineProps({
   documents: {
     type: Array,
     required: true,

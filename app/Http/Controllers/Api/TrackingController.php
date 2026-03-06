@@ -2,92 +2,58 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\GetShipmentDocumentsWithMetadata;
+use App\Actions\Tracking\ResolveTrackingPayload;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GetShipmentCoordinatesRequest;
+use App\Http\Requests\GetTrackingStatusesRequest;
 use App\Models\Company;
 use App\Services\Pipeline\PipelineApiShipmentCoordinates;
-use App\Services\Pipeline\PipelineApiShipmentDocuments;
-use App\Services\Pipeline\PipelineApiShipmentSearch;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrackingController extends Controller
 {
-    public function trackingStatuses(Request $request): JsonResponse
-    {
-        $shipmentSearchClient = new PipelineApiShipmentSearch;
+    public function __construct(
+        private readonly ResolveTrackingPayload $resolveTrackingPayload,
+    ) {
+    }
 
-        $shipmentSearchResponse = $shipmentSearchClient->searchShipment(
-            $request->input('trackingNumber'),
-            $request->input('searchOption'),
-            globalSearch: true,
+    public function trackingStatuses(GetTrackingStatusesRequest $request): JsonResponse
+    {
+        $payload = $this->resolveTrackingPayload->execute(
+            trackingNumber: $request->validated('trackingNumber'),
+            searchOption: $request->validated('searchOption'),
+            companyId: $request->validated('companyId'),
         );
 
-        // If error in trackingDataResponse, redirect to error page.
-        if ($shipmentSearchResponse->failed() || $shipmentSearchResponse->clientError() || empty($shipmentSearchResponse->object()->data)) {
+        if (! $payload['found']) {
             return response()->json([
                 'error' => 'Tracking data not found or invalid.',
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Pipeline ID of the company the shipment belongs to.
-        $pipelineCompanyId = $shipmentSearchResponse->object()->data[0]?->companyId;
-
-        $trackingData = $shipmentSearchResponse->json();
-
-        // Attempt to get local company model from either the slug or the Pipeline company ID.
-        $company = Company::findByIdentifier(null, $request->input('companyId'), $pipelineCompanyId);
-
-        $shipmentCoordinates = null;
-
-        // Get shipment coordinate data if enable_map option is active.
-        if ($company?->hasFeature('enable_map')) {
-            $pipelineApiShipmentCoordinates = new PipelineApiShipmentCoordinates;
-
-            $shipmentCoordinatesResponse = $pipelineApiShipmentCoordinates->getCoordinates(
-                $request->input('trackingNumber'),
-                $pipelineCompanyId
-            );
-
-            $shipmentCoordinatesResponse->json();
-
-            $shipmentCoordinates = $shipmentCoordinatesResponse->json();
-        }
-
-        if ($company?->apiToken()->exists() && $company->hasFeature('enable_documents')) {
-            $selectedDocuments = [];
-
-            $shipmentDocumentsClient = new PipelineApiShipmentDocuments(apiKey: $company?->apiToken?->api_token);
-
-            $shipmentDocumentsResponse = $shipmentDocumentsClient->getShipmentDocuments(
-                $shipmentSearchResponse->object()->data[0]?->bolNum
-            );
-
-            $selectedDocuments = (new GetShipmentDocumentsWithMetadata)(
-                $shipmentDocumentsResponse->json(),
-                ['bol', 'pod']
-            );
-        }
-
         return response()->json([
-            'trackingData' => $trackingData,
-            'company' => $company,
-            'shipmentCoordinates' => $shipmentCoordinates,
-            'shipmentDocuments' => $selectedDocuments ?? [],
+            'trackingData' => $payload['trackingData'],
+            'company' => $payload['company'],
+            'shipmentCoordinates' => $payload['shipmentCoordinates'],
+            'shipmentDocuments' => $payload['shipmentDocuments'],
         ], Response::HTTP_OK);
     }
 
-    public function shipmentCoordinates(Request $request): JsonResponse
+    public function shipmentCoordinates(GetShipmentCoordinatesRequest $request): JsonResponse
     {
         $shipmentCoordinates = new PipelineApiShipmentCoordinates;
 
         $response = $shipmentCoordinates->getCoordinates(
-            $request->input('trackingNumber'),
-            $request->input('pipelineCompanyId')
+            $request->validated('trackingNumber'),
+            $request->validated('pipelineCompanyId')
         );
 
-        $company = Company::findByIdentifier(null, null, $request->input('pipelineCompanyId'));
+        $company = Company::findByIdentifier(
+            null,
+            null,
+            $request->validated('pipelineCompanyId'),
+        );
 
         if (! $company || ! $company->hasFeature('enable_map')) {
             return response()->json([

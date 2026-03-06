@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { faUserLock, faUserShield } from '@fortawesome/pro-duotone-svg-icons'
+import { faUserShield } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { usePage } from '@inertiajs/vue3'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -86,7 +86,7 @@ const handleRoleChange = async (role) => {
 
       <DropdownMenuItem
         v-for="role in roles"
-        :key="role.value"
+        :key="role.id"
         @click="() => handleRoleChange(role)"
       >
         {{ role.name }}

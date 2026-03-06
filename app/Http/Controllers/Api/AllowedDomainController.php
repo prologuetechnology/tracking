@@ -2,121 +2,91 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\AllowedDomains\CreateAllowedDomain;
+use App\Actions\AllowedDomains\ListAllowedDomains;
+use App\Actions\AllowedDomains\ToggleAllowedDomainStatus;
+use App\Actions\AllowedDomains\UpdateAllowedDomain;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DeleteAllowedDomainRequest;
+use App\Http\Requests\StoreAllowedDomainRequest;
+use App\Http\Requests\ToggleAllowedDomainStatusRequest;
+use App\Http\Requests\UpdateAllowedDomainRequest;
+use App\Http\Resources\AllowedDomainResource;
 use App\Models\AllowedDomain;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AllowedDomainController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request): JsonResponse
-    {
-        if ($request->user()->cannot('allowed_domain:show')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
-
-        $allowedDomains = AllowedDomain::all();
-
-        return response()->json($allowedDomains, Response::HTTP_OK);
+    public function __construct(
+        private readonly CreateAllowedDomain $createAllowedDomain,
+        private readonly ListAllowedDomains $listAllowedDomains,
+        private readonly ToggleAllowedDomainStatus $toggleAllowedDomainStatus,
+        private readonly UpdateAllowedDomain $updateAllowedDomain,
+    ) {
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): JsonResponse
+    public function index(): JsonResponse
     {
-        if ($request->user()->cannot('allowed_domain:store')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
-
-        try {
-            $domain = $request->input('domain');
-            $faviconUrl = $domain ? "https://www.google.com/s2/favicons?domain={$domain}" : null;
-
-            $allowedDomain = AllowedDomain::create([
-                ...$request->all(),
-                'created_by' => $request->user()->id,
-                'updated_by' => $request->user()->id,
-                'favicon_url' => $faviconUrl,
-            ]);
-
-            return response()->json($allowedDomain, Response::HTTP_CREATED);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Failed to create allowed domain.',
-                'error' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return response()->json(
+            AllowedDomainResource::collection($this->listAllowedDomains->execute()),
+            Response::HTTP_OK,
+        );
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Request $request, AllowedDomain $allowedDomain): JsonResponse
+    public function store(StoreAllowedDomainRequest $request): JsonResponse
     {
-        if ($request->user()->cannot('allowed_domain:show')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
+        $allowedDomain = $this->createAllowedDomain->execute(
+            $request->validated(),
+            $request->user(),
+        );
 
-        return response()->json($allowedDomain, Response::HTTP_OK);
+        return response()->json(
+            AllowedDomainResource::make($allowedDomain),
+            Response::HTTP_CREATED,
+        );
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, AllowedDomain $allowedDomain): JsonResponse
+    public function show(AllowedDomain $allowedDomain): JsonResponse
     {
-        if ($request->user()->cannot('allowed_domain:update')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
-
-        try {
-            $domain = $request->input('domain', $allowedDomain->domain);
-            $faviconUrl = $domain ? "https://www.google.com/s2/favicons?domain={$domain}" : null;
-
-            $allowedDomain->update([
-                ...$request->all(),
-                'updated_by' => $request->user()->id,
-                'favicon_url' => $faviconUrl,
-            ]);
-
-            return response()->json($allowedDomain, Response::HTTP_OK);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Failed to update allowed domain.',
-                'error' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return response()->json(
+            AllowedDomainResource::make($allowedDomain),
+            Response::HTTP_OK,
+        );
     }
 
-    /**
-     * Toggle the active status of the specified resource.
-     */
-    public function toggleActiveStatus(Request $request, AllowedDomain $allowedDomain): JsonResponse
-    {
-        if ($request->user()->cannot('allowed_domain:update')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
+    public function update(
+        UpdateAllowedDomainRequest $request,
+        AllowedDomain $allowedDomain,
+    ): JsonResponse {
+        $allowedDomain = $this->updateAllowedDomain->execute(
+            $allowedDomain,
+            $request->validated(),
+            $request->user(),
+        );
 
-        $allowedDomain->is_active = ! $allowedDomain->is_active;
-        $allowedDomain->save();
-
-        return response()->json($allowedDomain, Response::HTTP_OK);
+        return response()->json(
+            AllowedDomainResource::make($allowedDomain),
+            Response::HTTP_OK,
+        );
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Request $request, AllowedDomain $allowedDomain): JsonResponse
-    {
-        if ($request->user()->cannot('allowed_domain:destroy')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
+    public function toggleActiveStatus(
+        ToggleAllowedDomainStatusRequest $request,
+        AllowedDomain $allowedDomain,
+    ): JsonResponse {
+        $allowedDomain = $this->toggleAllowedDomainStatus->execute($allowedDomain);
 
+        return response()->json(
+            AllowedDomainResource::make($allowedDomain),
+            Response::HTTP_OK,
+        );
+    }
+
+    public function destroy(
+        DeleteAllowedDomainRequest $request,
+        AllowedDomain $allowedDomain,
+    ): JsonResponse {
         $allowedDomain->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);

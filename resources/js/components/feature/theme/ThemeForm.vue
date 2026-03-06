@@ -85,7 +85,7 @@ const { mutate: createTheme, isPending: createThemeIsPending } =
         console.log(`Theme created`, data)
         queryClient.invalidateQueries(`themes`)
 
-        router.visit(route(`admin.theme.show`, data.uuid))
+        router.visit(route(`admin.themes.show`, data.uuid))
       },
     },
   })

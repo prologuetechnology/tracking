@@ -1,5 +1,5 @@
 <script setup>
-import { faPencil, faPlus } from '@fortawesome/pro-duotone-svg-icons'
+import { faPencil } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { computed, ref } from 'vue'
 
@@ -15,7 +15,7 @@ import {
 
 import AllowedDomainForm from './AllowedDomainForm.vue'
 
-const props = defineProps({
+defineProps({
   allowedDomain: {
     type: Object,
     required: true,
@@ -76,8 +76,9 @@ const allowedDomainFormIsPending = computed(
             allowedDomainFormIsPending || !allowedDomainForm?.isFormDirty
           "
           @click="allowedDomainForm?.submitForm"
-          >Create</Button
         >
+          Save
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

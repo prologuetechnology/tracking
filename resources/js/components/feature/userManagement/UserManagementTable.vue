@@ -19,7 +19,9 @@ import ImpersonateUserButton from './ImpersonateUserButton.vue'
 const { initialUsers } = usePage().props
 
 const { data, isError } = useUsersQuery({
-  initialData: initialUsers,
+  config: {
+    initialData: initialUsers,
+  },
 })
 
 const columns = [

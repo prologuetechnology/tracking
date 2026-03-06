@@ -3,7 +3,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "lint": "eslint resources/js/app.js resources/js/pages resources/js/composables resources/js/components/feature resources/js/components/layout --ext .js,.vue",
+        "format": "prettier --write \"resources/js/**/*.{js,vue}\" \"docs/**/*.md\" README.md CHANGELOG.md",
+        "format:check": "prettier --check \"resources/js/**/*.{js,vue}\" \"docs/**/*.md\" README.md CHANGELOG.md"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^1.0.14",

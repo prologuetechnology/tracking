@@ -2,89 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\GetShipmentDocumentsWithMetadata;
+use App\Actions\Tracking\ResolveTrackingPayload;
 use App\Models\Company;
-use App\Services\Pipeline\PipelineApiShipmentCoordinates;
-use App\Services\Pipeline\PipelineApiShipmentDocuments;
-use App\Services\Pipeline\PipelineApiShipmentSearch;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class DetailedTrackingController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly ResolveTrackingPayload $resolveTrackingPayload,
+    ) {
+    }
+
+    public function index(Request $request): InertiaResponse|RedirectResponse
     {
-        $trackingNumber = $request->query('trackingNumber') ?? null;
-        $searchOption = $request->query('searchOption') ?? null;
-        $companyId = $request->query('companyId') ?? null;
+        $trackingNumber = $request->string('trackingNumber')->value();
+        $searchOption = $request->string('searchOption')->value();
+        $companyId = $request->query('companyId');
         $brand = $request->query('brand') ? strtoupper($request->query('brand')) : null;
 
-        $shipmentSearchClient = new PipelineApiShipmentSearch;
-
-        $shipmentSearchResponse = $shipmentSearchClient->searchShipment(
+        $payload = $this->resolveTrackingPayload->execute(
             trackingNumber: $trackingNumber,
             searchOption: $searchOption,
-            globalSearch: true,
+            companyId: $companyId,
+            brand: $brand,
         );
 
-        // If error in trackingDataResponse, redirect to error page.
-        if ($shipmentSearchResponse->failed() || $shipmentSearchResponse->clientError() || empty($shipmentSearchResponse->object()->data)) {
+        if (! $payload['found']) {
             return redirect(route('trackShipment.notFound', $trackingNumber));
-        }
-
-        // Pipeline ID of the company the shipment belongs to.
-        $pipelineCompanyId = $shipmentSearchResponse->object()->data[0]?->companyId;
-
-        $trackingData = $shipmentSearchResponse->json();
-
-        // Attempt to get local company model from either the slug or the Pipeline company ID.
-        $company = Company::findByIdentifier($brand, $companyId, $pipelineCompanyId);
-
-        // If company requires brand and brand is not provided, redirect to error page.
-        if ($company?->requires_brand && ! $brand) {
-            return redirect(route('trackShipment.notFound', $trackingNumber));
-        }
-
-        $shipmentCoordinates = null;
-
-        // Get shipment coordinate data if enable_map option is active.
-        if ($company?->hasFeature('enable_map')) {
-            $pipelineApiShipmentCoordinates = new PipelineApiShipmentCoordinates;
-
-            $shipmentCoordinatesResponse = $pipelineApiShipmentCoordinates->getCoordinates(
-                $trackingNumber,
-                $pipelineCompanyId
-            );
-
-            $shipmentCoordinatesResponse->json();
-
-            $shipmentCoordinates = $shipmentCoordinatesResponse->json();
-        }
-
-        if ($company?->apiToken()->exists() && $company->hasFeature('enable_documents')) {
-            $selectedDocuments = [];
-
-            $shipmentDocumentsClient = new PipelineApiShipmentDocuments(apiKey: $company?->apiToken?->api_token);
-
-            $shipmentDocumentsResponse = $shipmentDocumentsClient->getShipmentDocuments(
-                $shipmentSearchResponse->object()->data[0]?->bolNum
-            );
-
-            $selectedDocuments = (new GetShipmentDocumentsWithMetadata)(
-                $shipmentDocumentsResponse->json(),
-                ['bol', 'pod']
-            );
         }
 
         return Inertia::render('brandedTracking/Index', [
-            'initialTrackingData' => $trackingData,
-            'initialCompany' => $company,
-            'initialShipmentCoordinates' => $shipmentCoordinates,
-            'initialShipmentDocuments' => $selectedDocuments ?? [],
+            'initialTrackingData' => $payload['trackingData'],
+            'initialCompany' => $payload['company'],
+            'initialShipmentCoordinates' => $payload['shipmentCoordinates'],
+            'initialShipmentDocuments' => $payload['shipmentDocuments'],
         ]);
     }
 
-    public function trackingDataNotFound($trackingNumber)
+    public function trackingDataNotFound(string $trackingNumber): InertiaResponse
     {
         return Inertia::render('brandedTracking/Error', [
             'trackingNumber' => $trackingNumber,

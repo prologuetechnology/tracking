@@ -24,7 +24,7 @@ const doesNotHaveCompanyFeature = (company, features) => {
 
 const useCompanyFeatures = ({ company = null } = {}) => {
   const resolveArgs = (companyOrFeatures, maybeFeatures) => {
-    if (typeof maybeFeatures === 'undefined') {
+    if (typeof maybeFeatures === `undefined`) {
       return {
         companyToCheck: company,
         featuresToCheck: companyOrFeatures,

@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { useAllowedDomainsQuery } from '@/composables/queries/allowedDomain'
 
 import AllowedDomainActiveStatusToggle from './AllowedDomainActiveStatusToggle.vue'
@@ -126,7 +125,7 @@ const allowedDomainsTable = useVueTable(tableOptions)
         >
           <TableRow
             v-for="row in allowedDomainsTable.getRowModel().rows"
-            :key="row.uuid"
+            :key="row.original.id"
           >
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
               <FlexRender

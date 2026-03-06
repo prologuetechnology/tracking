@@ -57,7 +57,7 @@ const { data: themes, isError } = useThemesQuery({
             <Button as-child variant="outline" size="sm">
               <Link
                 v-if="userCan(`theme:update`)"
-                :href="`/admin/themes/${theme.uuid}`"
+                :href="route(`admin.themes.show`, theme.uuid)"
                 >Edit</Link
               >
             </Button>

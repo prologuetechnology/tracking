@@ -3,7 +3,6 @@ import { Head, usePage } from '@inertiajs/vue3'
 
 import AlienGhostSvg from '@/components/art/AlienGhostSvg.vue'
 import DefaultLayout from '@/components/layout/page/DefaultLayout.vue'
-import TrackingLayout from '@/components/layout/page/TrackingLayout.vue'
 
 const {
   app: { name: appName },

@@ -1,7 +1,6 @@
 <script setup>
 import {
   faBuildings,
-  faChartTreeMap,
   faMagnifyingGlassLocation,
 } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'

@@ -2,76 +2,55 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\GenerateThemeColors;
+use App\Actions\Themes\CreateTheme;
+use App\Actions\Themes\ListThemes;
+use App\Actions\Themes\UpdateTheme;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DeleteThemeRequest;
 use App\Http\Requests\StoreThemeRequest;
 use App\Http\Requests\UpdateThemeRequest;
+use App\Http\Resources\ThemeResource;
 use App\Models\Theme;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class ThemeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        private readonly CreateTheme $createTheme,
+        private readonly ListThemes $listThemes,
+        private readonly UpdateTheme $updateTheme,
+    ) {
+    }
+
     public function index(): JsonResponse
     {
-        $themes = Theme::all();
-
-        return response()->json($themes, Response::HTTP_OK);
+        return response()->json(
+            ThemeResource::collection($this->listThemes->execute()),
+            Response::HTTP_OK,
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreThemeRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $colors = GenerateThemeColors::execute($data);
+        $theme = $this->createTheme->execute($request->validated());
 
-        $theme = (new Theme)->create([
-            'name' => $request->input('name'),
-            'colors' => $colors,
-            'radius' => $request->input('radius') ?? '0.5rem',
-            'is_system' => $request->input('is_system', false),
-            'derive_from' => $request->input('derive_from'),
-        ]);
-
-        return response()->json($theme, Response::HTTP_CREATED);
+        return response()->json(ThemeResource::make($theme), Response::HTTP_CREATED);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Theme $theme)
+    public function show(Theme $theme): JsonResponse
     {
-        return response()->json($theme, Response::HTTP_OK);
+        return response()->json(ThemeResource::make($theme), Response::HTTP_OK);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateThemeRequest $request, Theme $theme): JsonResponse
     {
-        $data = $request->validated();
-        $colors = GenerateThemeColors::execute($data);
+        $theme = $this->updateTheme->execute($theme, $request->validated());
 
-        $theme->update([
-            'name' => $request->input('name'),
-            'colors' => $colors,
-            'radius' => $request->input('radius') ?? '0.5rem',
-            'is_system' => $request->input('is_system', false),
-            'derive_from' => $request->input('derive_from'),
-        ]);
-
-        return response()->json($theme, Response::HTTP_OK);
+        return response()->json(ThemeResource::make($theme), Response::HTTP_OK);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Theme $theme)
+    public function destroy(Theme $theme, DeleteThemeRequest $request): JsonResponse
     {
         $theme->delete();
 

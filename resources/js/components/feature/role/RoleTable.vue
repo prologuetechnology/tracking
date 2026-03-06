@@ -83,7 +83,7 @@ const companiesTable = useVueTable(tableOptions)
         <template v-if="companiesTable.getRowModel().rows?.length">
           <TableRow
             v-for="row in companiesTable.getRowModel().rows"
-            :key="row.uuid"
+            :key="row.original.id"
           >
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
               <FlexRender

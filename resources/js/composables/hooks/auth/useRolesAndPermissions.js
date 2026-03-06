@@ -1,31 +1,13 @@
-import { usePage } from '@inertiajs/vue3'
-
-import { useUserQuery } from '@/composables/queries/user'
+import useAuthorization from './useAuthorization'
 
 const useRolesAndPermissions = () => {
-  const { user: initialUser } = usePage().props.auth
+  const { hasRole, can, cannot } = useAuthorization()
 
-  const { data: user } = useUserQuery({
-    userId: initialUser.id,
-
-    config: {
-      initialData: initialUser,
-    },
-  })
-
-  const userIs = (role) => {
-    return user.value.roles.some((r) => r.name === role)
+  return {
+    userIs: hasRole,
+    userCan: can,
+    userCannot: cannot,
   }
-
-  const userCan = (permission) => {
-    return user.value.roles[0].permissions.some((p) => p.name === permission)
-  }
-
-  const userCannot = (permission) => {
-    return !user.value.roles[0].permissions.some((p) => p.name === permission)
-  }
-
-  return { userIs, userCan, userCannot }
 }
 
 export default useRolesAndPermissions

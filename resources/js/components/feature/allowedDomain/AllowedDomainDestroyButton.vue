@@ -2,7 +2,7 @@
 import { faTrashAlt } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 import { Button } from '@/components/ui/button'
 import {

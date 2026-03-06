@@ -24,7 +24,8 @@ import {
 const props = defineProps({
   permission: {
     type: Object,
-    required: true,
+    required: false,
+    default: null,
   },
   heading: {
     type: String,
@@ -39,7 +40,7 @@ const permissionFormSchema = yup.object({
   guard_name: yup.string().min(1).required(),
 })
 
-const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
+const { isFieldDirty, handleSubmit, resetForm } = useForm({
   validationSchema: permissionFormSchema,
   initialValues: {
     name: props.permission?.name,
@@ -134,7 +135,7 @@ watch(
 
 <template>
   <form
-    id="permissionForm`"
+    id="permissionForm"
     class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
     @submit="submitForm"
   >

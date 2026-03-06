@@ -1,200 +1,86 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OAuthController;
 use App\Http\Controllers\DetailedTrackingController;
+use App\Http\Controllers\Pages\Admin\AllowedDomainPageController;
+use App\Http\Controllers\Pages\Admin\CompanyPageController;
+use App\Http\Controllers\Pages\Admin\DashboardController;
+use App\Http\Controllers\Pages\Admin\ImagePageController;
+use App\Http\Controllers\Pages\Admin\PermissionPageController;
+use App\Http\Controllers\Pages\Admin\RolePageController;
+use App\Http\Controllers\Pages\Admin\ThemePageController;
+use App\Http\Controllers\Pages\Admin\TrackingPageController;
+use App\Http\Controllers\Pages\Admin\UserPageController;
+use App\Http\Controllers\Pages\HomeController;
+use App\Http\Controllers\Pages\LoginPageController;
 use App\Http\Middleware\EnsureSuperAdmin;
-use App\Models\AllowedDomain;
-use App\Models\Company;
-use App\Models\CompanyFeature;
-use App\Models\Image;
-use App\Models\Theme;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Symfony\Component\HttpFoundation\Response;
 
-Route::get('/', function () {
-    if (Auth::check() && ! Auth::user()->can('company:show')) {
-        return redirect(route('admin.tracking.index'));
-    }
+Route::get('/', HomeController::class)->name('home');
+Route::get('/login', LoginPageController::class)->name('login');
 
-    if (Auth::check() && Auth::user()->can('company:show')) {
-        return redirect(route('admin.companies.index'));
-    }
-
-    return redirect(route('login'));
-})->name('home');
-
-Route::get('/login', function () {
-    if (Auth::check()) {
-        return redirect(route('admin.dashboard'));
-    }
-
-    return Inertia::render('auth/Login');
-})->name('login');
-
-// Admin routes
 Route::prefix('admin')
     ->as('admin.')
     ->middleware(['auth'])
     ->group(function () {
-        // Company routes
-        // Company index
-        Route::get('/companies', function () {
-            if (Auth::user()->cannot('company:show')) {
-                abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view companies.');
-            }
+        Route::get('dashboard', DashboardController::class)->name('dashboard');
 
-            $companies = Company::with(['logo', 'theme', 'features'])->get();
+        Route::controller(CompanyPageController::class)
+            ->group(function () {
+                Route::get('/companies', 'index')
+                    ->middleware('permission:company:show')
+                    ->name('companies.index');
+                Route::get('/companies/create', 'create')
+                    ->middleware('permission:company:store')
+                    ->name('companies.create');
+                Route::get('/company/{company:uuid}', 'show')
+                    ->middleware('permission:company:show')
+                    ->name('company.show');
+                Route::get('/companies/{company:uuid}', 'show')
+                    ->middleware('permission:company:show')
+                    ->name('companies.show');
+            });
 
-            return Inertia::render('admin/companies/Index', [
-                'initialCompanies' => $companies,
-            ]);
-        })->name('companies.index');
+        Route::controller(ThemePageController::class)
+            ->group(function () {
+                Route::get('themes', 'index')
+                    ->middleware('permission:theme:show')
+                    ->name('themes.index');
+                Route::get('themes/create', 'create')
+                    ->middleware('permission:theme:store')
+                    ->name('themes.create');
+                Route::get('theme/{theme:uuid}', 'show')
+                    ->middleware('permission:theme:show')
+                    ->name('theme.show');
+                Route::get('themes/{theme:uuid}', 'show')
+                    ->middleware('permission:theme:show')
+                    ->name('themes.show');
+            });
 
-        // Company create
-        Route::get('/companies/create', function () {
-            if (Auth::user()->cannot('company:store')) {
-                abort(Response::HTTP_FORBIDDEN, 'You do not have permission to create companies.');
-            }
+        Route::get('images', [ImagePageController::class, 'index'])
+            ->middleware('permission:image:show')
+            ->name('image.index');
 
-            return Inertia::render('admin/companies/Create');
-        })->name('companies.create');
+        Route::get('tracking', TrackingPageController::class)
+            ->name('tracking.index');
 
-        // Company show
-        Route::get('/company/{company:uuid}', function (Company $company) {
-            if (Auth::user()->cannot('company:show')) {
-                abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view companies.');
-            }
-
-            $companyFeatures = CompanyFeature::query()
-                ->orderBy('id', 'desc')
-                ->get();
-
-            $company->load(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
-
-            return Inertia::render('admin/companies/Edit', [
-                'companyInitialValues' => $company,
-                'companyFeaturesInitialValues' => $companyFeatures,
-            ]);
-        })->name('companies.show');
-
-        // Theme routes
-        // Theme index
-        Route::get('themes', function () {
-            if (Auth::user()->cannot('theme:show')) {
-                abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view themes.');
-            }
-
-            $themes = Theme::all();
-
-            return Inertia::render('admin/themes/Index', [
-                'initialThemes' => $themes,
-            ]);
-        })->name('themes.index');
-
-        // Theme create
-        Route::get('themes/create', function (Theme $theme) {
-            if (Auth::user()->cannot('theme:store')) {
-                abort(Response::HTTP_FORBIDDEN, 'You do not have permission to create themes.');
-            }
-
-            return Inertia::render('admin/themes/Create');
-        })->name('themes.create');
-
-        // Theme show
-        Route::get('themes/{theme:uuid}', function (Theme $theme) {
-            if (Auth::user()->cannot('theme:show')) {
-                abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view themes.');
-            }
-
-            return Inertia::render('admin/themes/Edit', [
-                'initialTheme' => $theme,
-            ]);
-        })->name('themes.show');
-
-        // Images routes
-
-        // Images index
-        Route::get('images', function () {
-            if (Auth::user()->cannot('image:show')) {
-                abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view images.');
-            }
-
-            $images = Image::with('imageType')->get();
-
-            return Inertia::render('admin/image/Index', [
-                'initialImages' => $images,
-            ]);
-        })->name('image.index');
-
-        // Tracking routes
-
-        // Tracking index
-        Route::get('tracking', function () {
-            return Inertia::render('admin/tracking/Index');
-        })->name('tracking.index');
-
-        // Admin Routes for Roles and Permissions
         Route::middleware(EnsureSuperAdmin::class)
             ->group(function () {
-                // Allowed Domains routes
-                Route::get('allowed-domains', function () {
-                    return Inertia::render('admin/allowedDomains/Index', [
-                        'initialAllowedDomains' => AllowedDomain::all(),
-                    ]);
-                })->name('allowed-domains.index');
-
-                // Users routes
-                Route::get('users', function () {
-                    $users = User::with('roles')->get();
-
-                    return Inertia::render('admin/users/Index', [
-                        'initialUsers' => $users,
-                        'allRoles' => Role::all()->map(fn ($role) => [
-                            'id' => $role->id,
-                            'name' => $role->name,
-                        ]),
-                    ]);
-                })->name('users.index');
-
-                // Permissions routes
-                Route::get('permissions', function () {
-                    return Inertia::render('admin/permissions/Index', [
-                        'initialPermissions' => Permission::all(),
-                    ]);
-                })->name('permissions.index');
-
-                Route::get('/permissions/{permission}', function (Permission $permission) {
-                    return Inertia::render('admin/permissions/Edit', [
-                        'initialPermission' => $permission,
-                    ]);
-                })->name('permissions.show');
-
-                Route::get('role', function () {
-                    return Inertia::render('admin/role/Index', [
-                        'roles' => Role::with('permissions')->get()->map(fn ($role) => [
-                            'id' => $role->id,
-                            'name' => $role->name,
-                            'permissions' => $role->permissions->pluck('name'),
-                        ]),
-                    ]);
-                })->name('role.index');
-
-                Route::get('role/show/{role}', function (Role $role) {
-                    $role->load('permissions');
-
-                    return Inertia::render('admin/role/Edit', [
-                        'initialRole' => $role,
-                        'allPermissions' => \Spatie\Permission\Models\Permission::all()->map(fn ($permission) => [
-                            'id' => $permission->id,
-                            'name' => $permission->name,
-                        ]),
-                    ]);
-                })->name('role.show');
+                Route::get('allowed-domains', [AllowedDomainPageController::class, 'index'])
+                    ->name('allowed-domains.index');
+                Route::get('users', [UserPageController::class, 'index'])
+                    ->name('users.index');
+                Route::get('permissions', [PermissionPageController::class, 'index'])
+                    ->name('permissions.index');
+                Route::get('permissions/create', [PermissionPageController::class, 'create'])
+                    ->name('permissions.create');
+                Route::get('/permissions/{permission}', [PermissionPageController::class, 'show'])
+                    ->name('permissions.show');
+                Route::get('role', [RolePageController::class, 'index'])
+                    ->name('role.index');
+                Route::get('role/show/{role}', [RolePageController::class, 'show'])
+                    ->name('role.show');
             });
     });
 

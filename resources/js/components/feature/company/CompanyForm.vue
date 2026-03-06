@@ -89,7 +89,7 @@ const { mutate: createCompany, isPending: createCompanyIsPending } =
           duration: 5000,
         })
 
-        router.visit(route(`admin.company.show`, data.uuid))
+        router.visit(route(`admin.companies.show`, data.uuid))
       },
     },
   })

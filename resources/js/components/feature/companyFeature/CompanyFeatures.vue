@@ -1,18 +1,14 @@
 <script setup>
 import { usePage } from '@inertiajs/vue3'
-import { useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { useToggleCompanyFeatureMutation } from '@/composables/mutations/company'
 import { useCompanyQuery } from '@/composables/queries/company'
 import { useCompanyFeaturesQuery } from '@/composables/queries/companyFeature'
 
 import ToggleCompanyFeature from '../company/ToggleCompanyFeature.vue'
 
 const { companyInitialValues, companyFeaturesInitialValues } = usePage().props
-const queryClient = useQueryClient()
 
 const { data: company } = useCompanyQuery({
   id: companyInitialValues.id,
@@ -38,31 +34,6 @@ const computedFeatures = computed(() => {
     enabled: enabledFeatureSlugs.has(feature.slug),
   }))
 })
-
-const { mutate: toggleFeature, isPending } = useToggleCompanyFeatureMutation({
-  config: {
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [`companies`, companyInitialValues.id],
-      })
-
-      await queryClient.invalidateQueries({
-        queryKey: [`companies`],
-      })
-    },
-  },
-})
-
-const handleToggle = (featureSlug) => {
-  if (!company.value?.id) {
-    return
-  }
-
-  toggleFeature({
-    companyId: company.value.id,
-    feature: featureSlug,
-  })
-}
 </script>
 
 <template>

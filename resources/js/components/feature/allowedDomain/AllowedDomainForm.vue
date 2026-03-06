@@ -45,7 +45,7 @@ const allowedDomainFormSchema = yup.object({
   is_active: yup.boolean(),
 })
 
-const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
+const { isFieldDirty, handleSubmit, resetForm } = useForm({
   validationSchema: allowedDomainFormSchema,
   initialValues: {
     domain: props.allowedDomain?.domain,
