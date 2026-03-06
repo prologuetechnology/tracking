@@ -31,7 +31,10 @@ class CompanyResource extends JsonResource
             'footer' => $this->whenLoaded('footer'),
             'theme' => $this->whenLoaded('theme'),
             'api_token' => $this->whenLoaded('apiToken', fn () => $this->apiToken),
-            'features' => CompanyFeatureResource::collection($this->whenLoaded('features')),
+            'features' => $this->whenLoaded(
+                'features',
+                fn () => CompanyFeatureResource::collection($this->features)->resolve(),
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

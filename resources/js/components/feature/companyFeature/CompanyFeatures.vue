@@ -23,10 +23,22 @@ const { data: companyFeatures } = useCompanyFeaturesQuery({
   },
 })
 
+const normalizeFeatures = (features) => {
+  if (Array.isArray(features)) {
+    return features
+  }
+
+  if (Array.isArray(features?.data)) {
+    return features.data
+  }
+
+  return []
+}
+
 const computedFeatures = computed(() => {
-  const allFeatures = companyFeatures.value ?? []
+  const allFeatures = normalizeFeatures(companyFeatures.value)
   const enabledFeatureSlugs = new Set(
-    (company.value?.features ?? []).map((feature) => feature.slug),
+    normalizeFeatures(company.value?.features).map((feature) => feature.slug),
   )
 
   return allFeatures.map((feature) => ({

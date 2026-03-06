@@ -1,8 +1,20 @@
+const normalizeFeatureList = (features) => {
+  if (Array.isArray(features)) {
+    return features
+  }
+
+  if (Array.isArray(features?.data)) {
+    return features.data
+  }
+
+  return []
+}
+
 const normalizeFeaturesToCheck = (features) =>
   Array.isArray(features) ? features : [features]
 
 const getCompanyFeatureSlugs = (company) =>
-  (company?.features ?? []).map((feature) => feature.slug)
+  normalizeFeatureList(company?.features).map((feature) => feature.slug)
 
 const hasCompanyFeature = (company, features) => {
   const featuresToCheck = normalizeFeaturesToCheck(features)
