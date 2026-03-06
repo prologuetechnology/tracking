@@ -9,7 +9,7 @@ defineProps({
     type: Object,
     required: true,
   },
-  allPermissions: {
+  initialPermissions: {
     type: Array,
     required: true,
   },
@@ -23,7 +23,7 @@ defineProps({
     <RolePermissionTable
       :role="initialRole"
       :permissions="initialRole.permissions"
-      :all-permissions="allPermissions"
+      :all-permissions="initialPermissions"
     />
   </AuthenticatedLayout>
 </template>

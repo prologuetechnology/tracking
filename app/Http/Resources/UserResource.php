@@ -15,8 +15,14 @@ class UserResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'roles' => RoleResource::collection($this->whenLoaded('roles')),
-            'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
+            'roles' => $this->whenLoaded(
+                'roles',
+                fn () => RoleResource::collection($this->roles)->resolve(),
+            ),
+            'permissions' => $this->whenLoaded(
+                'permissions',
+                fn () => PermissionResource::collection($this->permissions)->resolve(),
+            ),
             'avatar_url' => $this->avatar_url,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

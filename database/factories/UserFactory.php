@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -19,7 +20,9 @@ class UserFactory extends Factory
     public function configure()
     {
         return $this->afterCreating(function ($user) {
-            $user->syncRoles([RoleEnum::STANDARD->value]);
+            $user->syncRoles([
+                Role::findOrCreate(RoleEnum::STANDARD->value)->name,
+            ]);
         });
     }
 

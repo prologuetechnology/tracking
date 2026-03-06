@@ -8,13 +8,14 @@
 - [ ] Theme admin surface refactored to actions/resources with stable payloads
 - [ ] Allowed-domain admin surface refactored to actions/resources with stable
       payloads
-- [ ] RBAC admin surface refactored to thin controllers and explicit requests
+- [x] RBAC admin surface refactored to thin controllers and explicit requests
 - [ ] Tracking workflows extracted from controllers into actions/services
-- [ ] Feature coverage added for page access, hydration, and core admin APIs
-- [ ] Lint/build/test scripts documented and validated
+- [x] Feature coverage added for page access, hydration, and core admin APIs
+- [x] Lint/build/test scripts documented and validated
 
 ## Next
 
+- [ ] Add deterministic Dusk environment wiring for repeatable browser smoke runs
 - [ ] Normalize image admin surface to the same page-controller pattern
 - [ ] Add stronger error and observability guidance around Pipeline failures
 - [ ] Expand request authorization coverage across remaining API controllers

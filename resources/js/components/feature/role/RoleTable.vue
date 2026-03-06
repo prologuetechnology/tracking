@@ -14,8 +14,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table/index.js'
+import { useRolesQuery } from '@/composables/queries/roles'
 
-const { roles } = usePage().props
+const { initialRoles } = usePage().props
+
+const { data: roles, isError } = useRolesQuery({
+  config: {
+    initialData: initialRoles,
+  },
+})
 
 const columns = [
   {
@@ -63,7 +70,7 @@ const companiesTable = useVueTable(tableOptions)
 
 <template>
   <div class="rounded border border-border">
-    <Table v-if="roles">
+    <Table v-if="roles && !isError">
       <TableHeader>
         <TableRow
           v-for="headerGroup in companiesTable.getHeaderGroups()"

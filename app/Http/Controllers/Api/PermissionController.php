@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Permissions\CreatePermission;
+use App\Actions\Permissions\ListPermissions;
+use App\Actions\Permissions\ShowPermission;
+use App\Actions\Permissions\UpdatePermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DeletePermissionRequest;
 use App\Http\Requests\StorePermissionRequest;
@@ -12,33 +16,53 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends Controller
 {
+    public function __construct(
+        private readonly ListPermissions $listPermissions,
+        private readonly CreatePermission $createPermission,
+        private readonly ShowPermission $showPermission,
+        private readonly UpdatePermission $updatePermission,
+    ) {
+    }
+
     public function index(): \Illuminate\Http\JsonResponse
     {
         return response()->json(
-            PermissionResource::collection(Permission::query()->orderBy('name')->get()),
+            PermissionResource::collection($this->listPermissions->execute())->resolve(),
             Response::HTTP_OK,
         );
     }
 
     public function store(StorePermissionRequest $request): \Illuminate\Http\JsonResponse
     {
-        $permission = Permission::create($request->validated());
+        $permission = $this->createPermission->execute($request->validated());
 
-        return response()->json(PermissionResource::make($permission), Response::HTTP_CREATED);
+        return response()->json(
+            PermissionResource::make($permission)->resolve(),
+            Response::HTTP_CREATED,
+        );
     }
 
     public function show(Permission $permission): \Illuminate\Http\JsonResponse
     {
-        return response()->json(PermissionResource::make($permission), Response::HTTP_OK);
+        return response()->json(
+            PermissionResource::make($this->showPermission->execute($permission))->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
     public function update(
         UpdatePermissionRequest $request,
         Permission $permission,
     ): \Illuminate\Http\JsonResponse {
-        $permission->update($request->validated());
+        $permission = $this->updatePermission->execute(
+            $permission,
+            $request->validated(),
+        );
 
-        return response()->json(PermissionResource::make($permission), Response::HTTP_OK);
+        return response()->json(
+            PermissionResource::make($permission)->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
     public function destroy(

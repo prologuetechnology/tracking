@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Models\AllowedDomain;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
 class OAuthController extends Controller
@@ -25,7 +27,10 @@ class OAuthController extends Controller
 
         $emailDomain = substr(strrchr($socialiteUser->getEmail(), '@'), 1);
 
-        $allowedDomains = AllowedDomain::pluck('domain')->toArray();
+        $allowedDomains = AllowedDomain::query()
+            ->where('is_active', true)
+            ->pluck('domain')
+            ->toArray();
 
         // Check if the email domain is allowed
         if (! in_array($emailDomain, $allowedDomains)) {
@@ -49,7 +54,9 @@ class OAuthController extends Controller
         ]);
 
         if ($user->roles->isEmpty()) {
-            $user->syncRoles(['Standard']);
+            $user->syncRoles([
+                Role::findOrCreate(RoleEnum::STANDARD->value)->name,
+            ]);
         }
 
         event(new Registered($user));

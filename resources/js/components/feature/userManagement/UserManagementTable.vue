@@ -16,7 +16,7 @@ import { useUsersQuery } from '@/composables/queries/user'
 
 import ImpersonateUserButton from './ImpersonateUserButton.vue'
 
-const { initialUsers } = usePage().props
+const { initialUsers, initialRoles } = usePage().props
 
 const { data, isError } = useUsersQuery({
   config: {
@@ -49,6 +49,7 @@ const columns = [
     cell: ({ row }) => {
       return h(UserAssignRoleDropdown, {
         user: row.original,
+        allRoles: initialRoles,
       })
     },
   },

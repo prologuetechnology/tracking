@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Pages\Admin;
 
+use App\Actions\Permissions\ListPermissions;
+use App\Actions\Permissions\ShowPermission;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PermissionResource;
 use Inertia\Inertia;
@@ -10,11 +12,17 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionPageController extends Controller
 {
+    public function __construct(
+        private readonly ListPermissions $listPermissions,
+        private readonly ShowPermission $showPermission,
+    ) {
+    }
+
     public function index(): Response
     {
         return Inertia::render('admin/permissions/Index', [
-            'permissions' => PermissionResource::collection(
-                Permission::query()->orderBy('name')->get(),
+            'initialPermissions' => PermissionResource::collection(
+                $this->listPermissions->execute(),
             )->resolve(),
         ]);
     }
@@ -27,7 +35,9 @@ class PermissionPageController extends Controller
     public function show(Permission $permission): Response
     {
         return Inertia::render('admin/permissions/Edit', [
-            'permissions' => PermissionResource::make($permission)->resolve(),
+            'initialPermission' => PermissionResource::make(
+                $this->showPermission->execute($permission),
+            )->resolve(),
         ]);
     }
 }

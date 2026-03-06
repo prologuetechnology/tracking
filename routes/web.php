@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OAuthController;
 use App\Http\Controllers\DetailedTrackingController;
 use App\Http\Controllers\Pages\Admin\AllowedDomainPageController;
@@ -15,7 +14,12 @@ use App\Http\Controllers\Pages\Admin\UserPageController;
 use App\Http\Controllers\Pages\HomeController;
 use App\Http\Controllers\Pages\LoginPageController;
 use App\Http\Middleware\EnsureSuperAdmin;
+use App\Models\User;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/login', LoginPageController::class)->name('login');
@@ -97,10 +101,21 @@ Route::prefix('oauth')
 
 // Dusk testing route
 Route::get('/testing/oauth-login', function () {
-    $user = \App\Models\User::firstOrCreate(
+    abort_unless(App::environment(['local', 'testing']), 404);
+
+    foreach (['company:show', 'permission:show'] as $permission) {
+        Permission::findOrCreate($permission);
+    }
+
+    $superAdmin = Role::findOrCreate('Super Admin');
+    $superAdmin->syncPermissions(Permission::all());
+
+    $user = User::firstOrCreate(
         ['email' => 'dusk@example.com'],
         ['first_name' => 'Dusk', 'last_name' => 'Tester', 'password' => bcrypt('password')]
     );
+    $user->syncRoles([$superAdmin->name]);
+
     Auth::login($user);
 
     return redirect(route('home'));

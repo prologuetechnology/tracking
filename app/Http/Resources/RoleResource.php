@@ -12,7 +12,10 @@ class RoleResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
+            'permissions' => $this->whenLoaded(
+                'permissions',
+                fn () => PermissionResource::collection($this->permissions)->resolve(),
+            ),
         ];
     }
 }

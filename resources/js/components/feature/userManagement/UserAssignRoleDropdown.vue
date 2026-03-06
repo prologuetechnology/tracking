@@ -20,8 +20,6 @@ import { useUserQuery } from '@/composables/queries/user'
 
 const { user: initialCurrentUser } = usePage().props.auth
 
-const { data: roles } = useRolesQuery()
-
 const { data: currentUser } = useUserQuery({
   userId: initialCurrentUser.id,
 
@@ -35,10 +33,21 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  allRoles: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
 })
 
 const isCurrentUser = computed(() => {
   return props.user.id === currentUser.value.id
+})
+
+const { data: roles } = useRolesQuery({
+  config: {
+    initialData: props.allRoles,
+  },
 })
 
 const queryClient = useQueryClient()
