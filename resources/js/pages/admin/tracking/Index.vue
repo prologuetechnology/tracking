@@ -27,16 +27,22 @@ const {
 const trackingNumber = ref(``)
 const searchOption = ref(``)
 
-const { data, refetch, isError, isLoading, isFetching } = useTrackShipmentQuery(
-  {
-    config: {
-      enabled: false,
-    },
-
-    trackingNumber: trackingNumber,
-    searchOption: searchOption,
+const {
+  data,
+  refetch,
+  dataUpdatedAt,
+  isError,
+  isLoading,
+  isFetching,
+  isRefetching,
+} = useTrackShipmentQuery({
+  config: {
+    enabled: false,
   },
-)
+
+  trackingNumber: trackingNumber,
+  searchOption: searchOption,
+})
 
 const resetForm = () => {
   trackingNumber.value = ``
@@ -145,13 +151,14 @@ const submitForm = () => {
         :company="data?.company"
         :shipment-coordinates="data?.shipmentCoordinates"
         :shipment-documents="data?.shipmentDocuments"
-        :use-track-shipment-query-refetch="refetch"
+        :on-refresh="refetch"
+        :is-refreshing="isRefetching"
         :last-updated="dataUpdatedAt"
       />
     </div>
 
     <section
-      v-if="isError && !data?.trackingData?.bol_num"
+      v-if="isError && !data?.trackingData?.bolNum"
       class="mt-24 flex flex-col items-center justify-center space-y-12"
     >
       <h2 class="text-center text-3xl font-semibold text-primary">

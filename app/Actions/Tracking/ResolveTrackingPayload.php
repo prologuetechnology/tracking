@@ -2,14 +2,16 @@
 
 namespace App\Actions\Tracking;
 
-use App\Models\Company;
-use App\Services\Pipeline\PipelineApiShipmentCoordinates;
-use App\Services\Pipeline\PipelineApiShipmentSearch;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ResolveTrackingPayload
 {
     public function __construct(
+        private readonly SearchShipment $searchShipment,
+        private readonly ResolveTrackingCompany $resolveTrackingCompany,
+        private readonly GetShipmentCoordinates $getShipmentCoordinates,
         private readonly GetShipmentDocuments $getShipmentDocuments,
     ) {
     }
@@ -20,76 +22,118 @@ class ResolveTrackingPayload
         ?string $companyId = null,
         ?string $brand = null,
     ): array {
-        $shipmentSearchResponse = $this->search(
-            trackingNumber: $trackingNumber,
-            searchOption: $searchOption,
-        );
-
-        if ($this->isMissing($shipmentSearchResponse)) {
-            return [
-                'found' => false,
-            ];
-        }
-
-        $pipelineCompanyId = $shipmentSearchResponse->object()->data[0]?->companyId;
-        $company = Company::findByIdentifier($brand, $companyId, $pipelineCompanyId);
-
-        if ($company?->requires_brand && ! $brand) {
-            return [
-                'found' => false,
-            ];
-        }
-
-        $trackingData = $shipmentSearchResponse->json();
-
-        return [
-            'found' => true,
-            'trackingData' => $trackingData,
-            'company' => $company?->loadMissing(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']),
-            'shipmentCoordinates' => $this->coordinates(
-                company: $company,
+        try {
+            $shipmentSearchResponse = $this->search(
                 trackingNumber: $trackingNumber,
-                pipelineCompanyId: $pipelineCompanyId,
-            ),
-            'shipmentDocuments' => $this->getShipmentDocuments->execute(
-                company: $company,
-                trackingNumber: $shipmentSearchResponse->object()->data[0]?->bolNum,
-            ),
-        ];
+                searchOption: $searchOption,
+            );
+
+            if ($this->isMissing($shipmentSearchResponse)) {
+                $this->logSearchFailureIfNeeded(
+                    response: $shipmentSearchResponse,
+                    trackingNumber: $trackingNumber,
+                    searchOption: $searchOption,
+                    companyId: $companyId,
+                    brand: $brand,
+                );
+
+                return [
+                    'found' => false,
+                ];
+            }
+
+            $trackingData = $this->extractShipment($shipmentSearchResponse);
+            $pipelineCompanyId = data_get($trackingData, 'companyId');
+            $resolvedCompanyId = is_numeric($companyId) ? (int) $companyId : null;
+            $resolvedPipelineCompanyId = is_numeric($pipelineCompanyId) ? (int) $pipelineCompanyId : null;
+
+            $company = $this->resolveTrackingCompany->execute(
+                brand: $brand,
+                companyId: $resolvedCompanyId,
+                pipelineCompanyId: $resolvedPipelineCompanyId,
+            );
+
+            if ($company?->requires_brand && ! $brand) {
+                return [
+                    'found' => false,
+                ];
+            }
+
+            return [
+                'found' => true,
+                'trackingData' => $trackingData,
+                'company' => $company,
+                'shipmentCoordinates' => $this->getShipmentCoordinates->execute(
+                    company: $company,
+                    trackingNumber: data_get($trackingData, 'bolNum', $trackingNumber),
+                    pipelineCompanyId: is_scalar($pipelineCompanyId) ? (string) $pipelineCompanyId : null,
+                ),
+                'shipmentDocuments' => $this->getShipmentDocuments->execute(
+                    company: $company,
+                    trackingNumber: data_get($trackingData, 'bolNum', $trackingNumber),
+                ),
+            ];
+        } catch (Throwable $exception) {
+            Log::warning('Tracking payload resolution failed.', [
+                'status' => null,
+                'exception' => $exception::class,
+                'company_id' => $companyId,
+                'brand' => $brand,
+                'search_option' => $searchOption,
+                'tracking_number_suffix' => $this->maskTrackingNumber($trackingNumber),
+            ]);
+
+            return [
+                'found' => false,
+            ];
+        }
     }
 
     private function search(string $trackingNumber, string $searchOption): Response
     {
-        $shipmentSearchClient = new PipelineApiShipmentSearch;
-
-        return $shipmentSearchClient->searchShipment(
-            trackingNumber: $trackingNumber,
-            searchOption: $searchOption,
-            globalSearch: true,
-        );
+        return $this->searchShipment->execute($trackingNumber, $searchOption);
     }
 
     private function isMissing(Response $response): bool
     {
         return $response->failed()
             || $response->clientError()
-            || empty($response->object()->data);
+            || empty($this->extractShipment($response));
     }
 
-    private function coordinates(
-        ?Company $company,
+    private function extractShipment(Response $response): ?array
+    {
+        $shipment = data_get($response->json(), 'data.0');
+
+        return is_array($shipment) ? $shipment : null;
+    }
+
+    private function logSearchFailureIfNeeded(
+        Response $response,
         string $trackingNumber,
-        ?string $pipelineCompanyId,
-    ): ?array {
-        if (! $company?->hasFeature('enable_map')) {
-            return null;
+        string $searchOption,
+        ?string $companyId,
+        ?string $brand,
+    ): void {
+        if (! $response->failed() && ! $response->clientError()) {
+            return;
         }
 
-        $shipmentCoordinatesResponse = (new PipelineApiShipmentCoordinates)->getCoordinates(
-            $trackingNumber,
-            $pipelineCompanyId,
-        );
+        Log::warning('Shipment search failed.', [
+            'status' => $response->status(),
+            'exception' => null,
+            'company_id' => $companyId,
+            'brand' => $brand,
+            'search_option' => $searchOption,
+            'tracking_number_suffix' => $this->maskTrackingNumber($trackingNumber),
+        ]);
+    }
 
-        return $shipmentCoordinatesResponse->json();
+    private function maskTrackingNumber(string $trackingNumber): string
+    {
+        $suffix = substr($trackingNumber, -4);
+        $prefixLength = max(strlen($trackingNumber) - strlen($suffix), 0);
+
+        return str_repeat('*', $prefixLength).$suffix;
     }
 }

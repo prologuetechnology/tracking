@@ -21,6 +21,17 @@ class GetShipmentDocumentsWithMetadata
                 try {
                     $response = Http::withOptions(['stream' => true])->head($url);
 
+                    if (! $response->successful()) {
+                        return [
+                            ...$doc,
+                            'url' => $url,
+                            'type' => null,
+                            'size' => null,
+                            'last_modified' => null,
+                            'error' => true,
+                        ];
+                    }
+
                     return [
                         ...$doc,
                         'url' => $url,

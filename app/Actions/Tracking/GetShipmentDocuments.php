@@ -5,6 +5,7 @@ namespace App\Actions\Tracking;
 use App\Actions\GetShipmentDocumentsWithMetadata;
 use App\Models\Company;
 use App\Services\Pipeline\PipelineApiShipmentDocuments;
+use Illuminate\Support\Facades\Log;
 
 class GetShipmentDocuments
 {
@@ -22,9 +23,28 @@ class GetShipmentDocuments
             $trackingNumber,
         );
 
+        if ($shipmentDocumentsResponse->failed()) {
+            Log::warning('Shipment documents lookup failed.', [
+                'status' => $shipmentDocumentsResponse->status(),
+                'company_id' => $company->id,
+                'pipeline_company_id' => $company->pipeline_company_id,
+                'tracking_number_suffix' => $this->maskTrackingNumber($trackingNumber),
+            ]);
+
+            return [];
+        }
+
         return (new GetShipmentDocumentsWithMetadata)(
             $shipmentDocumentsResponse->json(),
             ['bol', 'pod'],
         );
+    }
+
+    private function maskTrackingNumber(string $trackingNumber): string
+    {
+        $suffix = substr($trackingNumber, -4);
+        $prefixLength = max(strlen($trackingNumber) - strlen($suffix), 0);
+
+        return str_repeat('*', $prefixLength).$suffix;
     }
 }

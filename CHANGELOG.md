@@ -18,3 +18,8 @@
   scaffold tests.
 - Users, roles, and permissions now use resource-backed page/API payloads with
   stable initial hydration props and thin action-driven controllers.
+- Tracking search, coordinates, documents, and branded tracking hydration now
+  use normalized resource-backed payloads instead of leaking raw Pipeline
+  envelopes into Vue.
+- Dusk is now wired for local/testing with a dedicated provider path and a
+  shared sqlite browser-test environment.

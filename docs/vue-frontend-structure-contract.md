@@ -28,6 +28,8 @@ This repository is the Vue adaptation of the transfer-kit frontend structure.
   `config.initialData`.
 - Preserve the same response shape between initial props and the follow-up API
   query where possible.
+- Tracking pages consume a normalized `trackingData` shipment object. Do not
+  depend on raw external envelopes such as `trackingData.data[0]` in Vue code.
 
 ## Authorization
 

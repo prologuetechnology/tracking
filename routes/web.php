@@ -101,7 +101,7 @@ Route::prefix('oauth')
 
 // Dusk testing route
 Route::get('/testing/oauth-login', function () {
-    abort_unless(App::environment(['local', 'testing']), 404);
+    abort_unless(App::environment(['local', 'testing', 'dusk.local']), 404);
 
     foreach (['company:show', 'permission:show'] as $permission) {
         Permission::findOrCreate($permission);

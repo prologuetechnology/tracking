@@ -38,13 +38,13 @@ defineProps({
 })
 
 const bolNumber = computed(() => {
-  return initialTrackingData?.data.bolNum
+  return initialTrackingData?.bolNum
 })
 
 const proNumber = computed(() => {
-  const proNumber = initialTrackingData?.data?.carrierPro
+  const proNumber = initialTrackingData?.carrierPro
 
-  const statusWithProNumber = initialTrackingData?.data?.allStatuses?.find(
+  const statusWithProNumber = initialTrackingData?.allStatuses?.find(
     (status) => status.pro_number !== null,
   )
 

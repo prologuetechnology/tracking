@@ -205,6 +205,10 @@ class Company extends Model
 
     public function hasFeature(string $slug): bool
     {
+        if (in_array($slug, self::featureBackedBooleanFields(), true) && (bool) $this->getAttribute($slug)) {
+            return true;
+        }
+
         if ($this->relationLoaded('features')) {
             return $this->features->contains('slug', $slug);
         }
@@ -295,16 +299,24 @@ class Company extends Model
                 case $brand:
                     $company = $query->whereRaw('BINARY `brand` = ?', [$brand])->first();
 
-                    if ($company->pipeline_company_id !== $pipelineCompanyId) {
-                        return $company = null;
+                    if (! $company) {
+                        return null;
+                    }
+
+                    if ($pipelineCompanyId !== null && $company->pipeline_company_id !== $pipelineCompanyId) {
+                        return null;
                     }
 
                     break;
                 case $companyId:
                     $company = $query->where('pipeline_company_id', $companyId)->first();
 
-                    if ($company->pipeline_company_id !== $pipelineCompanyId) {
-                        return $company = null;
+                    if (! $company) {
+                        return null;
+                    }
+
+                    if ($pipelineCompanyId !== null && $company->pipeline_company_id !== $pipelineCompanyId) {
+                        return null;
                     }
 
                     break;
@@ -314,10 +326,6 @@ class Company extends Model
                     break;
                 default:
                     return null;
-            }
-
-            if ($company && $company->requires_brand && ! $brand) {
-                return null;
             }
 
             return $company;

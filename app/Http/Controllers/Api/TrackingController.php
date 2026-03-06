@@ -2,18 +2,22 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Tracking\GetShipmentCoordinates;
+use App\Actions\Tracking\ResolveTrackingCompany;
 use App\Actions\Tracking\ResolveTrackingPayload;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GetShipmentCoordinatesRequest;
 use App\Http\Requests\GetTrackingStatusesRequest;
-use App\Models\Company;
-use App\Services\Pipeline\PipelineApiShipmentCoordinates;
+use App\Http\Resources\ShipmentCoordinateResource;
+use App\Http\Resources\TrackingPayloadResource;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrackingController extends Controller
 {
     public function __construct(
+        private readonly ResolveTrackingCompany $resolveTrackingCompany,
+        private readonly GetShipmentCoordinates $getShipmentCoordinates,
         private readonly ResolveTrackingPayload $resolveTrackingPayload,
     ) {
     }
@@ -32,27 +36,16 @@ class TrackingController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json([
-            'trackingData' => $payload['trackingData'],
-            'company' => $payload['company'],
-            'shipmentCoordinates' => $payload['shipmentCoordinates'],
-            'shipmentDocuments' => $payload['shipmentDocuments'],
-        ], Response::HTTP_OK);
+        return response()->json(
+            TrackingPayloadResource::make($payload)->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
     public function shipmentCoordinates(GetShipmentCoordinatesRequest $request): JsonResponse
     {
-        $shipmentCoordinates = new PipelineApiShipmentCoordinates;
-
-        $response = $shipmentCoordinates->getCoordinates(
-            $request->validated('trackingNumber'),
-            $request->validated('pipelineCompanyId')
-        );
-
-        $company = Company::findByIdentifier(
-            null,
-            null,
-            $request->validated('pipelineCompanyId'),
+        $company = $this->resolveTrackingCompany->execute(
+            pipelineCompanyId: (int) $request->validated('pipelineCompanyId'),
         );
 
         if (! $company || ! $company->hasFeature('enable_map')) {
@@ -61,6 +54,20 @@ class TrackingController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
 
-        return response()->json($response->json(), Response::HTTP_OK);
+        $shipmentCoordinates = $this->getShipmentCoordinates->execute(
+            company: $company,
+            trackingNumber: $request->validated('trackingNumber'),
+            pipelineCompanyId: $request->validated('pipelineCompanyId'),
+        );
+
+        if ($shipmentCoordinates === null) {
+            return response()->json([
+                'error' => 'Unable to fetch shipment coordinates.',
+            ], Response::HTTP_BAD_GATEWAY);
+        }
+
+        return response()->json([
+            'shipmentCoordinates' => ShipmentCoordinateResource::collection($shipmentCoordinates)->resolve(),
+        ], Response::HTTP_OK);
     }
 }

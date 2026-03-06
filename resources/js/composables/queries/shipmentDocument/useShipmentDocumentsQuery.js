@@ -21,13 +21,6 @@ const useShipmentDocumentsQuery = ({
       }),
 
     retry: false,
-    select: ({ shipmentDocuments }) => {
-      const data = {
-        shipmentDocuments: shipmentDocuments,
-      }
-      return data
-    },
-
     ...config,
   })
 

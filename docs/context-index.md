@@ -33,6 +33,7 @@ context in this repository.
 - Build/test tooling:
   - `composer.json`
   - `package.json`
+  - `.env.dusk.local`
 
 ## Local Project Docs
 
@@ -50,6 +51,9 @@ context in this repository.
   - `docs/dev-runbook.md`
 - Release expectations:
   - `docs/release-process.md`
+- Browser smoke test runtime:
+  - `tests/DuskTestCase.php`
+  - `tests/Browser/AdminSmokeTest.php`
 
 ## Transfer-Kit Reference
 

@@ -36,6 +36,9 @@ Last updated: 2026-03-06
 - Vue Query composables must consume that dataset via `config.initialData`.
 - Do not ship loading-only first paint for admin index and edit pages when the
   route/controller already has the data.
+- Tracking and branded tracking pages must hydrate with the same normalized
+  shipment/company/document/coordinate shapes that the follow-up API queries
+  return.
 
 ## Frontend
 
@@ -69,6 +72,7 @@ Last updated: 2026-03-06
 ## Testing And Validation
 
 - Backend verification: `php artisan test`
+- Browser verification: `php artisan dusk`
 - Frontend production verification: `npm run build`
 - Static frontend verification: `npm run lint`
 - Formatting verification: `npm run format:check`
