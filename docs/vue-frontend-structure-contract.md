@@ -30,12 +30,17 @@ This repository is the Vue adaptation of the transfer-kit frontend structure.
   query where possible.
 - Tracking pages consume a normalized `trackingData` shipment object. Do not
   depend on raw external envelopes such as `trackingData.data[0]` in Vue code.
+- Image admin consumes flat image resources with a nested `image_type` object.
+  Do not switch between raw relations and resource-wrapped payloads in Vue.
 
 ## Authorization
 
 - Use a shared auth helper composable for role/permission checks.
 - Do not inspect `usePage().props.auth` ad hoc across components when a shared
   helper can answer the same question.
+- Keep dialog-level uploads and deletes responsible only for mutations and
+  query invalidation. The page controller remains the source of first render
+  data, and filtered table reads stay inside Vue Query composables.
 
 ## Folder Contract
 

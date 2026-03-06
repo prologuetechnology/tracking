@@ -54,6 +54,10 @@ context in this repository.
 - Browser smoke test runtime:
   - `tests/DuskTestCase.php`
   - `tests/Browser/AdminSmokeTest.php`
+- Image admin/API contract coverage:
+  - `tests/Feature/ImageAdminAlignmentTest.php`
+- Admin API hardening coverage:
+  - `tests/Feature/AdminApiHardeningTest.php`
 
 ## Transfer-Kit Reference
 

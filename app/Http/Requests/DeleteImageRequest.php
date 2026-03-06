@@ -4,11 +4,11 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ValidateCompanyApiTokenRequest extends FormRequest
+class DeleteImageRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('company:show') ?? false;
+        return $this->user()?->can('image:destroy') ?? false;
     }
 
     public function rules(): array

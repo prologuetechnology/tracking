@@ -28,28 +28,31 @@ const isOpen = ref(false)
 
 const queryClient = useQueryClient()
 
-const { mutate: destroyCompanyApiToken } = useCompanyApiTokenDestroyMutation({
-  config: {
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: [`companies`] })
+const { mutate: destroyCompanyApiToken, isPending: isDeleting } =
+  useCompanyApiTokenDestroyMutation({
+    config: {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: [`companies`] })
 
-      toast({
-        title: `API Token Deleted`,
-        description: `The API token has been successfully deleted.`,
-        duration: 5000,
-      })
+        toast({
+          title: `API Token Deleted`,
+          description: `The API token has been successfully deleted.`,
+          duration: 5000,
+        })
 
-      isOpen.value = false
+        isOpen.value = false
+      },
+      onError: async (error) => {
+        toast({
+          title: `Error Deleting API Token`,
+          description:
+            error.response?.data?.error ??
+            `An error occurred while deleting the API token.`,
+          duration: 5000,
+        })
+      },
     },
-  },
-  onError: async (error) => {
-    toast({
-      title: `Error Deleting API Token`,
-      description: error.message,
-      duration: 5000,
-    })
-  },
-})
+  })
 
 const handleDeleteToken = () => {
   destroyCompanyApiToken({

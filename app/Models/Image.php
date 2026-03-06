@@ -39,27 +39,17 @@ class Image extends Model
     /** @use HasFactory<\Database\Factories\ImageFactory> */
     use HasFactory, HasUuid;
 
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
+        static::deleting(function (Image $image) {
+            $type = $image->loadMissing('imageType')->imageType?->name;
 
-        static::deleting(function ($image) {
-            switch ($image->type) {
-                case ImageTypeEnum::LOGO->value:
-                    Company::where('logo_image_id', $image->id)->update(['logo_image_id' => null]);
-                    break;
-
-                case ImageTypeEnum::BANNER->value:
-                    Company::where('banner_image_id', $image->id)->update(['banner_image_id' => null]);
-                    break;
-
-                case ImageTypeEnum::FOOTER->value:
-                    Company::where('footer_image_id', $image->id)->update(['footer_image_id' => null]);
-                    break;
-
-                default:
-                    return;
-            }
+            match ($type) {
+                ImageTypeEnum::LOGO->value => Company::query()->where('logo_image_id', $image->id)->update(['logo_image_id' => null]),
+                ImageTypeEnum::BANNER->value => Company::query()->where('banner_image_id', $image->id)->update(['banner_image_id' => null]),
+                ImageTypeEnum::FOOTER->value => Company::query()->where('footer_image_id', $image->id)->update(['footer_image_id' => null]),
+                default => null,
+            };
         });
     }
 

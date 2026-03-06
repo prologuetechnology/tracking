@@ -1,10 +1,10 @@
 <script setup>
-import { faImage } from '@fortawesome/pro-duotone-svg-icons'
+import { faUpload } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useQueryClient } from '@tanstack/vue-query'
 import { VisuallyHidden } from 'radix-vue'
 import { useForm } from 'vee-validate'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import * as yup from 'yup'
 
 import { Button } from '@/components/ui/button'
@@ -25,37 +25,33 @@ import {
   FormLabel,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/components/ui/toast'
-import { useCompanySetImageAssetMutation } from '@/composables/mutations/company'
 import { useImageStoreMutation } from '@/composables/mutations/image'
 import { useImageTypesQuery } from '@/composables/queries/imageType'
-import { imageTypes } from '@/lib/types'
 
 const props = defineProps({
-  company: {
-    type: Object,
+  initialImageTypes: {
+    type: Array,
     required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-    validator(value) {
-      return Object.values(imageTypes).includes(value)
-    },
-  },
-  iconOnly: {
-    type: Boolean,
-    default: false,
   },
 })
 
 const isOpen = ref(false)
-
 const queryClient = useQueryClient()
 const { toast } = useToast()
 
-const newLogoFormSchema = yup.object({
-  name: yup.string().min(1).required(),
+const imageUploadSchema = yup.object({
+  name: yup.string().required(`Image name is required`),
+  image_type_id: yup.string().required(`Image type is required`),
   image: yup
     .mixed()
     .required(`Image file is required`)
@@ -66,48 +62,36 @@ const newLogoFormSchema = yup.object({
     ),
 })
 
-const { resetForm, isFieldDirty, handleSubmit } = useForm({
-  validationSchema: newLogoFormSchema,
-})
-
-const { data: imageTypesData } = useImageTypesQuery()
-
-const currentImageTypeId = computed(() => {
-  const imageType = (imageTypesData.value ?? []).find(
-    (item) => item.name === props.type,
-  )
-
-  return imageType?.id ?? null
-})
-
-const { mutate: setImageAsset } = useCompanySetImageAssetMutation({
+const { data: imageTypes } = useImageTypesQuery({
   config: {
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [`companies`, props.company.id],
-        exact: true,
-      })
-
-      await queryClient.invalidateQueries({
-        queryKey: [`companies`],
-        exact: true,
-      })
-    },
+    initialData: props.initialImageTypes,
   },
 })
 
-const { mutate: createLogo, isPending } = useImageStoreMutation({
-  config: {
-    onSuccess: (data) => {
-      resetForm()
+const { handleSubmit, isFieldDirty, resetForm } = useForm({
+  validationSchema: imageUploadSchema,
+  initialValues: {
+    name: ``,
+    image_type_id: ``,
+    image: null,
+  },
+})
 
-      setImageAsset({
-        companyId: props.company.id,
-        imageId: data.id,
-        type: props.type,
+const { mutate: storeImage, isPending } = useImageStoreMutation({
+  config: {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [`images`],
       })
 
+      resetForm()
       isOpen.value = false
+
+      toast({
+        title: `Image Uploaded`,
+        description: `The image has been added to the library.`,
+        duration: 5000,
+      })
     },
     onError: (error) => {
       toast({
@@ -121,40 +105,18 @@ const { mutate: createLogo, isPending } = useImageStoreMutation({
   },
 })
 
-const onValidForm = (values) => {
-  if (!currentImageTypeId.value) {
-    toast({
-      title: `Missing Image Type`,
-      description: `The selected image type could not be resolved.`,
-      variant: `destructive`,
-    })
-
-    return
-  }
-
+const onValidSubmit = (values) => {
   const formData = new FormData()
   formData.append(`name`, values.name)
+  formData.append(`image_type_id`, values.image_type_id)
   formData.append(`image`, values.image)
-  formData.append(`image_type_id`, `${currentImageTypeId.value}`)
 
-  createLogo({
-    formData,
-  })
-}
-
-const onInvalidForm = ({ errors }) => {
-  toast({
-    title: `Validation Error`,
-    description: errors.name || errors.image || `Please fix the form errors.`,
-    variant: `destructive`,
-  })
+  storeImage({ formData })
 }
 
 const submitForm = () => {
-  handleSubmit(onValidForm, onInvalidForm)()
+  handleSubmit(onValidSubmit)()
 }
-
-const dialogTitle = computed(() => `Add New ${props.type}`)
 
 const cancelDialog = () => {
   isOpen.value = false
@@ -165,41 +127,27 @@ const cancelDialog = () => {
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger as-child>
-      <Button
-        variant="outline"
-        size="sm"
-        :class="{
-          'w-full': !iconOnly,
-          'w-auto': iconOnly,
-        }"
-      >
-        <FontAwesomeIcon
-          :class="{
-            'mr-2': !iconOnly,
-          }"
-          :icon="faImage"
-          fixed-width
-        />
-
-        <span v-if="!iconOnly">
-          <slot />
-        </span>
+      <Button size="sm">
+        <FontAwesomeIcon class="mr-2" :icon="faUpload" fixed-width />
+        Upload Image
       </Button>
     </DialogTrigger>
 
     <DialogContent class="max-h-[85dvh] grid-rows-[auto_minmax(0,1fr)_auto]">
       <DialogHeader>
-        <DialogTitle>{{ dialogTitle }}</DialogTitle>
+        <DialogTitle>Upload Image</DialogTitle>
 
         <VisuallyHidden as-child>
-          <DialogDescription>A dialog to add a logo.</DialogDescription>
+          <DialogDescription
+            >Upload an image to the shared image library.</DialogDescription
+          >
         </VisuallyHidden>
       </DialogHeader>
 
       <form
-        id="newLogoForm"
+        id="imageUploadForm"
         class="flex w-full flex-col space-y-4 overflow-y-auto px-2"
-        @submit="submitForm"
+        @submit.prevent="submitForm"
       >
         <FormField
           v-slot="{ componentField }"
@@ -207,20 +155,54 @@ const cancelDialog = () => {
           :validate-on-blur="!isFieldDirty"
         >
           <FormItem>
-            <FormLabel> Name </FormLabel>
+            <FormLabel>Name</FormLabel>
 
             <FormControl>
               <Input
                 type="text"
-                placeholder="ACME Inc. Logo"
+                placeholder="ACME Logo"
                 v-bind="componentField"
                 :disabled="isPending"
               />
             </FormControl>
 
-            <FormDescription>
-              The name of the logo image file.
-            </FormDescription>
+            <FormDescription>The display name for this image.</FormDescription>
+          </FormItem>
+        </FormField>
+
+        <FormField
+          v-slot="{ componentField }"
+          name="image_type_id"
+          :validate-on-blur="!isFieldDirty"
+        >
+          <FormItem>
+            <FormLabel>Image Type</FormLabel>
+
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger class="w-full">
+                  <SelectValue placeholder="Select an image type" />
+                </SelectTrigger>
+              </FormControl>
+
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Image Types</SelectLabel>
+
+                  <SelectItem
+                    v-for="imageType in imageTypes"
+                    :key="imageType.id"
+                    :value="`${imageType.id}`"
+                  >
+                    {{ imageType.name }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <FormDescription
+              >The image category used by the app.</FormDescription
+            >
           </FormItem>
         </FormField>
 
@@ -243,7 +225,7 @@ const cancelDialog = () => {
               />
             </FormControl>
 
-            <FormDescription> The image file. </FormDescription>
+            <FormDescription>PNG, JPG, JPEG, or SVG up to 2MB.</FormDescription>
           </FormItem>
         </FormField>
       </form>
@@ -261,12 +243,10 @@ const cancelDialog = () => {
         </Button>
 
         <Button
-          type="button"
-          variant="default"
+          form="imageUploadForm"
+          type="submit"
           size="sm"
-          class=""
           :disabled="isPending"
-          @click="submitForm"
         >
           Save
         </Button>

@@ -2,52 +2,25 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Images\ListImageTypes;
 use App\Http\Controllers\Controller;
-use App\Models\ImageType;
-use Illuminate\Http\Request;
+use App\Http\Requests\ListImageTypesRequest;
+use App\Http\Resources\ImageTypeResource;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class ImageTypesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $imageTypes = ImageType::get();
-
-        return response()->json($imageTypes, Response::HTTP_OK);
+    public function __construct(
+        private readonly ListImageTypes $listImageTypes,
+    ) {
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function index(ListImageTypesRequest $request): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(ImageType $imageType)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, ImageType $imageType)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ImageType $imageType)
-    {
-        //
+        return response()->json(
+            ImageTypeResource::collection($this->listImageTypes->execute())->resolve(),
+            Response::HTTP_OK,
+        );
     }
 }

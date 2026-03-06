@@ -26,11 +26,23 @@ class CompanyResource extends JsonResource
             'enable_documents' => (bool) $this->enable_documents,
             'requires_brand' => (bool) $this->requires_brand,
             'brand' => $this->brand,
-            'logo' => $this->whenLoaded('logo'),
-            'banner' => $this->whenLoaded('banner'),
-            'footer' => $this->whenLoaded('footer'),
+            'logo' => $this->whenLoaded(
+                'logo',
+                fn () => ImageResource::make($this->logo)->resolve(),
+            ),
+            'banner' => $this->whenLoaded(
+                'banner',
+                fn () => ImageResource::make($this->banner)->resolve(),
+            ),
+            'footer' => $this->whenLoaded(
+                'footer',
+                fn () => ImageResource::make($this->footer)->resolve(),
+            ),
             'theme' => $this->whenLoaded('theme'),
-            'api_token' => $this->whenLoaded('apiToken', fn () => $this->apiToken),
+            'api_token' => $this->whenLoaded(
+                'apiToken',
+                fn () => CompanyApiTokenResource::make($this->apiToken)->resolve(),
+            ),
             'features' => $this->whenLoaded(
                 'features',
                 fn () => CompanyFeatureResource::collection($this->features)->resolve(),

@@ -23,3 +23,11 @@
   envelopes into Vue.
 - Dusk is now wired for local/testing with a dedicated provider path and a
   shared sqlite browser-test environment.
+- Image admin now uses page-controller hydration, read-only image type catalog
+  data, resource-backed image payloads, and request-scoped auth on the active
+  index/store/destroy surface.
+- Company API token store/validate flows now use request/action/resource
+  layering with corrected Pipeline company matching and stable token payloads.
+- Impersonation keeps its `/api/...` endpoints but now runs on browser-session
+  auth middleware so redirect-based impersonation and restore flows are
+  coherent in both the app and the test suite.

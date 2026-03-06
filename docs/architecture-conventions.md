@@ -6,6 +6,8 @@ Last updated: 2026-03-06
 
 - Framework: Laravel 11.
 - Auth: session auth for web, Sanctum for API.
+- Exception: impersonation keeps its `/api/...` paths but must run on browser
+  session middleware because it changes the authenticated session and redirects.
 - OAuth: Microsoft Azure via Socialite, constrained by allowed email domains.
 - RBAC: Spatie Permission with colon-delimited permissions such as
   `company:show`.
@@ -39,6 +41,9 @@ Last updated: 2026-03-06
 - Tracking and branded tracking pages must hydrate with the same normalized
   shipment/company/document/coordinate shapes that the follow-up API queries
   return.
+- Image admin pages must hydrate both the initial image collection and the
+  image-type catalog from the page controller. The follow-up Vue Query payload
+  must keep the same nested `image_type` shape.
 
 ## Frontend
 
@@ -65,6 +70,8 @@ Last updated: 2026-03-06
 
 - Do not log raw tracking payloads, document URLs, OAuth tokens, or request
   headers with secrets.
+- Do not log uploaded file contents, image request bodies, or raw company API
+  tokens.
 - Log IDs, route names, company IDs, user IDs, and status metadata instead.
 - External service failures should be summarized without dumping the full remote
   payload unless explicitly redacted first.

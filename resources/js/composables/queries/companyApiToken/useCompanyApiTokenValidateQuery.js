@@ -14,7 +14,8 @@ const useCompanyApiTokenValidateQuery = ({ companyId, config = {} }) =>
     queryKey: [`companyApiToken`, companyId, `validate`],
     queryFn: () => validateCompanyApiToken({ companyId }),
 
-    select: (data) => Boolean(data),
+    select: (data) =>
+      Boolean(typeof data === `boolean` ? data : data?.is_valid),
 
     staleTime: 1000 * 60 * 1,
     cacheTime: 1000 * 60 * 5,

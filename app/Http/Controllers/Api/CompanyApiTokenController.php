@@ -2,98 +2,59 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\CompanyApiTokens\CreateCompanyApiToken;
+use App\Actions\CompanyApiTokens\DeleteCompanyApiToken;
+use App\Actions\CompanyApiTokens\ValidateCompanyApiToken;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DeleteCompanyApiTokenRequest;
 use App\Http\Requests\StoreCompanyApiTokenRequest;
 use App\Http\Requests\ValidateCompanyApiTokenRequest;
+use App\Http\Resources\CompanyApiTokenResource;
 use App\Models\Company;
 use App\Models\CompanyApiToken;
-use App\Services\Pipeline\PipelineApiShipmentSearch;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class CompanyApiTokenController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $companyApiTokens = CompanyApiToken::all();
-
-        return response()->json($companyApiTokens, Response::HTTP_OK);
+    public function __construct(
+        private readonly CreateCompanyApiToken $createCompanyApiToken,
+        private readonly DeleteCompanyApiToken $deleteCompanyApiToken,
+        private readonly ValidateCompanyApiToken $validateCompanyApiToken,
+    ) {
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreCompanyApiTokenRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-
-        $company = Company::whereId($validated['company_id'])
-            ->with('apiToken')
-            ->first();
-
-        if ($company->apiToken()->exists()) {
-            return response()->json(['error' => 'Company already has api token.'], Response::HTTP_CONFLICT);
-        }
-
-        $shipmentSearchClient = new PipelineApiShipmentSearch($request->input('api_token'));
-
-        $shipmentSearchResponse = $shipmentSearchClient->searchShipment(
-            trackingNumber: $validated['trackingNumber'],
-            searchOption: 'bol', // Search by Bill of Lading, as that is how we are validating the API key.
+        $company = Company::query()->findOrFail($request->integer('company_id'));
+        $companyApiToken = $this->createCompanyApiToken->execute(
+            $company,
+            $request->validated(),
         );
 
-        if ($shipmentSearchResponse->failed() || (int) $shipmentSearchResponse->object()->data[0]->companyId === (int) $request->input('company_id')) {
-            return response()->json(['error' => 'Invalid API token.'], Response::HTTP_UNAUTHORIZED);
-        }
-
-        CompanyApiToken::create([
-            'company_id' => $request->input('company_id'),
-            'api_token' => $request->input('api_token'),
-            'bol' => $validated['trackingNumber'],
-            'is_valid' => true,
-        ]);
-
-        return response()->json($company, Response::HTTP_OK);
+        return response()->json(
+            CompanyApiTokenResource::make($companyApiToken)->resolve(),
+            Response::HTTP_CREATED,
+        );
     }
 
-    /**
-     * Validate the status of the API token.
-     */
     public function validateToken(ValidateCompanyApiTokenRequest $request, Company $company): JsonResponse
     {
-        $company->load('apiToken');
+        $companyApiToken = $this->validateCompanyApiToken->execute($company);
 
-        if (! $company->apiToken) {
-            return response()->json(['error' => 'Company does not have an API token.'], Response::HTTP_NOT_FOUND);
-        }
-
-        $shipmentSearchClient = new PipelineApiShipmentSearch($company->apiToken->api_token);
-
-        $shipmentSearchResponse = $shipmentSearchClient->searchShipment(
-            trackingNumber: $company->apiToken->bol,
-            searchOption: 'bol', // Search by Bill of Lading, as that is how we are validating the API key.
-            globalSearch: false,
+        return response()->json(
+            CompanyApiTokenResource::make($companyApiToken)->resolve(),
+            Response::HTTP_OK,
         );
-
-        if ($shipmentSearchResponse->failed() || (int) $shipmentSearchResponse->object()->data[0]->companyId === (int) $company->id) {
-            return response()->json(['error' => 'Invalid API token.'], Response::HTTP_UNAUTHORIZED);
-        }
-
-        return response()->json($company->apiToken->is_valid, Response::HTTP_OK);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(CompanyApiToken $companyApiToken): JsonResponse
+    public function destroy(
+        CompanyApiToken $companyApiToken,
+        DeleteCompanyApiTokenRequest $request,
+    ): JsonResponse
     {
-        if ($companyApiToken->delete()) {
-            return response()->json(['message' => 'API token deleted successfully.'], Response::HTTP_OK);
-        } else {
-            return response()->json(['error' => 'Failed to delete API token.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $this->deleteCompanyApiToken->execute($companyApiToken);
+
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

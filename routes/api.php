@@ -16,7 +16,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureUserCanImpersonate;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route; // Add this line at the top
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -46,13 +46,21 @@ Route::as('api.')
         Route::patch('companies/{company}/setImageAsset', [CompanyController::class, 'setImageAsset'])->name('companies.setImageAsset');
         Route::apiResource('companies', CompanyController::class);
 
-        Route::apiResource('imageTypes', ImageTypesController::class);
+        Route::get('imageTypes', [ImageTypesController::class, 'index'])
+            ->name('imageTypes.index');
 
-        Route::apiResource('images', ImagesController::class);
+        Route::get('images', [ImagesController::class, 'index'])
+            ->name('images.index');
+        Route::post('images', [ImagesController::class, 'store'])
+            ->name('images.store');
+        Route::delete('images/{image}', [ImagesController::class, 'destroy'])
+            ->name('images.destroy');
 
         Route::apiResource('themes', ThemeController::class);
 
         Route::post('/impersonate/stop', [ImpersonationController::class, 'stopImpersonate'])
+            ->withoutMiddleware('auth:sanctum')
+            ->middleware(['web', 'auth'])
             ->withoutMiddleware(EnsureUserCanImpersonate::class)
             ->name('impersonate.stop');
 
@@ -70,6 +78,8 @@ Route::as('api.')
                 Route::apiResource('users', UserController::class);
 
                 Route::post('/impersonate/{userId}', [ImpersonationController::class, 'impersonate'])
+                    ->withoutMiddleware('auth:sanctum')
+                    ->middleware(['web', 'auth'])
                     ->middleware(EnsureUserCanImpersonate::class)
                     ->name('impersonate.start');
 
@@ -79,7 +89,10 @@ Route::as('api.')
                 Route::get('companyApiTokens/validate/{company}', [CompanyApiTokenController::class, 'validateToken'])
                     ->name('companyApiTokens.validate');
 
-                Route::apiResource('companyApiTokens', CompanyApiTokenController::class);
+                Route::post('companyApiTokens', [CompanyApiTokenController::class, 'store'])
+                    ->name('companyApiTokens.store');
+                Route::delete('companyApiTokens/{companyApiToken}', [CompanyApiTokenController::class, 'destroy'])
+                    ->name('companyApiTokens.destroy');
 
                 Route::patch('allowedDomains/{allowedDomain}/toggle-active-status', [AllowedDomainController::class, 'toggleActiveStatus'])
                     ->name('allowedDomains.toggleActiveStatus');
