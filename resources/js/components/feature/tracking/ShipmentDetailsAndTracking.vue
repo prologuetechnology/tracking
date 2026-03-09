@@ -15,16 +15,19 @@ import {
 import { faSync } from '@fortawesome/pro-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import dayjs from 'dayjs'
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 
 import AddressCard from '@/components/feature/tracking/AddressCard.vue'
 import ShipmentDetail from '@/components/feature/tracking/ShipmentDetail.vue'
 import ShipmentDocuments from '@/components/feature/tracking/ShipmentDocuments.vue'
 import StatusStepper from '@/components/feature/tracking/StatusStepper.vue'
-import TrackingMap from '@/components/feature/tracking/TrackingMap.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCompanyFeatures } from '@/composables/helpers'
+
+const TrackingMap = defineAsyncComponent(
+  () => import(`@/components/feature/tracking/TrackingMap.vue`),
+)
 
 const props = defineProps({
   trackingData: {

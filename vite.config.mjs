@@ -25,11 +25,18 @@ export default defineConfig({
       host: `tracking.test`,
     },
   },
-  // build: {
-  //   watch: {
-  //     include: [`resources/**`],
-  //   },
-  // },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes(`@trimblemaps/trimblemaps-js`)) {
+            return `trimblemaps`
+          }
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       'tailwind.config.js': path.resolve(__dirname, `tailwind.config.js`),
