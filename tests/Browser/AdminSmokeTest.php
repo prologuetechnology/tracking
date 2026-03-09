@@ -2,14 +2,11 @@
 
 namespace Tests\Browser;
 
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
 class AdminSmokeTest extends DuskTestCase
 {
-    use DatabaseMigrations;
-
     public function test_oauth_test_login_reaches_the_authenticated_companies_shell(): void
     {
         $this->browse(function (Browser $browser) {

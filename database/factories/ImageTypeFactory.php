@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\ImageTypeEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Arr;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ImageType>
@@ -17,7 +19,7 @@ class ImageTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => Arr::random(ImageTypeEnum::values()),
         ];
     }
 }

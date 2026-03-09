@@ -10,6 +10,7 @@ class CreateRole
     {
         $role = Role::query()->create([
             'name' => $attributes['name'],
+            'guard_name' => 'web',
         ]);
 
         if (! empty($attributes['permissions'])) {

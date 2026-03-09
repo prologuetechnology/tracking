@@ -11,9 +11,11 @@ class DeleteImage
 {
     public function execute(Image $image, ?int $userId = null, ?string $route = null): void
     {
+        $disk = (string) config('filesystems.image_library_disk', 'spaces');
+
         try {
             if ($image->file_path !== '') {
-                Storage::disk('spaces')->delete($image->file_path);
+                Storage::disk($disk)->delete($image->file_path);
             }
 
             $image->delete();
@@ -22,6 +24,7 @@ class DeleteImage
                 'action' => 'image.destroy',
                 'user_id' => $userId,
                 'image_id' => $image->id,
+                'disk' => $disk,
                 'route' => $route,
                 'status' => 500,
                 'exception_class' => $exception::class,

@@ -127,7 +127,7 @@ const cancelDialog = () => {
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger as-child>
-      <Button size="sm">
+      <Button size="sm" dusk="image-upload-open">
         <FontAwesomeIcon class="mr-2" :icon="faUpload" fixed-width />
         Upload Image
       </Button>
@@ -146,6 +146,7 @@ const cancelDialog = () => {
 
       <form
         id="imageUploadForm"
+        dusk="image-upload-form"
         class="flex w-full flex-col space-y-4 overflow-y-auto px-2"
         @submit.prevent="submitForm"
       >
@@ -159,6 +160,7 @@ const cancelDialog = () => {
 
             <FormControl>
               <Input
+                dusk="image-upload-name"
                 type="text"
                 placeholder="ACME Logo"
                 v-bind="componentField"
@@ -180,7 +182,7 @@ const cancelDialog = () => {
 
             <Select v-bind="componentField">
               <FormControl>
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full" dusk="image-upload-type-trigger">
                   <SelectValue placeholder="Select an image type" />
                 </SelectTrigger>
               </FormControl>
@@ -193,6 +195,7 @@ const cancelDialog = () => {
                     v-for="imageType in imageTypes"
                     :key="imageType.id"
                     :value="`${imageType.id}`"
+                    :dusk="`image-upload-type-${imageType.name}`"
                   >
                     {{ imageType.name }}
                   </SelectItem>
@@ -216,6 +219,7 @@ const cancelDialog = () => {
 
             <FormControl>
               <Input
+                dusk="image-upload-file"
                 accept="image/*"
                 type="file"
                 :disabled="isPending"
@@ -246,6 +250,7 @@ const cancelDialog = () => {
           form="imageUploadForm"
           type="submit"
           size="sm"
+          dusk="image-upload-save"
           :disabled="isPending"
         >
           Save

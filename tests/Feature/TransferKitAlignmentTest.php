@@ -121,7 +121,7 @@ class TransferKitAlignmentTest extends TestCase
             ->assertJsonPath('theme.name', $theme->name);
     }
 
-    private function createUserWithPermission(string $permission): User
+    protected function createUserWithPermission(string $permission): User
     {
         $user = User::factory()->create();
         $user->givePermissionTo($permission);
@@ -129,7 +129,7 @@ class TransferKitAlignmentTest extends TestCase
         return $user;
     }
 
-    private function createTheme(string $name = 'Default Theme'): Theme
+    protected function createTheme(string $name = 'Default Theme'): Theme
     {
         return Theme::query()->create([
             'name' => $name,
@@ -162,7 +162,7 @@ class TransferKitAlignmentTest extends TestCase
         ]);
     }
 
-    private function createCompany(Theme $theme): Company
+    protected function createCompany(Theme $theme): Company
     {
         return Company::query()->create([
             'name' => 'Acme Logistics',

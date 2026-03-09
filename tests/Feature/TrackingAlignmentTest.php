@@ -202,7 +202,7 @@ class TrackingAlignmentTest extends TestCase
             ->assertRedirect(route('trackShipment.notFound', 'BOL123'));
     }
 
-    private function fakeTrackingApis(?int $companyId = 1001, string $bolNumber = 'BOL123'): void
+    protected function fakeTrackingApis(?int $companyId = 1001, string $bolNumber = 'BOL123'): void
     {
         Http::fake([
             'https://pipeline.example/api/shipmentSearch' => Http::response(
@@ -247,7 +247,7 @@ class TrackingAlignmentTest extends TestCase
         ]);
     }
 
-    private function shipmentSearchPayload(?int $companyId = 1001, string $bolNumber = 'BOL123'): array
+    protected function shipmentSearchPayload(?int $companyId = 1001, string $bolNumber = 'BOL123'): array
     {
         return [
             'data' => [
@@ -293,7 +293,7 @@ class TrackingAlignmentTest extends TestCase
         ];
     }
 
-    private function createUserWithPermission(string $permission): User
+    protected function createUserWithPermission(string $permission): User
     {
         $user = User::factory()->create();
         $user->givePermissionTo($permission);
@@ -301,7 +301,7 @@ class TrackingAlignmentTest extends TestCase
         return $user;
     }
 
-    private function createCompany(
+    protected function createCompany(
         bool $enableMap = false,
         bool $enableDocuments = false,
         bool $requiresBrand = false,

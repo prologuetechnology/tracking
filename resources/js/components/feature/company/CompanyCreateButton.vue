@@ -17,7 +17,7 @@ const { userCan } = useRolesAndPermissions()
     variant="default"
     as-child
   >
-    <Link :href="route('admin.companies.create')">
+    <Link :href="route('admin.companies.create')" dusk="company-create-link">
       <FontAwesomeIcon :icon="faPlus" class="mr-2" fixed-width />
 
       <span>Create Company</span>

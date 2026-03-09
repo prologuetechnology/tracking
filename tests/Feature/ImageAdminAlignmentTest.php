@@ -193,7 +193,7 @@ class ImageAdminAlignmentTest extends TestCase
         $this->assertNull($company->footer_image_id);
     }
 
-    private function createSuperAdmin(): User
+    protected function createSuperAdmin(): User
     {
         $user = User::factory()->create(['email' => 'image-admin@example.com']);
         $user->syncRoles(['Super Admin']);
@@ -201,12 +201,12 @@ class ImageAdminAlignmentTest extends TestCase
         return $user;
     }
 
-    private function findImageType(string $name): ImageType
+    protected function findImageType(string $name): ImageType
     {
         return ImageType::query()->where('name', $name)->firstOrFail();
     }
 
-    private function createImage(string $type, string $name): Image
+    protected function createImage(string $type, string $name): Image
     {
         return Image::query()->create([
             'name' => $name,
@@ -215,7 +215,7 @@ class ImageAdminAlignmentTest extends TestCase
         ])->load('imageType');
     }
 
-    private function createCompany(): Company
+    protected function createCompany(): Company
     {
         $theme = Theme::query()->create([
             'name' => 'Image Theme '.str()->uuid(),

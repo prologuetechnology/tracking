@@ -5,15 +5,35 @@ namespace Tests;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Laravel\Dusk\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\AfterClass;
 use PHPUnit\Framework\Attributes\BeforeClass;
 use Symfony\Component\Process\Process;
+use Tests\Support\InteractsWithAppFixtures;
 
 abstract class DuskTestCase extends BaseTestCase
 {
+    use InteractsWithAppFixtures;
+
     protected static ?Process $server = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->useDuskDatabase();
+
+        Artisan::call('migrate:fresh', [
+            '--database' => 'sqlite',
+            '--force' => true,
+        ]);
+
+        static::stopApplicationServer();
+        static::startApplicationServer();
+    }
 
     /**
      * Prepare for Dusk test execution.
@@ -98,5 +118,27 @@ abstract class DuskTestCase extends BaseTestCase
         fclose($connection);
 
         return true;
+    }
+
+    protected function useDuskDatabase(): void
+    {
+        $databasePath = database_path('dusk.sqlite');
+
+        foreach ([
+            'APP_ENV' => 'dusk.local',
+            'DB_CONNECTION' => 'sqlite',
+            'DB_DATABASE' => $databasePath,
+        ] as $key => $value) {
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+        }
+
+        config()->set('app.env', 'dusk.local');
+        config()->set('database.default', 'sqlite');
+        config()->set('database.connections.sqlite.database', $databasePath);
+
+        DB::purge('sqlite');
+        DB::reconnect('sqlite');
     }
 }

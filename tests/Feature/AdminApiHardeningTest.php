@@ -193,7 +193,7 @@ class AdminApiHardeningTest extends TestCase
         $this->assertFalse(session()->has('impersonate_original_id'));
     }
 
-    private function createSuperAdmin(string $email = 'hardening-admin@example.com'): User
+    protected function createSuperAdmin(string $email = 'hardening-admin@example.com'): User
     {
         $user = User::factory()->create(['email' => $email]);
         $user->syncRoles(['Super Admin']);
@@ -201,7 +201,7 @@ class AdminApiHardeningTest extends TestCase
         return $user;
     }
 
-    private function createUserWithPermission(string $permission): User
+    protected function createUserWithPermission(string $permission): User
     {
         $user = User::factory()->create();
         $user->givePermissionTo($permission);
@@ -209,7 +209,7 @@ class AdminApiHardeningTest extends TestCase
         return $user;
     }
 
-    private function createCompany(int $pipelineCompanyId): Company
+    protected function createCompany(int $pipelineCompanyId): Company
     {
         $theme = Theme::query()->create([
             'name' => 'Hardening Theme '.str()->uuid(),

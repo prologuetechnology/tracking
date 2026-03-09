@@ -33,8 +33,7 @@ const handleToggle = () => {
 
 <template>
   <Switch
-    :id="id"
-    :name="name"
+    :dusk="`allowed-domain-toggle-${props.allowedDomain.id}`"
     :checked="allowedDomain.is_active"
     :disabled="isPending"
     @update:checked="handleToggle"

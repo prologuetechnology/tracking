@@ -73,6 +73,7 @@ const submitForm = () => {
             <Input
               id="trackingNumber"
               v-model="trackingNumber"
+              dusk="tracking-number-input"
               name="trackingNumber"
               type="text"
               :disabled="isLoading || isFetching"
@@ -89,13 +90,19 @@ const submitForm = () => {
               name="searchOption"
               :disabled="isLoading || isFetching"
             >
-              <SelectTrigger>
+              <SelectTrigger dusk="tracking-search-option-trigger">
                 <SelectValue placeholder="Select a type" />
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="bol">Bill of Lading</SelectItem>
-                <SelectItem value="carrierPro">Carrier PRO</SelectItem>
+                <SelectItem value="bol" dusk="tracking-search-option-bol">
+                  Bill of Lading
+                </SelectItem>
+                <SelectItem
+                  value="carrierPro"
+                  dusk="tracking-search-option-carrier-pro"
+                  >Carrier PRO</SelectItem
+                >
               </SelectContent>
             </Select>
           </div>
@@ -136,6 +143,7 @@ const submitForm = () => {
           <Button
             variant="default"
             size="sm"
+            dusk="tracking-search-submit"
             :disabled="isLoading || isFetching"
             @click="submitForm"
           >

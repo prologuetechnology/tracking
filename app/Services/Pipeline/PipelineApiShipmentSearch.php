@@ -2,6 +2,7 @@
 
 namespace App\Services\Pipeline;
 
+use App\Support\Testing\FakePipelineResponses;
 use Illuminate\Http\Client\Response;
 
 class PipelineApiShipmentSearch extends PipelineApiBaseService
@@ -28,6 +29,12 @@ class PipelineApiShipmentSearch extends PipelineApiBaseService
         ?string $searchOption = '',
         ?bool $globalSearch = false,
     ): Response {
+        if (app()->environment('dusk.local')) {
+            return FakePipelineResponses::shipmentSearch(
+                $trackingNumber ?? '',
+            );
+        }
+
         $data = [
             'trackNum' => $trackingNumber,
             'searchOption' => $searchOption,

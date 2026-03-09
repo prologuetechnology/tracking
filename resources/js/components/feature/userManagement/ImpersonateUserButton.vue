@@ -43,6 +43,7 @@ const { mutate: impersonateUserStart } = useImpersonateUserStartMutation({
 
 <template>
   <Button
+    :dusk="`impersonate-user-${user.id}`"
     :disabled="isCurrentUser"
     size="sm"
     variant="outline"

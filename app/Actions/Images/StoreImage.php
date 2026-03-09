@@ -14,9 +14,10 @@ class StoreImage
     {
         /** @var UploadedFile $uploadedImage */
         $uploadedImage = $attributes['image'];
+        $disk = (string) config('filesystems.image_library_disk', 'spaces');
 
         try {
-            $filePath = $uploadedImage->store('images', 'spaces');
+            $filePath = $uploadedImage->store('images', $disk);
 
             if (! $filePath) {
                 throw new RuntimeException('Image storage path is empty.');
@@ -32,6 +33,7 @@ class StoreImage
                 'action' => 'image.store',
                 'user_id' => $userId,
                 'image_type_id' => $attributes['image_type_id'] ?? null,
+                'disk' => $disk,
                 'route' => $route,
                 'status' => 500,
                 'exception_class' => $exception::class,

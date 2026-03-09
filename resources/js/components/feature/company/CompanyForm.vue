@@ -172,6 +172,7 @@ watch(
     <CardContent>
       <form
         id="companyForm"
+        dusk="company-form"
         class="flex w-full flex-col space-y-4"
         @submit="submitForm"
       >
@@ -185,6 +186,7 @@ watch(
 
             <FormControl>
               <Input
+                dusk="company-name"
                 type="text"
                 placeholder="ACME Inc."
                 v-bind="componentField"
@@ -205,6 +207,7 @@ watch(
 
             <FormControl>
               <Input
+                dusk="company-pipeline-id"
                 type="number"
                 placeholder="123"
                 v-bind="componentField"
@@ -228,6 +231,7 @@ watch(
 
             <FormControl>
               <Input
+                dusk="company-website"
                 type="text"
                 placeholder="https://acme.com"
                 v-bind="componentField"
@@ -249,6 +253,7 @@ watch(
 
             <FormControl>
               <Input
+                dusk="company-phone"
                 type="tel"
                 placeholder="(123) 456-7890"
                 v-bind="componentField"
@@ -270,6 +275,7 @@ watch(
 
             <FormControl>
               <Input
+                dusk="company-email"
                 type="email"
                 placeholder="info@acme.com"
                 v-bind="componentField"
@@ -310,6 +316,7 @@ watch(
 
             <FormControl>
               <Input
+                dusk="company-brand"
                 type="text"
                 placeholder="acme_corp"
                 v-bind="componentField"
@@ -343,6 +350,7 @@ watch(
             size="sm"
             type="button"
             class=""
+            dusk="company-form-save"
             :disabled="
               createCompanyIsPending || updateCompanyIsPending || !isFormDirty
             "

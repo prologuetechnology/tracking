@@ -152,7 +152,7 @@ class RbacAdminAlignmentTest extends TestCase
             ->assertNoContent();
     }
 
-    private function createSuperAdmin(string $email = 'super-admin@example.com'): User
+    protected function createSuperAdmin(string $email = 'super-admin@example.com'): User
     {
         $user = User::factory()->create(['email' => $email]);
         $user->syncRoles(['Super Admin']);

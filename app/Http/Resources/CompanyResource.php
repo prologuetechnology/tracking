@@ -38,7 +38,10 @@ class CompanyResource extends JsonResource
                 'footer',
                 fn () => ImageResource::make($this->footer)->resolve(),
             ),
-            'theme' => $this->whenLoaded('theme'),
+            'theme' => $this->whenLoaded(
+                'theme',
+                fn () => ThemeResource::make($this->theme)->resolve(),
+            ),
             'api_token' => $this->whenLoaded(
                 'apiToken',
                 fn () => CompanyApiTokenResource::make($this->apiToken)->resolve(),

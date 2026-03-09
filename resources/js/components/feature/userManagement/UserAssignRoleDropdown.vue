@@ -78,6 +78,7 @@ const handleRoleChange = async (role) => {
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <Button
+        :dusk="`user-role-trigger-${user.id}`"
         variant="text"
         :disabled="isCurrentUser || isUpdatingRole"
         size="sm"
@@ -98,7 +99,11 @@ const handleRoleChange = async (role) => {
         :key="role.id"
         @click="() => handleRoleChange(role)"
       >
-        {{ role.name }}
+        <span
+          :dusk="`user-role-option-${role.name.toLowerCase().replace(/\s+/g, '-')}`"
+        >
+          {{ role.name }}
+        </span>
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

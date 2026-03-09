@@ -136,6 +136,7 @@ watch(
 <template>
   <form
     id="permissionForm"
+    dusk="permission-form"
     class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
     @submit="submitForm"
   >
@@ -149,6 +150,7 @@ watch(
 
         <FormControl>
           <Input
+            dusk="permission-name"
             type="text"
             placeholder="company.create"
             v-bind="componentField"
@@ -168,7 +170,12 @@ watch(
         <FormLabel>Guard Name</FormLabel>
 
         <FormControl>
-          <Input type="text" placeholder="web" v-bind="componentField" />
+          <Input
+            dusk="permission-guard"
+            type="text"
+            placeholder="web"
+            v-bind="componentField"
+          />
         </FormControl>
 
         <FormDescription>The name of the permission.</FormDescription>
@@ -195,6 +202,7 @@ watch(
         size="sm"
         type="button"
         class=""
+        dusk="permission-save"
         :disabled="
           createPermissionIsPending || updatePermissionIsPending || !isFormDirty
         "

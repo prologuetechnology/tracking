@@ -10,6 +10,7 @@ class UpdateRole
     {
         $role->update([
             'name' => $attributes['name'],
+            'guard_name' => 'web',
         ]);
 
         if (array_key_exists('permissions', $attributes)) {

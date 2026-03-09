@@ -17,7 +17,7 @@ const { userCan } = useRolesAndPermissions()
     as-child
     size="sm"
   >
-    <Link :href="route('admin.themes.create')">
+    <Link :href="route('admin.themes.create')" dusk="theme-create-link">
       <FontAwesomeIcon :icon="faPlus" class="mr-2" fixed-width />
 
       <span>Create Theme</span>

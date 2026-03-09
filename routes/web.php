@@ -13,6 +13,7 @@ use App\Http\Controllers\Pages\Admin\TrackingPageController;
 use App\Http\Controllers\Pages\Admin\UserPageController;
 use App\Http\Controllers\Pages\HomeController;
 use App\Http\Controllers\Pages\LoginPageController;
+use App\Http\Controllers\Testing\FakePipelineController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Models\User;
 use Illuminate\Support\Facades\App;
@@ -120,5 +121,17 @@ Route::get('/testing/oauth-login', function () {
 
     return redirect(route('home'));
 });
+
+if (App::environment(['local', 'testing', 'dusk.local'])) {
+    Route::prefix('/testing/fake-pipeline')
+        ->middleware('web')
+        ->group(function () {
+            Route::post('/api/shipmentSearch', [FakePipelineController::class, 'shipmentSearch']);
+            Route::post('/api/Execute/GetDocuments', [FakePipelineController::class, 'shipmentDocuments']);
+            Route::match(['GET', 'POST'], '/app.php', [FakePipelineController::class, 'shipmentCoordinates']);
+            Route::match(['GET', 'HEAD'], '/documents/{filename}', [FakePipelineController::class, 'document'])
+                ->where('filename', '.*');
+        });
+}
 
 require __DIR__.'/auth.php';

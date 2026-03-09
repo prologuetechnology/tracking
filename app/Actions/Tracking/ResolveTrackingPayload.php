@@ -53,6 +53,15 @@ class ResolveTrackingPayload
                 pipelineCompanyId: $resolvedPipelineCompanyId,
             );
 
+            $company?->loadMissing([
+                'apiToken',
+                'banner.imageType',
+                'features',
+                'footer.imageType',
+                'logo.imageType',
+                'theme',
+            ]);
+
             if ($company?->requires_brand && ! $brand) {
                 return [
                     'found' => false,

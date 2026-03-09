@@ -16,7 +16,17 @@ class GetShipmentDocumentsWithMetadata
 
         return $collection
             ->map(function ($doc) {
-                $url = preg_replace('/^http:/i', 'https:', $doc['file']);
+                $url = $this->normalizeDocumentUrl($doc['file']);
+
+                if ($this->isLocalFakeDocument($url)) {
+                    return [
+                        ...$doc,
+                        'url' => $url,
+                        'type' => 'application/pdf',
+                        'size' => '1024',
+                        'last_modified' => 'Wed, 06 Mar 2024 12:00:00 GMT',
+                    ];
+                }
 
                 try {
                     $response = Http::withOptions(['stream' => true])->head($url);
@@ -56,5 +66,21 @@ class GetShipmentDocumentsWithMetadata
             })
             ->values()
             ->all();
+    }
+
+    private function normalizeDocumentUrl(string $url): string
+    {
+        if ($this->isLocalFakeDocument($url)) {
+            return $url;
+        }
+
+        return preg_replace('/^http:/i', 'https:', $url) ?? $url;
+    }
+
+    private function isLocalFakeDocument(string $url): bool
+    {
+        $appUrl = rtrim((string) config('app.url'), '/');
+
+        return str_starts_with($url, $appUrl.'/testing/fake-pipeline/documents/');
     }
 }

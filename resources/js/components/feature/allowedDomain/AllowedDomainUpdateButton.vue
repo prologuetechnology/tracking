@@ -15,7 +15,7 @@ import {
 
 import AllowedDomainForm from './AllowedDomainForm.vue'
 
-defineProps({
+const props = defineProps({
   allowedDomain: {
     type: Object,
     required: true,
@@ -40,7 +40,11 @@ const allowedDomainFormIsPending = computed(
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger as-child>
-      <Button variant="outline" size="icon">
+      <Button
+        :dusk="`allowed-domain-edit-${props.allowedDomain.id}`"
+        variant="outline"
+        size="icon"
+      >
         <FontAwesomeIcon :icon="faPencil" fixed-width />
       </Button>
     </DialogTrigger>
@@ -72,6 +76,7 @@ const allowedDomainFormIsPending = computed(
           type="button"
           variant="default"
           size="sm"
+          :dusk="`allowed-domain-save-${props.allowedDomain.id}`"
           :disabled="
             allowedDomainFormIsPending || !allowedDomainForm?.isFormDirty
           "

@@ -31,4 +31,8 @@ class ImageType extends Model
 {
     /** @use HasFactory<\Database\Factories\ImageTypeFactory> */
     use HasFactory, HasUuid;
+
+    protected $fillable = [
+        'name',
+    ];
 }

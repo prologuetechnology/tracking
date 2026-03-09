@@ -2,6 +2,7 @@
 
 namespace App\Services\Pipeline;
 
+use App\Support\Testing\FakePipelineResponses;
 use Illuminate\Http\Client\Response;
 
 class PipelineApiShipmentCoordinates extends PipelineApiBaseService
@@ -22,6 +23,10 @@ class PipelineApiShipmentCoordinates extends PipelineApiBaseService
         ?string $trackingNumber = '',
         ?string $pipelineCompanyId = '',
     ): Response {
+        if (app()->environment('dusk.local')) {
+            return FakePipelineResponses::shipmentCoordinates();
+        }
+
         $response = $this->makeRequest('POST', $this->endpoint.'/getRoutes&Filter[bolNum]='.$trackingNumber.'&Filter[companyId]='.$pipelineCompanyId);
 
         return $response;

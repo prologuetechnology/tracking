@@ -2,6 +2,7 @@
 
 namespace App\Services\Pipeline;
 
+use App\Support\Testing\FakePipelineResponses;
 use Illuminate\Http\Client\Response;
 
 class PipelineApiShipmentDocuments extends PipelineApiBaseService
@@ -17,6 +18,13 @@ class PipelineApiShipmentDocuments extends PipelineApiBaseService
 
     public function getShipmentDocuments(string $trackingNumber): Response
     {
+        if (app()->environment('dusk.local')) {
+            return FakePipelineResponses::shipmentDocuments(
+                rtrim((string) config('app.url'), '/'),
+                $trackingNumber,
+            );
+        }
+
         $data = [
             'RequestOptions' => [
                 'testMode' => false,

@@ -22,7 +22,7 @@ import {
 const props = defineProps({
   allowedDomain: {
     type: Object,
-    required: true,
+    default: null,
   },
   heading: {
     type: String,
@@ -125,9 +125,7 @@ const onValidForm = (values) => {
   }
 }
 
-const onInvalidForm = ({ values, errors, results }) => {
-  console.error({ values, errors, results })
-}
+const onInvalidForm = () => {}
 
 const submitForm = () => {
   handleSubmit(onValidForm, onInvalidForm)()
@@ -158,6 +156,7 @@ defineExpose({
 <template>
   <form
     id="allowedDomainForm"
+    dusk="allowed-domain-form"
     class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
     @submit.prevent="submitForm"
   >
@@ -169,7 +168,12 @@ defineExpose({
       <FormLabel>Domain</FormLabel>
 
       <FormControl>
-        <Input type="text" placeholder="acme.com" v-bind="componentField" />
+        <Input
+          dusk="allowed-domain-name"
+          type="text"
+          placeholder="acme.com"
+          v-bind="componentField"
+        />
       </FormControl>
 
       <FormDescription>
@@ -194,7 +198,11 @@ defineExpose({
         </div>
 
         <FormControl>
-          <Switch :checked="value" @update:checked="handleChange" />
+          <Switch
+            dusk="allowed-domain-active"
+            :checked="value"
+            @update:checked="handleChange"
+          />
         </FormControl>
       </FormItem>
     </FormField>

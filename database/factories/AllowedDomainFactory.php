@@ -17,12 +17,14 @@ class AllowedDomainFactory extends Factory
      */
     public function definition(): array
     {
+        $userId = User::query()->value('id') ?? User::factory()->create()->id;
+
         return [
             'domain' => $this->faker->domainName(),
             'description' => $this->faker->sentence(),
             'is_active' => $this->faker->boolean(),
-            'created_by' => User::inRandomOrder()->first()->id,
-            'updated_by' => User::inRandomOrder()->first()->id,
+            'created_by' => $userId,
+            'updated_by' => $userId,
         ];
     }
 }

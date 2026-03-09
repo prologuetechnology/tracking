@@ -158,6 +158,7 @@ watch(
 <template>
   <form
     id="themeForm"
+    dusk="theme-form"
     class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
     @submit.prevent="submitForm"
   >
@@ -182,6 +183,7 @@ watch(
 
             <FormControl>
               <Input
+                dusk="theme-name"
                 type="text"
                 placeholder="Punchy Piña Colada"
                 v-bind="componentField"
@@ -447,6 +449,7 @@ watch(
         size="sm"
         type="button"
         class=""
+        dusk="theme-form-save"
         :disabled="createThemeIsPending || updateThemeIsPending || !isFormDirty"
         @click="submitForm"
       >
