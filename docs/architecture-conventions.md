@@ -1,6 +1,6 @@
 # Architecture Conventions
 
-Last updated: 2026-03-06
+Last updated: 2026-03-09
 
 ## Backend
 
@@ -44,6 +44,9 @@ Last updated: 2026-03-06
 - Image admin pages must hydrate both the initial image collection and the
   image-type catalog from the page controller. The follow-up Vue Query payload
   must keep the same nested `image_type` shape.
+- Company edit pages must hydrate the image-type catalog needed by shared image
+  pickers. Company asset dialogs assign or clear shared library images by slot;
+  they do not delete the underlying image records.
 
 ## Frontend
 

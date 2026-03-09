@@ -26,6 +26,10 @@
 - Image admin now uses page-controller hydration, read-only image type catalog
   data, resource-backed image payloads, and request-scoped auth on the active
   index/store/destroy surface.
+- Company asset dialogs now use the shared image library for logo, banner, and
+  footer assignment. Uploads from company screens create shared library images
+  and auto-assign them, while company edit screens only clear slot references
+  instead of deleting global image records.
 - Company API token store/validate flows now use request/action/resource
   layering with corrected Pipeline company matching and stable token payloads.
 - Impersonation keeps its `/api/...` endpoints but now runs on browser-session

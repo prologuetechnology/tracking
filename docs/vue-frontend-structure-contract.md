@@ -32,6 +32,10 @@ This repository is the Vue adaptation of the transfer-kit frontend structure.
   depend on raw external envelopes such as `trackingData.data[0]` in Vue code.
 - Image admin consumes flat image resources with a nested `image_type` object.
   Do not switch between raw relations and resource-wrapped payloads in Vue.
+- Company image slot dialogs are shared-library-first. They hydrate image-type
+  catalog data from the page, fetch matching library images on demand, and
+  only unassign shared images from a company edit screen instead of deleting
+  the global image record.
 
 ## Authorization
 

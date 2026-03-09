@@ -15,6 +15,8 @@ class ImageResource extends JsonResource
             'name' => $this->name,
             'image_type_id' => $this->image_type_id,
             'file_path' => $this->file_path,
+            'company_usage_count' => $this->companyUsageCount(),
+            'is_in_use' => $this->companyUsageCount() > 0,
             'image_type' => $this->whenLoaded(
                 'imageType',
                 fn () => ImageTypeResource::make($this->imageType)->resolve(),

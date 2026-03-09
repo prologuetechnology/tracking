@@ -30,17 +30,25 @@ class ResourceNormalizationTest extends TestCase
     public function test_company_and_image_resources_flatten_loaded_relationships(): void
     {
         $logo = $this->makeImage();
+        $otherCompany = $this->makeCompany();
         $company = $this->makeCompany(['logo_image_id' => $logo->id])->load(['logo', 'theme', 'features']);
+        $otherCompany->forceFill(['logo_image_id' => $logo->id])->save();
         $token = $this->makeCompanyApiToken($company);
 
         $resource = CompanyResource::make($company->load('apiToken'))->resolve();
-        $image = ImageResource::make($logo)->resolve();
+        $image = ImageResource::make($logo->loadCount([
+            'logoCompanies',
+            'bannerCompanies',
+            'footerCompanies',
+        ]))->resolve();
         $tokenResource = CompanyApiTokenResource::make($token)->resolve();
 
         $this->assertIsArray($resource['logo']);
         $this->assertIsArray($resource['theme']);
         $this->assertIsArray($resource['api_token']);
         $this->assertIsArray($image['image_type']);
+        $this->assertSame(2, $image['company_usage_count']);
+        $this->assertTrue($image['is_in_use']);
         $this->assertTrue($tokenResource['is_valid']);
     }
 

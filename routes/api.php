@@ -44,6 +44,7 @@ Route::as('api.')
         Route::patch('companies/{company}/toggleActive', [CompanyController::class, 'toggleActive'])->name('companies.toggleActive');
         Route::patch('companies/{company}/setTheme', [CompanyController::class, 'setTheme'])->name('companies.setTheme');
         Route::patch('companies/{company}/setImageAsset', [CompanyController::class, 'setImageAsset'])->name('companies.setImageAsset');
+        Route::patch('companies/{company}/clearImageAsset', [CompanyController::class, 'clearImageAsset'])->name('companies.clearImageAsset');
         Route::apiResource('companies', CompanyController::class);
 
         Route::get('imageTypes', [ImageTypesController::class, 'index'])

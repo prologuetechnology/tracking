@@ -48,12 +48,28 @@ const handleDelete = () => {
 const cancelDialog = () => {
   isOpen.value = false
 }
+
+const usageWarning = () => {
+  if (!props.image.is_in_use) {
+    return `Are you sure you want to delete this image?`
+  }
+
+  const companyCount = props.image.company_usage_count ?? 0
+
+  return `This shared image is currently assigned to ${companyCount} compan${
+    companyCount === 1 ? `y` : `ies`
+  }. Deleting it will remove the image everywhere it is used.`
+}
 </script>
 
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger as-child>
-      <Button variant="destructive" size="sm">
+      <Button
+        :dusk="`image-delete-open-${image.id}`"
+        variant="destructive"
+        size="sm"
+      >
         <slot />
       </Button>
     </DialogTrigger>
@@ -63,7 +79,7 @@ const cancelDialog = () => {
         <DialogTitle>Delete {{ image.name }}</DialogTitle>
 
         <DialogDescription>
-          Are you sure you want to delete this image?
+          {{ usageWarning() }}
         </DialogDescription>
       </DialogHeader>
 
@@ -75,6 +91,7 @@ const cancelDialog = () => {
         </Button>
 
         <Button
+          :dusk="`image-delete-confirm-${image.id}`"
           size="sm"
           type="button"
           variant="destructive"

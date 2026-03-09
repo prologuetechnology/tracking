@@ -11,6 +11,11 @@ class ListImages
     {
         return Image::query()
             ->with('imageType')
+            ->withCount([
+                'logoCompanies',
+                'bannerCompanies',
+                'footerCompanies',
+            ])
             ->when($imageTypeId, fn ($query) => $query->where('image_type_id', $imageTypeId))
             ->orderByDesc('id')
             ->get();

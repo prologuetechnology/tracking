@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\Companies\CreateCompany;
+use App\Actions\Companies\ClearCompanyImageAsset;
 use App\Actions\Companies\ListCompanies;
 use App\Actions\Companies\SetCompanyImageAsset;
 use App\Actions\Companies\SetCompanyTheme;
@@ -11,9 +12,10 @@ use App\Actions\Companies\ToggleCompanyField;
 use App\Actions\Companies\UpdateCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DeleteCompanyRequest;
+use App\Http\Requests\ClearCompanyImageAssetRequest;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\ToggleCompanyStatusRequest;
-use App\Http\Requests\UpdateCompanyLogoRequest;
+use App\Http\Requests\UpdateCompanyImageAssetRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Requests\UpdateCompanyThemeRequest;
 use App\Http\Resources\CompanyResource;
@@ -25,6 +27,7 @@ class CompanyController extends Controller
 {
     public function __construct(
         private readonly CreateCompany $createCompany,
+        private readonly ClearCompanyImageAsset $clearCompanyImageAsset,
         private readonly ListCompanies $listCompanies,
         private readonly SetCompanyImageAsset $setCompanyImageAsset,
         private readonly SetCompanyTheme $setCompanyTheme,
@@ -74,11 +77,21 @@ class CompanyController extends Controller
         return response()->json(CompanyResource::make($company), Response::HTTP_OK);
     }
 
-    public function setImageAsset(Company $company, UpdateCompanyLogoRequest $request): JsonResponse
+    public function setImageAsset(Company $company, UpdateCompanyImageAssetRequest $request): JsonResponse
     {
         $company = $this->setCompanyImageAsset->execute(
             $company,
             (int) $request->integer('image_id'),
+            $request->string('type')->value(),
+        );
+
+        return response()->json(CompanyResource::make($company), Response::HTTP_OK);
+    }
+
+    public function clearImageAsset(Company $company, ClearCompanyImageAssetRequest $request): JsonResponse
+    {
+        $company = $this->clearCompanyImageAsset->execute(
+            $company,
             $request->string('type')->value(),
         );
 

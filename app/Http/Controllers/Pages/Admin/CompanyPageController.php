@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Pages\Admin;
 
 use App\Actions\Companies\ListCompanies;
 use App\Actions\Companies\ShowCompany;
+use App\Actions\Images\ListImageTypes;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CompanyFeatureResource;
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\ImageTypeResource;
 use App\Models\Company;
 use App\Models\CompanyFeature;
 use Inertia\Inertia;
@@ -16,6 +18,7 @@ class CompanyPageController extends Controller
 {
     public function __construct(
         private readonly ListCompanies $listCompanies,
+        private readonly ListImageTypes $listImageTypes,
         private readonly ShowCompany $showCompany,
     ) {
     }
@@ -42,6 +45,9 @@ class CompanyPageController extends Controller
             )->resolve(),
             'companyFeaturesInitialValues' => CompanyFeatureResource::collection(
                 CompanyFeature::query()->orderBy('id', 'desc')->get(),
+            )->resolve(),
+            'initialImageTypes' => ImageTypeResource::collection(
+                $this->listImageTypes->execute(),
             )->resolve(),
         ]);
     }

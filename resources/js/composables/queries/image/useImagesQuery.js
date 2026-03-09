@@ -16,12 +16,13 @@ const useImagesQuery = ({ config = {}, imageTypeId = null } = {}) => {
   const resolvedImageTypeId = computed(() => unref(imageTypeId))
   const resolvedConfig = computed(() => unref(config) ?? {})
 
-  return useQuery({
-    queryKey: computed(() => [`images`, resolvedImageTypeId.value ?? `all`]),
-    queryFn: () => getImages(resolvedImageTypeId.value),
-
-    ...resolvedConfig.value,
-  })
+  return useQuery(
+    computed(() => ({
+      queryKey: [`images`, resolvedImageTypeId.value ?? `all`],
+      queryFn: () => getImages(resolvedImageTypeId.value),
+      ...resolvedConfig.value,
+    })),
+  )
 }
 
 export default useImagesQuery

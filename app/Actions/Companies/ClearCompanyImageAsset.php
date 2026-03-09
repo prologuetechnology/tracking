@@ -6,28 +6,19 @@ use App\Enums\ImageTypeEnum;
 use App\Models\Company;
 use InvalidArgumentException;
 
-class SetCompanyImageAsset
+class ClearCompanyImageAsset
 {
-    public const TYPES = [
-        ImageTypeEnum::LOGO->value,
-        ImageTypeEnum::BANNER->value,
-        ImageTypeEnum::FOOTER->value,
-    ];
-
-    public function execute(
-        Company $company,
-        int $imageId,
-        string $type,
-    ): Company {
+    public function execute(Company $company, string $type): Company
+    {
         match ($type) {
             ImageTypeEnum::LOGO->value => $company->forceFill([
-                'logo_image_id' => $imageId,
+                'logo_image_id' => null,
             ]),
             ImageTypeEnum::BANNER->value => $company->forceFill([
-                'banner_image_id' => $imageId,
+                'banner_image_id' => null,
             ]),
             ImageTypeEnum::FOOTER->value => $company->forceFill([
-                'footer_image_id' => $imageId,
+                'footer_image_id' => null,
             ]),
             default => throw new InvalidArgumentException('Invalid image type.'),
         };

@@ -129,4 +129,58 @@ class AdminManagementFlowsTest extends DuskTestCase
         $this->assertDatabaseHas('images', ['name' => 'Browser Logo']);
         $this->assertTrue(User::query()->findOrFail($targetUser->id)->hasRole('Company Admin'));
     }
+
+    public function test_super_admin_can_reuse_shared_company_images_and_sees_library_delete_warnings(): void
+    {
+        $this->seedCoreFixtures(withImageTypes: true);
+
+        $user = $this->makeSuperAdmin(['email' => 'shared-images@example.com']);
+        $sharedLogo = $this->makeImage(ImageTypeEnum::LOGO->value, [
+            'name' => 'Shared Browser Logo',
+        ]);
+        $firstCompany = $this->makeCompany([
+            'name' => 'Shared First Company',
+            'pipeline_company_id' => 991001,
+            'logo_image_id' => $sharedLogo->id,
+        ]);
+        $secondCompany = $this->makeCompany([
+            'name' => 'Shared Second Company',
+            'pipeline_company_id' => 991002,
+            'email' => 'shared-second@example.com',
+        ]);
+
+        $this->browse(function (Browser $browser) use ($user, $sharedLogo, $firstCompany, $secondCompany) {
+            $browser->loginAs($user)
+                ->visit("/admin/companies/{$secondCompany->uuid}")
+                ->waitForText('Shared Second Company')
+                ->click('@company-image-open-logo')
+                ->waitForText('Select From Shared Library')
+                ->waitFor("@company-image-library-select-{$sharedLogo->id}")
+                ->click("@company-image-library-select-{$sharedLogo->id}")
+                ->click('@company-image-assign-existing')
+                ->pause(500)
+                ->visit("/admin/companies/{$firstCompany->uuid}")
+                ->waitForText('Shared First Company')
+                ->click('@company-image-clear-logo')
+                ->waitForText('Remove Logo')
+                ->click('@company-image-clear-confirm-logo')
+                ->pause(500)
+                ->visit('/admin/images')
+                ->waitForText('Manage Images')
+                ->click("@image-delete-open-{$sharedLogo->id}")
+                ->waitForText('currently assigned to 1 company');
+        });
+
+        $this->assertDatabaseHas('companies', [
+            'id' => $firstCompany->id,
+            'logo_image_id' => null,
+        ]);
+        $this->assertDatabaseHas('companies', [
+            'id' => $secondCompany->id,
+            'logo_image_id' => $sharedLogo->id,
+        ]);
+        $this->assertDatabaseHas('images', [
+            'id' => $sharedLogo->id,
+        ]);
+    }
 }

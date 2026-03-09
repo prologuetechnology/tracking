@@ -7,6 +7,7 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * 
@@ -62,5 +63,35 @@ class Image extends Model
     public function imageType(): BelongsTo
     {
         return $this->belongsTo(ImageType::class, 'image_type_id');
+    }
+
+    public function logoCompanies(): HasMany
+    {
+        return $this->hasMany(Company::class, 'logo_image_id');
+    }
+
+    public function bannerCompanies(): HasMany
+    {
+        return $this->hasMany(Company::class, 'banner_image_id');
+    }
+
+    public function footerCompanies(): HasMany
+    {
+        return $this->hasMany(Company::class, 'footer_image_id');
+    }
+
+    public function companyUsageCount(): int
+    {
+        $logoCount = $this->getAttribute('logo_companies_count');
+        $bannerCount = $this->getAttribute('banner_companies_count');
+        $footerCount = $this->getAttribute('footer_companies_count');
+
+        if ($logoCount !== null || $bannerCount !== null || $footerCount !== null) {
+            return (int) $logoCount + (int) $bannerCount + (int) $footerCount;
+        }
+
+        return $this->logoCompanies()->count()
+            + $this->bannerCompanies()->count()
+            + $this->footerCompanies()->count();
     }
 }

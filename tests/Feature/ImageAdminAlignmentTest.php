@@ -54,6 +54,8 @@ class ImageAdminAlignmentTest extends TestCase
                 ->component('admin/image/Index')
                 ->has('initialImages', 2)
                 ->has('initialImageTypes', 5)
+                ->where('initialImages.0.company_usage_count', 0)
+                ->where('initialImages.0.is_in_use', false)
                 ->where('initialImages.0.image_type.name', ImageTypeEnum::BANNER->value)
                 ->where('initialImages.1.image_type.name', ImageTypeEnum::LOGO->value));
     }
@@ -149,7 +151,33 @@ class ImageAdminAlignmentTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.name', 'Banner')
+            ->assertJsonPath('0.company_usage_count', 0)
             ->assertJsonPath('0.image_type.name', ImageTypeEnum::BANNER->value);
+    }
+
+    public function test_images_include_usage_metadata_for_shared_library_warnings(): void
+    {
+        $superAdmin = $this->createSuperAdmin();
+        $logo = $this->createImage(ImageTypeEnum::LOGO->value, 'Shared Logo');
+        $firstCompany = $this->createCompany();
+        $secondCompany = Company::query()->create([
+            'name' => 'Second Image Company',
+            'website' => 'https://image-company-two.test',
+            'phone' => '555-000-1112',
+            'email' => 'images-two@test.local',
+            'pipeline_company_id' => 9011,
+            'theme_id' => $firstCompany->theme_id,
+            'requires_brand' => false,
+        ]);
+
+        $firstCompany->forceFill(['logo_image_id' => $logo->id])->save();
+        $secondCompany->forceFill(['logo_image_id' => $logo->id])->save();
+
+        $this->actingAs($superAdmin)
+            ->getJson(route('api.images.index'))
+            ->assertOk()
+            ->assertJsonPath('0.company_usage_count', 2)
+            ->assertJsonPath('0.is_in_use', true);
     }
 
     public function test_deleting_images_clears_related_company_asset_references(): void

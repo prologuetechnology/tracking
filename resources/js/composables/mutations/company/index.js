@@ -1,3 +1,4 @@
+export { default as useCompanyClearImageAssetMutation } from './useCompanyClearImageAssetMutation'
 export { default as useCompanyCreateMutation } from './useCompanyCreateMutation'
 export { default as useCompanyDestroyMutation } from './useCompanyDestroyMutation'
 export { default as useCompanySetImageAssetMutation } from './useCompanySetImageAssetMutation'

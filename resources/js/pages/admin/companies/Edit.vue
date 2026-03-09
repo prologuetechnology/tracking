@@ -3,6 +3,7 @@ import { faImageSlash, faTrashAlt } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Head } from '@inertiajs/vue3'
 
+import CompanyClearImageAssetDialog from '@/components/feature/company/CompanyClearImageAssetDialog.vue'
 import CompanyForm from '@/components/feature/company/CompanyForm.vue'
 import CompanySetImageAsset from '@/components/feature/company/CompanySetImageAsset.vue'
 import ToggleCompanyIsActive from '@/components/feature/company/ToggleCompanyIsActive.vue'
@@ -10,7 +11,6 @@ import ToggleCompanyIsActive from '@/components/feature/company/ToggleCompanyIsA
 // import ToggleMapSwitch from '@/components/feature/company/ToggleMapSwitch.vue'
 import CompanyApiTokenForm from '@/components/feature/companyApiToken/CompanyApiTokenForm.vue'
 import CompanyFeatures from '@/components/feature/companyFeature/CompanyFeatures.vue'
-import ImageDestroyDialog from '@/components/feature/image/ImageDestroyDialog.vue'
 import SelectThemeDialog from '@/components/feature/theme/SelectThemeDialog.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { Label } from '@/components/ui/label'
@@ -20,6 +20,10 @@ import { useCompanyQuery } from '@/composables/queries/company'
 const props = defineProps({
   companyInitialValues: {
     type: Object,
+    required: true,
+  },
+  initialImageTypes: {
+    type: Array,
     required: true,
   },
 })
@@ -62,23 +66,45 @@ const { data: company, isError } = useCompanyQuery({
           </div>
         </div>
 
-        <CompanySetImageAsset :company="company" type="logo">
-          {{ company.logo?.file_path ? `Edit` : `Add` }} Logo
-        </CompanySetImageAsset>
+        <div class="flex flex-col items-stretch space-y-2">
+          <CompanySetImageAsset
+            :company="company"
+            :initial-image-types="initialImageTypes"
+            type="logo"
+          >
+            {{ company.logo?.file_path ? `Change` : `Add` }} Logo
+          </CompanySetImageAsset>
+
+          <CompanyClearImageAssetDialog
+            v-if="company.logo?.file_path"
+            :company-id="company.id"
+            :image-name="company.logo.name"
+            type="logo"
+          >
+            <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
+            <span class="ml-2">Remove Logo</span>
+          </CompanyClearImageAssetDialog>
+        </div>
       </div>
 
       <div
         class="absolute right-2 top-2 flex flex-row items-center justify-end space-x-2"
       >
-        <ImageDestroyDialog
+        <CompanyClearImageAssetDialog
           v-if="company.banner?.file_path"
-          :image="company.banner"
+          :company-id="company.id"
+          :image-name="company.banner.name"
+          type="banner"
         >
           <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
-        </ImageDestroyDialog>
+        </CompanyClearImageAssetDialog>
 
-        <CompanySetImageAsset :company="company" type="banner">
-          {{ company.banner?.file_path ? `Edit` : `Add` }} Banner
+        <CompanySetImageAsset
+          :company="company"
+          :initial-image-types="initialImageTypes"
+          type="banner"
+        >
+          {{ company.banner?.file_path ? `Change` : `Add` }} Banner
         </CompanySetImageAsset>
       </div>
 
@@ -199,15 +225,21 @@ const { data: company, isError } = useCompanyQuery({
           <div
             class="absolute right-2 top-2 flex flex-row items-center justify-end space-x-2"
           >
-            <ImageDestroyDialog
+            <CompanyClearImageAssetDialog
               v-if="company.footer?.file_path"
-              :image="company.footer"
+              :company-id="company.id"
+              :image-name="company.footer.name"
+              type="footer"
             >
               <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
-            </ImageDestroyDialog>
+            </CompanyClearImageAssetDialog>
 
-            <CompanySetImageAsset :company="company" type="footer">
-              {{ company.footer?.file_path ? `Edit` : `Add` }} Footer
+            <CompanySetImageAsset
+              :company="company"
+              :initial-image-types="initialImageTypes"
+              type="footer"
+            >
+              {{ company.footer?.file_path ? `Change` : `Add` }} Footer
             </CompanySetImageAsset>
           </div>
 

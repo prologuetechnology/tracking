@@ -10,6 +10,8 @@
       payloads
 - [x] Image admin surface normalized to page-controller hydration and
       resource-backed API payloads
+- [x] Company asset dialogs now reuse the shared image library and unassign
+      images safely without deleting shared records
 - [x] RBAC admin surface refactored to thin controllers and explicit requests
 - [x] Tracking workflows extracted from controllers into actions/services
 - [x] Feature coverage added for page access, hydration, and core admin APIs

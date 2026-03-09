@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Actions\Companies\CreateCompany;
+use App\Actions\Companies\ClearCompanyImageAsset;
 use App\Actions\Companies\ListCompanies;
 use App\Actions\Companies\SetCompanyImageAsset;
 use App\Actions\Companies\SetCompanyTheme;
@@ -58,6 +59,18 @@ class CompanyActionsTest extends TestCase
         $this->assertSame($theme->id, $company->theme_id);
         $this->assertSame($logo->id, $company->logo_image_id);
         $this->assertTrue($company->enable_map);
+    }
+
+    public function test_it_can_clear_a_company_image_asset_without_deleting_the_image(): void
+    {
+        $company = $this->makeCompany();
+        $logo = $this->makeImage(ImageTypeEnum::LOGO->value);
+
+        $company = (new SetCompanyImageAsset)->execute($company, $logo->id, ImageTypeEnum::LOGO->value);
+        $company = (new ClearCompanyImageAsset)->execute($company, ImageTypeEnum::LOGO->value);
+
+        $this->assertNull($company->logo_image_id);
+        $this->assertDatabaseHas('images', ['id' => $logo->id]);
     }
 
     public function test_it_rejects_invalid_company_asset_types(): void

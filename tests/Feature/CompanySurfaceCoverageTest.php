@@ -18,6 +18,7 @@ class CompanySurfaceCoverageTest extends TestCase
         $theme = $this->makeTheme(['name' => 'Surface Theme']);
         $company = $this->makeCompany(['theme_id' => $theme->id, 'enable_map' => false, 'enable_documents' => false]);
         $logo = $this->makeImage(ImageTypeEnum::LOGO->value);
+        $banner = $this->makeImage(ImageTypeEnum::BANNER->value);
         $viewer = $this->makeUserWithPermission('company:show');
         $creator = $this->makeUserWithPermission('company:store');
         $updater = $this->makeUserWithPermission('company:update');
@@ -29,7 +30,9 @@ class CompanySurfaceCoverageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/companies/Edit')
                 ->where('companyInitialValues.name', $company->name)
-                ->has('companyFeaturesInitialValues', 2));
+                ->has('companyFeaturesInitialValues', 2)
+                ->has('initialImageTypes', 5)
+                ->where('initialImageTypes.0.name', ImageTypeEnum::LOGO->value));
 
         $created = $this->actingAs($creator)
             ->postJson(route('api.companies.store'), [
@@ -62,6 +65,13 @@ class CompanySurfaceCoverageTest extends TestCase
             ->assertJsonPath('logo.id', $logo->id);
 
         $this->actingAs($updater)
+            ->patchJson(route('api.companies.clearImageAsset', $company), [
+                'type' => ImageTypeEnum::LOGO->value,
+            ])
+            ->assertOk()
+            ->assertJsonPath('logo', null);
+
+        $this->actingAs($updater)
             ->patchJson(route('api.companies.toggleMapOption', $company))
             ->assertOk()
             ->assertJsonPath('enable_map', true);
@@ -81,6 +91,14 @@ class CompanySurfaceCoverageTest extends TestCase
             ->assertOk()
             ->assertJsonPath('id', $company->id)
             ->assertJsonPath('theme.id', $theme->id);
+
+        $this->actingAs($updater)
+            ->patchJson(route('api.companies.setImageAsset', $company), [
+                'image_id' => $banner->id,
+                'type' => ImageTypeEnum::LOGO->value,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['image_id']);
 
         $this->actingAs($destroyer)
             ->deleteJson(route('api.companies.destroy', $created['id']))
@@ -140,6 +158,42 @@ class CompanySurfaceCoverageTest extends TestCase
         $this->actingAs($user)->postJson(route('api.companies.store'), [])->assertForbidden();
         $this->actingAs($user)->patchJson(route('api.companies.setTheme', $company), ['theme_id' => $theme->id])->assertForbidden();
         $this->actingAs($user)->patchJson(route('api.companies.setImageAsset', $company), ['image_id' => $logo->id, 'type' => ImageTypeEnum::LOGO->value])->assertForbidden();
+        $this->actingAs($user)->patchJson(route('api.companies.clearImageAsset', $company), ['type' => ImageTypeEnum::LOGO->value])->assertForbidden();
         $this->actingAs($user)->deleteJson(route('api.companies.destroy', $company))->assertForbidden();
+    }
+
+    public function test_a_shared_image_can_be_assigned_to_multiple_companies_without_duplication(): void
+    {
+        $this->seedCoreFixtures(withImageTypes: true);
+
+        $sharedLogo = $this->makeImage(ImageTypeEnum::LOGO->value);
+        $firstCompany = $this->makeCompany();
+        $secondCompany = $this->makeCompany([
+            'pipeline_company_id' => 908001,
+            'name' => 'Second Company',
+            'email' => 'second@example.test',
+        ]);
+        $updater = $this->makeUserWithPermission('company:update');
+
+        $this->actingAs($updater)
+            ->patchJson(route('api.companies.setImageAsset', $firstCompany), [
+                'image_id' => $sharedLogo->id,
+                'type' => ImageTypeEnum::LOGO->value,
+            ])
+            ->assertOk();
+
+        $this->actingAs($updater)
+            ->patchJson(route('api.companies.setImageAsset', $secondCompany), [
+                'image_id' => $sharedLogo->id,
+                'type' => ImageTypeEnum::LOGO->value,
+            ])
+            ->assertOk();
+
+        $firstCompany->refresh();
+        $secondCompany->refresh();
+
+        $this->assertSame($sharedLogo->id, $firstCompany->logo_image_id);
+        $this->assertSame($sharedLogo->id, $secondCompany->logo_image_id);
+        $this->assertSame(1, $sharedLogo->newQuery()->whereKey($sharedLogo->id)->count());
     }
 }
