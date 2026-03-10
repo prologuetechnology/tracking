@@ -31,6 +31,37 @@ class AdminManagementFlowsTest extends DuskTestCase
         });
     }
 
+    public function test_super_admin_can_create_and_update_themes_from_the_browser(): void
+    {
+        $this->seedCoreFixtures();
+
+        $user = $this->makeSuperAdmin(['email' => 'theme-flow@example.com']);
+        $existingTheme = $this->makeTheme(['name' => 'Existing Browser Theme']);
+
+        $this->browse(function (Browser $browser) use ($user, $existingTheme) {
+            $browser->loginAs($user)
+                ->visit('/admin/themes/create')
+                ->waitForText('Create a Theme')
+                ->type('@theme-name', 'Browser Theme')
+                ->click('@theme-form-save')
+                ->waitUntil("window.location.pathname === '/admin/themes'")
+                ->waitForText('Browser Theme')
+                ->click("@theme-edit-{$existingTheme->id}")
+                ->waitForText('Existing Browser Theme')
+                ->clear('@theme-name')
+                ->type('@theme-name', 'Updated Browser Theme')
+                ->click('@theme-form-save')
+                ->waitUntil("window.location.pathname === '/admin/themes'")
+                ->waitForText('Updated Browser Theme');
+        });
+
+        $this->assertDatabaseHas('themes', ['name' => 'Browser Theme']);
+        $this->assertDatabaseHas('themes', [
+            'id' => $existingTheme->id,
+            'name' => 'Updated Browser Theme',
+        ]);
+    }
+
     public function test_super_admin_can_create_edit_toggle_and_delete_allowed_domains(): void
     {
         $this->seedCoreFixtures();

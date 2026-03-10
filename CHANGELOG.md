@@ -30,6 +30,10 @@
   footer assignment. Uploads from company screens create shared library images
   and auto-assign them, while company edit screens only clear slot references
   instead of deleting global image records.
+- Theme create and edit flows now invalidate the correct Vue Query caches,
+  redirect back to the themes index after save, and use the correct theme show
+  query contract in the edit surface. Browser coverage now verifies both theme
+  creation and update from the admin UI.
 - Company API token store/validate flows now use request/action/resource
   layering with corrected Pipeline company matching and stable token payloads.
 - Impersonation keeps its `/api/...` endpoints but now runs on browser-session

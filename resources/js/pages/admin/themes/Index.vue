@@ -27,6 +27,7 @@ const { data: themes, isError } = useThemesQuery({
         <div
           v-for="theme in themes"
           :key="theme.uuid"
+          :dusk="`theme-row-${theme.id}`"
           class="flex w-full flex-row items-center justify-start space-x-8 rounded-lg border p-4"
         >
           <div class="flex flex-col items-stretch justify-start space-y-2">
@@ -57,6 +58,7 @@ const { data: themes, isError } = useThemesQuery({
             <Button as-child variant="outline" size="sm">
               <Link
                 v-if="userCan(`theme:update`)"
+                :dusk="`theme-edit-${theme.id}`"
                 :href="route(`admin.themes.show`, theme.uuid)"
                 >Edit</Link
               >

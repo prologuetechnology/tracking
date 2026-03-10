@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
+import { useToast } from '@/components/ui/toast'
 import {
   useThemeCreateMutation,
   useThemeUpdateMutation,
@@ -28,7 +29,7 @@ import ThemeDestroyDialog from './ThemeDestroyDialog.vue'
 const props = defineProps({
   theme: {
     type: Object,
-    required: true,
+    default: null,
   },
   heading: {
     type: String,
@@ -37,6 +38,26 @@ const props = defineProps({
 })
 
 const queryClient = useQueryClient()
+const { toast } = useToast()
+
+const buildThemeFormValues = (theme = null) => ({
+  name: theme?.name ?? ``,
+  primary_hue: theme ? [theme.colors.root.primary.split(` `)[0]] : [0],
+  primary_saturation: theme
+    ? [theme.colors.root.primary.split(` `)[1].replace(`%`, ``)]
+    : [0],
+  primary_lightness: theme
+    ? [theme.colors.root.primary.split(` `)[2].replace(`%`, ``)]
+    : [0],
+  accent_hue: theme ? [theme.colors.root.accent.split(` `)[0]] : [0],
+  accent_saturation: theme
+    ? [theme.colors.root.accent.split(` `)[1].replace(`%`, ``)]
+    : [0],
+  accent_lightness: theme
+    ? [theme.colors.root.accent.split(` `)[2].replace(`%`, ``)]
+    : [0],
+  derive_from: theme?.derive_from ?? `primary`,
+})
 
 const themeFormSchema = yup.object({
   name: yup.string().min(1).required(),
@@ -51,28 +72,7 @@ const themeFormSchema = yup.object({
 
 const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
   validationSchema: themeFormSchema,
-  initialValues: {
-    name: props.theme ? props.theme?.name : ``,
-    primary_hue: props.theme
-      ? [props.theme?.colors?.root.primary.split(` `)[0]]
-      : [0],
-    primary_saturation: props.theme
-      ? [props.theme?.colors?.root.primary.split(` `)[1].replace(`%`, ``)]
-      : [0],
-    primary_lightness: props.theme
-      ? [props.theme?.colors?.root.primary.split(` `)[2].replace(`%`, ``)]
-      : [0],
-    accent_hue: props.theme
-      ? [props.theme?.colors?.root.accent.split(` `)[0]]
-      : [0],
-    accent_saturation: props.theme
-      ? [props.theme?.colors?.root.accent.split(` `)[1].replace(`%`, ``)]
-      : [0],
-    accent_lightness: props.theme
-      ? [props.theme?.colors?.root.accent.split(` `)[2].replace(`%`, ``)]
-      : [0],
-    derive_from: props.theme ? props.theme?.derive_from : `primary`,
-  },
+  initialValues: buildThemeFormValues(props.theme),
   keepValuesOnUnmount: true,
 })
 
@@ -81,11 +81,17 @@ const isFormDirty = useIsFormDirty()
 const { mutate: createTheme, isPending: createThemeIsPending } =
   useThemeCreateMutation({
     config: {
-      onSuccess: (data) => {
-        console.log(`Theme created`, data)
-        queryClient.invalidateQueries(`themes`)
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: [`themes`],
+        })
 
-        router.visit(route(`admin.themes.show`, data.uuid))
+        toast({
+          title: `Theme Created`,
+          description: `The new theme has been saved.`,
+        })
+
+        router.visit(route(`admin.themes.index`))
       },
     },
   })
@@ -93,8 +99,20 @@ const { mutate: createTheme, isPending: createThemeIsPending } =
 const { mutate: updateTheme, isPending: updateThemeIsPending } =
   useThemeUpdateMutation({
     config: {
-      onSuccess: () => {
-        queryClient.invalidateQueries(`themes`)
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: [`themes`],
+        })
+
+        await queryClient.invalidateQueries({
+          queryKey: [`themes`, props.theme?.id],
+          exact: true,
+        })
+
+        toast({
+          title: `Theme Updated`,
+          description: `The theme changes have been saved.`,
+        })
 
         router.visit(route(`admin.themes.index`))
       },
@@ -118,8 +136,12 @@ const onValidForm = (values) => {
   }
 }
 
-const onInvalidForm = ({ values, errors, results }) => {
-  console.error({ values, errors, results })
+const onInvalidForm = ({ errors }) => {
+  toast({
+    title: `Validation Error`,
+    description: errors.name ?? `Please fix the form errors.`,
+    variant: `destructive`,
+  })
 }
 
 const submitForm = () => {
@@ -131,24 +153,7 @@ watch(
   (newTheme) => {
     if (newTheme) {
       resetForm({
-        values: {
-          name: newTheme?.name,
-          primary_hue: [newTheme?.colors?.root.primary.split(` `)[0]],
-          primary_saturation: [
-            newTheme?.colors?.root.primary.split(` `)[1].replace(`%`, ``),
-          ],
-          primary_lightness: [
-            newTheme?.colors?.root.primary.split(` `)[2].replace(`%`, ``),
-          ],
-          accent_hue: [newTheme?.colors?.root.accent.split(` `)[0]],
-          accent_saturation: [
-            newTheme?.colors?.root.accent.split(` `)[1].replace(`%`, ``),
-          ],
-          accent_lightness: [
-            newTheme?.colors?.root.accent.split(` `)[2].replace(`%`, ``),
-          ],
-          derive_from: newTheme?.derive_from,
-        },
+        values: buildThemeFormValues(newTheme),
       })
     }
   },
