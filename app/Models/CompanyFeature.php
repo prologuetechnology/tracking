@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
- * 
- *
  * @property int $id
  * @property string $name
  * @property string $slug
@@ -18,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Company> $companies
  * @property-read int|null $companies_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyFeature newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyFeature newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyFeature query()
@@ -28,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyFeature whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyFeature whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyFeature whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class CompanyFeature extends Model

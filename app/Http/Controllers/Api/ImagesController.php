@@ -12,8 +12,8 @@ use App\Http\Requests\StoreImageRequest;
 use App\Http\Resources\ImageResource;
 use App\Models\Image;
 use Illuminate\Http\JsonResponse;
-use Throwable;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class ImagesController extends Controller
 {
@@ -21,8 +21,7 @@ class ImagesController extends Controller
         private readonly DeleteImage $deleteImage,
         private readonly ListImages $listImages,
         private readonly StoreImage $storeImage,
-    ) {
-    }
+    ) {}
 
     public function index(ListImagesRequest $request): JsonResponse
     {

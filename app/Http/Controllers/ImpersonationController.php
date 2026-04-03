@@ -7,15 +7,13 @@ use App\Actions\Impersonation\StopImpersonation;
 use App\Http\Requests\ImpersonateUserRequest;
 use App\Http\Requests\StopImpersonationRequest;
 use App\Models\User;
-use Symfony\Component\HttpFoundation\Response;
 
 class ImpersonationController extends Controller
 {
     public function __construct(
         private readonly StartImpersonation $startImpersonation,
         private readonly StopImpersonation $stopImpersonation,
-    ) {
-    }
+    ) {}
 
     public function impersonate(ImpersonateUserRequest $request, int $userId)
     {

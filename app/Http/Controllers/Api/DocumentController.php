@@ -15,8 +15,7 @@ class DocumentController extends Controller
     public function __construct(
         private readonly ResolveTrackingCompany $resolveTrackingCompany,
         private readonly GetShipmentDocuments $getShipmentDocuments,
-    ) {
-    }
+    ) {}
 
     public function shipmentDocuments(GetShipmentDocumentsRequest $request): JsonResponse
     {

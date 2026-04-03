@@ -9,8 +9,7 @@ class SearchShipment
 {
     public function __construct(
         private readonly PipelineApiShipmentSearch $shipmentSearchClient,
-    ) {
-    }
+    ) {}
 
     public function execute(string $trackingNumber, string $searchOption): Response
     {

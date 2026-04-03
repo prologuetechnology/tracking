@@ -12,8 +12,7 @@ class AllowedDomainPageController extends Controller
 {
     public function __construct(
         private readonly ListAllowedDomains $listAllowedDomains,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {

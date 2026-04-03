@@ -65,7 +65,7 @@ class AllowedDomainAuthenticationTest extends TestCase
 
     private function makeSocialiteUser(string $azureId, string $email): SocialiteUser
     {
-        $socialiteUser = new SocialiteUser();
+        $socialiteUser = new SocialiteUser;
         $socialiteUser->id = $azureId;
         $socialiteUser->email = $email;
         $socialiteUser->token = 'token';

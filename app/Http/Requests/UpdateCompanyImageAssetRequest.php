@@ -4,10 +4,10 @@ namespace App\Http\Requests;
 
 use App\Actions\Companies\SetCompanyImageAsset;
 use App\Models\ImageType;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Validation\Rules\Exists;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 class UpdateCompanyImageAssetRequest extends FormRequest
 {

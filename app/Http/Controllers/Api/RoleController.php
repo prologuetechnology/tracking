@@ -25,8 +25,7 @@ class RoleController extends Controller
         private readonly ShowRole $showRole,
         private readonly UpdateRole $updateRole,
         private readonly SyncRolePermissions $syncRolePermissions,
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {

@@ -15,8 +15,7 @@ class PermissionPageController extends Controller
     public function __construct(
         private readonly ListPermissions $listPermissions,
         private readonly ShowPermission $showPermission,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {

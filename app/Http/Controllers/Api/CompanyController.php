@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\Companies\CreateCompany;
 use App\Actions\Companies\ClearCompanyImageAsset;
+use App\Actions\Companies\CreateCompany;
 use App\Actions\Companies\ListCompanies;
 use App\Actions\Companies\SetCompanyImageAsset;
 use App\Actions\Companies\SetCompanyTheme;
@@ -11,8 +11,8 @@ use App\Actions\Companies\ShowCompany;
 use App\Actions\Companies\ToggleCompanyField;
 use App\Actions\Companies\UpdateCompany;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\DeleteCompanyRequest;
 use App\Http\Requests\ClearCompanyImageAssetRequest;
+use App\Http\Requests\DeleteCompanyRequest;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\ToggleCompanyStatusRequest;
 use App\Http\Requests\UpdateCompanyImageAssetRequest;
@@ -34,8 +34,7 @@ class CompanyController extends Controller
         private readonly ShowCompany $showCompany,
         private readonly ToggleCompanyField $toggleCompanyField,
         private readonly UpdateCompany $updateCompany,
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {
@@ -101,8 +100,7 @@ class CompanyController extends Controller
     public function toggleActive(
         Company $company,
         ToggleCompanyStatusRequest $request,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $company = $this->toggleCompanyField->execute($company, 'is_active');
 
         return response()->json(CompanyResource::make($company), Response::HTTP_OK);
@@ -111,8 +109,7 @@ class CompanyController extends Controller
     public function toggleMapOption(
         Company $company,
         ToggleCompanyStatusRequest $request,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $company = $this->toggleCompanyField->execute($company, 'enable_map');
 
         return response()->json(CompanyResource::make($company), Response::HTTP_OK);

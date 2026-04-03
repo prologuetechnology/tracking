@@ -5,9 +5,9 @@ namespace Tests;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 use Laravel\Dusk\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\AfterClass;
 use PHPUnit\Framework\Attributes\BeforeClass;
@@ -19,6 +19,7 @@ abstract class DuskTestCase extends BaseTestCase
     use InteractsWithAppFixtures;
 
     protected static ?Process $server = null;
+
     protected static ?string $duskDatabasePath = null;
 
     protected function setUp(): void

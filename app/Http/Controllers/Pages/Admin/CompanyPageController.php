@@ -20,8 +20,7 @@ class CompanyPageController extends Controller
         private readonly ListCompanies $listCompanies,
         private readonly ListImageTypes $listImageTypes,
         private readonly ShowCompany $showCompany,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {

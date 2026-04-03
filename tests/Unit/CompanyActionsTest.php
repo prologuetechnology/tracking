@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Actions\Companies\CreateCompany;
 use App\Actions\Companies\ClearCompanyImageAsset;
+use App\Actions\Companies\CreateCompany;
 use App\Actions\Companies\ListCompanies;
 use App\Actions\Companies\SetCompanyImageAsset;
 use App\Actions\Companies\SetCompanyTheme;
@@ -11,7 +11,6 @@ use App\Actions\Companies\ShowCompany;
 use App\Actions\Companies\ToggleCompanyField;
 use App\Actions\Companies\UpdateCompany;
 use App\Enums\ImageTypeEnum;
-use App\Models\CompanyFeature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use Tests\TestCase;

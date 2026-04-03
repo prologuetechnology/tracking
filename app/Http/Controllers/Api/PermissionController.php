@@ -21,8 +21,7 @@ class PermissionController extends Controller
         private readonly CreatePermission $createPermission,
         private readonly ShowPermission $showPermission,
         private readonly UpdatePermission $updatePermission,
-    ) {
-    }
+    ) {}
 
     public function index(): \Illuminate\Http\JsonResponse
     {

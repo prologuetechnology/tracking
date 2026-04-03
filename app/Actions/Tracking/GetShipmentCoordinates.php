@@ -10,8 +10,7 @@ class GetShipmentCoordinates
 {
     public function __construct(
         private readonly PipelineApiShipmentCoordinates $shipmentCoordinatesClient,
-    ) {
-    }
+    ) {}
 
     public function execute(
         ?Company $company,

@@ -18,8 +18,7 @@ class RolePageController extends Controller
         private readonly ListRoles $listRoles,
         private readonly ShowRole $showRole,
         private readonly ListPermissions $listPermissions,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {

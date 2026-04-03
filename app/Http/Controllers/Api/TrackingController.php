@@ -19,8 +19,7 @@ class TrackingController extends Controller
         private readonly ResolveTrackingCompany $resolveTrackingCompany,
         private readonly GetShipmentCoordinates $getShipmentCoordinates,
         private readonly ResolveTrackingPayload $resolveTrackingPayload,
-    ) {
-    }
+    ) {}
 
     public function trackingStatuses(GetTrackingStatusesRequest $request): JsonResponse
     {

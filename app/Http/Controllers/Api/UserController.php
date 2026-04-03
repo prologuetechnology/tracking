@@ -18,8 +18,7 @@ class UserController extends Controller
         private readonly ListUsers $listUsers,
         private readonly ShowUser $showUser,
         private readonly UpdateUserRole $updateUserRole,
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {

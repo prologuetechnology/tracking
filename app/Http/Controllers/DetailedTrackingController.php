@@ -12,8 +12,7 @@ class DetailedTrackingController extends Controller
 {
     public function __construct(
         private readonly ResolveTrackingPayload $resolveTrackingPayload,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): InertiaResponse|RedirectResponse
     {

@@ -13,8 +13,7 @@ class ImageTypesController extends Controller
 {
     public function __construct(
         private readonly ListImageTypes $listImageTypes,
-    ) {
-    }
+    ) {}
 
     public function index(ListImageTypesRequest $request): JsonResponse
     {

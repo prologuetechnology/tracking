@@ -20,8 +20,7 @@ class ThemeController extends Controller
         private readonly CreateTheme $createTheme,
         private readonly ListThemes $listThemes,
         private readonly UpdateTheme $updateTheme,
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {

@@ -23,8 +23,7 @@ class AllowedDomainController extends Controller
         private readonly ListAllowedDomains $listAllowedDomains,
         private readonly ToggleAllowedDomainStatus $toggleAllowedDomainStatus,
         private readonly UpdateAllowedDomain $updateAllowedDomain,
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {

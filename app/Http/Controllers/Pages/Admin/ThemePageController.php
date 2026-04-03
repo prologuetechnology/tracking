@@ -13,8 +13,7 @@ class ThemePageController extends Controller
 {
     public function __construct(
         private readonly ListThemes $listThemes,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {

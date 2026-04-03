@@ -4,7 +4,6 @@ namespace Tests\Unit;
 
 use App\Actions\Permissions\CreatePermission;
 use App\Actions\Permissions\ListPermissions;
-use App\Actions\Permissions\ShowPermission;
 use App\Actions\Permissions\UpdatePermission;
 use App\Actions\Roles\CreateRole;
 use App\Actions\Roles\ListRoles;

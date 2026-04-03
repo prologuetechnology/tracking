@@ -15,8 +15,7 @@ class ImagePageController extends Controller
     public function __construct(
         private readonly ListImages $listImages,
         private readonly ListImageTypes $listImageTypes,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {

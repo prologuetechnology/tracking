@@ -15,8 +15,7 @@ class UserPageController extends Controller
     public function __construct(
         private readonly ListUsers $listUsers,
         private readonly ListRoles $listRoles,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {

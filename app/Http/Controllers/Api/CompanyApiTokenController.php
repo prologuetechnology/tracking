@@ -21,8 +21,7 @@ class CompanyApiTokenController extends Controller
         private readonly CreateCompanyApiToken $createCompanyApiToken,
         private readonly DeleteCompanyApiToken $deleteCompanyApiToken,
         private readonly ValidateCompanyApiToken $validateCompanyApiToken,
-    ) {
-    }
+    ) {}
 
     public function store(StoreCompanyApiTokenRequest $request): JsonResponse
     {
@@ -51,8 +50,7 @@ class CompanyApiTokenController extends Controller
     public function destroy(
         CompanyApiToken $companyApiToken,
         DeleteCompanyApiTokenRequest $request,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $this->deleteCompanyApiToken->execute($companyApiToken);
 
         return response()->json(null, Response::HTTP_NO_CONTENT);

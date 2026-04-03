@@ -13,8 +13,7 @@ class ResolveTrackingPayload
         private readonly ResolveTrackingCompany $resolveTrackingCompany,
         private readonly GetShipmentCoordinates $getShipmentCoordinates,
         private readonly GetShipmentDocuments $getShipmentDocuments,
-    ) {
-    }
+    ) {}
 
     public function execute(
         string $trackingNumber,

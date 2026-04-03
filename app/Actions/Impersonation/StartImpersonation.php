@@ -15,7 +15,7 @@ class StartImpersonation
         $userToImpersonate = User::query()->find($userId);
 
         if ($userToImpersonate === null) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         if ($userToImpersonate->hasRole('Super Admin')) {
