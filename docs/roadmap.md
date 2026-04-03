@@ -15,6 +15,8 @@
 - [x] RBAC admin surface refactored to thin controllers and explicit requests
 - [x] Tracking workflows extracted from controllers into actions/services
 - [x] Feature coverage added for page access, hydration, and core admin APIs
+- [x] Coverage expanded for active middleware, super-admin page hydration, and
+      branded tracking success flows
 - [x] Lint/build/test scripts documented and validated
 
 ## Next

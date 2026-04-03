@@ -297,9 +297,13 @@ class Company extends Model
 
             switch (true) {
                 case $brand:
-                    $company = $query->whereRaw('BINARY `brand` = ?', [$brand])->first();
+                    $company = $query->where('brand', $brand)->first();
 
                     if (! $company) {
+                        return null;
+                    }
+
+                    if ($company->brand !== $brand) {
                         return null;
                     }
 

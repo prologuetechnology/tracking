@@ -6,6 +6,9 @@
 
 - Local onboarding and architecture baseline docs for the transfer-kit
   alignment.
+- Additional production-confidence coverage for active admin middleware,
+  super-admin page hydration, branded tracking success rendering, and the
+  remaining normalized resource payloads.
 
 ### Changed
 
@@ -39,3 +42,9 @@
 - Impersonation keeps its `/api/...` endpoints but now runs on browser-session
   auth middleware so redirect-based impersonation and restore flows are
   coherent in both the app and the test suite.
+- Dusk now boots its local app server with explicit dusk-local app URL, asset
+  URL, and sqlite environment values so browser runs do not inherit the base
+  `tracking.test` asset host.
+- Company brand lookups now use a database-agnostic exact-match check instead
+  of a MySQL-only `BINARY` clause, keeping branded tracking resolution
+  consistent in both sqlite-backed tests and production.

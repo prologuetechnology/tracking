@@ -19,6 +19,7 @@ abstract class DuskTestCase extends BaseTestCase
     use InteractsWithAppFixtures;
 
     protected static ?Process $server = null;
+    protected static ?string $duskDatabasePath = null;
 
     protected function setUp(): void
     {
@@ -41,11 +42,13 @@ abstract class DuskTestCase extends BaseTestCase
     #[BeforeClass]
     public static function prepare(): void
     {
-        $duskDatabasePath = dirname(__DIR__).'/database/dusk.sqlite';
+        static::$duskDatabasePath = dirname(__DIR__).'/database/dusk.sqlite';
 
-        if (! file_exists($duskDatabasePath)) {
-            touch($duskDatabasePath);
+        if (! file_exists(static::$duskDatabasePath)) {
+            touch(static::$duskDatabasePath);
         }
+
+        static::setDuskEnvironmentVariables();
 
         if (! static::runningInSail()) {
             static::startChromeDriver(['--port=9515']);
@@ -94,7 +97,7 @@ abstract class DuskTestCase extends BaseTestCase
         static::$server = new Process(
             ['php', 'artisan', 'serve', '--env=dusk.local', '--host=127.0.0.1', '--port=8000'],
             dirname(__DIR__),
-            ['XDEBUG_MODE' => 'off'],
+            static::duskServerEnvironment(),
         );
 
         static::$server->setTimeout(null);
@@ -122,23 +125,45 @@ abstract class DuskTestCase extends BaseTestCase
 
     protected function useDuskDatabase(): void
     {
-        $databasePath = database_path('dusk.sqlite');
+        static::setDuskEnvironmentVariables();
+
+        config()->set('app.env', 'dusk.local');
+        config()->set('app.url', 'http://127.0.0.1:8000');
+        config()->set('database.default', 'sqlite');
+        config()->set('database.connections.sqlite.database', static::$duskDatabasePath);
+
+        DB::purge('sqlite');
+        DB::reconnect('sqlite');
+    }
+
+    protected static function setDuskEnvironmentVariables(): void
+    {
+        static::$duskDatabasePath ??= dirname(__DIR__).'/database/dusk.sqlite';
 
         foreach ([
             'APP_ENV' => 'dusk.local',
+            'APP_URL' => 'http://127.0.0.1:8000',
+            'ASSET_URL' => '',
             'DB_CONNECTION' => 'sqlite',
-            'DB_DATABASE' => $databasePath,
+            'DB_DATABASE' => static::$duskDatabasePath,
         ] as $key => $value) {
             putenv("{$key}={$value}");
             $_ENV[$key] = $value;
             $_SERVER[$key] = $value;
         }
+    }
 
-        config()->set('app.env', 'dusk.local');
-        config()->set('database.default', 'sqlite');
-        config()->set('database.connections.sqlite.database', $databasePath);
+    protected static function duskServerEnvironment(): array
+    {
+        static::setDuskEnvironmentVariables();
 
-        DB::purge('sqlite');
-        DB::reconnect('sqlite');
+        return [
+            'APP_ENV' => 'dusk.local',
+            'APP_URL' => 'http://127.0.0.1:8000',
+            'ASSET_URL' => '',
+            'DB_CONNECTION' => 'sqlite',
+            'DB_DATABASE' => static::$duskDatabasePath,
+            'XDEBUG_MODE' => 'off',
+        ];
     }
 }
