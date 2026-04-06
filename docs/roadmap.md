@@ -2,7 +2,9 @@
 
 ## Active
 
-- [ ] Transfer-kit alignment baseline docs completed and kept current
+- [x] Transfer-kit alignment baseline docs completed and kept current
+- [x] Herd-first onboarding docs and env contract refreshed for fresh-machine
+      setup
 - [ ] Page routes moved to thin controllers
 - [ ] Company admin surface refactored to actions/resources with stable payloads
 - [ ] Theme admin surface refactored to actions/resources with stable payloads
@@ -21,7 +23,8 @@
 
 ## Next
 
-- [x] Add deterministic Dusk environment wiring for repeatable browser smoke runs
+- [x] Add deterministic Dusk environment wiring for repeatable browser smoke
+      runs
 - [ ] Add stronger error and observability guidance around Pipeline failures
 - [ ] Expand request authorization and response-shaping coverage across any
       remaining non-aligned API controllers

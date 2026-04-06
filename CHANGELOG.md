@@ -6,6 +6,7 @@
 
 - Local onboarding and architecture baseline docs for the transfer-kit
   alignment.
+- A dedicated Herd-first fresh-machine setup guide in `docs/local-setup.md`.
 - Additional production-confidence coverage for active admin middleware,
   super-admin page hydration, branded tracking success rendering, and the
   remaining normalized resource payloads.
@@ -15,6 +16,13 @@
 - Transfer-kit adaptation pass completed for the Laravel + Inertia Vue stack.
 - Repo conventions now explicitly document server-first hydration, thin page
   controllers, action/service layering, and Vue Query domain composables.
+- `.env.example` is now a project-specific local env contract covering Azure
+  OAuth, login allowlists, Pipeline credentials, and local image-storage
+  choices.
+- `README.md` is now a detailed developer onboarding guide for Herd-based local
+  setup and project-specific operational realities.
+- `docs/dev-runbook.md` now focuses on daily Herd-first commands and operational
+  gotchas, while `docs/local-setup.md` owns fresh-machine bootstrap.
 - PHPUnit now targets sqlite in testing by default so `php artisan test` does
   not depend on a local MySQL database.
 - OAuth-aligned auth coverage replaced the stale Laravel password/profile
