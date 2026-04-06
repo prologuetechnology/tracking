@@ -2,9 +2,8 @@
 
 namespace App\Logging;
 
-use Monolog\Logger;
-use Monolog\Handler\AbstractProcessingHandler;
 use App\Models\Log;
+use Monolog\Handler\AbstractProcessingHandler;
 
 class DatabaseLogger extends AbstractProcessingHandler
 {

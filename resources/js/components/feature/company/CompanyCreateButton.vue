@@ -10,11 +10,17 @@ const { userCan } = useRolesAndPermissions()
 </script>
 
 <template>
-  <Button v-if="userCan('company:store')" size="sm" variant="default" as-child>
-    <Link :href="route('admin.companies.create')">
+  <!-- prettier-ignore -->
+  <Button
+    v-if="userCan('company:store')"
+    size="sm"
+    variant="default"
+    as-child
+  >
+    <Link :href="route('admin.companies.create')" dusk="company-create-link">
       <FontAwesomeIcon :icon="faPlus" class="mr-2" fixed-width />
 
-      <span>Create Company</span></Link
-    >
+      <span>Create Company</span>
+    </Link>
   </Button>
 </template>

@@ -15,6 +15,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'image_library_disk' => env('IMAGE_UPLOAD_DISK', 'spaces'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

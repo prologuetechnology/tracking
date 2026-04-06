@@ -6,7 +6,7 @@ import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vu
 </script>
 
 <template>
-  <Head title="Create Permission`" />
+  <Head title="Create Permission" />
 
   <AuthenticatedLayout title="Create Permission">
     <PermissionForm />

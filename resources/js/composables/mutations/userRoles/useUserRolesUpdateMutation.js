@@ -2,7 +2,10 @@ import { useMutation } from '@tanstack/vue-query'
 import axios from 'axios'
 
 const updateUserRole = async ({ id, formData }) => {
-  const { data } = await axios.put(route(`api.roles.update`, id), formData)
+  const { data } = await axios.put(
+    route(`api.admin.roles.update`, id),
+    formData,
+  )
   return data
 }
 

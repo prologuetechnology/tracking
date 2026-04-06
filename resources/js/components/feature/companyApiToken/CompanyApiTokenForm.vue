@@ -106,8 +106,15 @@ const onValidSubmit = (values) => {
   })
 }
 
-const onInvalidSubmit = ({ values, errors }) => {
-  console.error(`Invalid API Token Submission:`, { values, errors })
+const onInvalidSubmit = ({ errors }) => {
+  toast({
+    title: `Validation Error`,
+    description:
+      errors.api_token ||
+      errors.trackingNumber ||
+      `Please fix the form errors.`,
+    variant: `destructive`,
+  })
 }
 
 const submitForm = () => {

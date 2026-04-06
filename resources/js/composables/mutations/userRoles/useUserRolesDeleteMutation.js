@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/vue-query'
 import axios from 'axios'
 
 const deleteUserRole = async (id) => {
-  const { data } = await axios.delete(route(`api.roles.destroy`, id))
+  const { data } = await axios.delete(route(`api.admin.roles.destroy`, id))
   return data
 }
 

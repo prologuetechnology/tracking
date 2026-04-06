@@ -6,7 +6,7 @@ import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vu
 </script>
 
 <template>
-  <Head title="Tracking" />
+  <Head title="Roles" />
 
   <AuthenticatedLayout title="Manage Roles">
     <RoleTable />

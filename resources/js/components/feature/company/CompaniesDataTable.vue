@@ -77,7 +77,7 @@ const columns = [
               default: () =>
                 h(
                   Link,
-                  { href: route(`admin.company.show`, row.original.uuid) },
+                  { href: route(`admin.companies.show`, row.original.uuid) },
                   {
                     default: () =>
                       h(FontAwesomeIcon, { icon: faEdit, fixedWidth: true }),

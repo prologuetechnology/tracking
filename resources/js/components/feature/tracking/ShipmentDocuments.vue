@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-const props = defineProps({
+defineProps({
   documents: {
     type: Array,
     required: true,
@@ -68,7 +68,7 @@ const formatFileSize = (size) => {
             </TableCell>
 
             <TableCell class="uppercase">
-              {{ document.type.split('/')[1] }}
+              {{ document.type?.split('/')?.[1] ?? 'N/A' }}
             </TableCell>
 
             <TableCell>

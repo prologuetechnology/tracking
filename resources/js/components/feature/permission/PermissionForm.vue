@@ -24,7 +24,8 @@ import {
 const props = defineProps({
   permission: {
     type: Object,
-    required: true,
+    required: false,
+    default: null,
   },
   heading: {
     type: String,
@@ -39,7 +40,7 @@ const permissionFormSchema = yup.object({
   guard_name: yup.string().min(1).required(),
 })
 
-const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
+const { isFieldDirty, handleSubmit, resetForm } = useForm({
   validationSchema: permissionFormSchema,
   initialValues: {
     name: props.permission?.name,
@@ -134,7 +135,8 @@ watch(
 
 <template>
   <form
-    id="permissionForm`"
+    id="permissionForm"
+    dusk="permission-form"
     class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
     @submit="submitForm"
   >
@@ -148,6 +150,7 @@ watch(
 
         <FormControl>
           <Input
+            dusk="permission-name"
             type="text"
             placeholder="company.create"
             v-bind="componentField"
@@ -167,7 +170,12 @@ watch(
         <FormLabel>Guard Name</FormLabel>
 
         <FormControl>
-          <Input type="text" placeholder="web" v-bind="componentField" />
+          <Input
+            dusk="permission-guard"
+            type="text"
+            placeholder="web"
+            v-bind="componentField"
+          />
         </FormControl>
 
         <FormDescription>The name of the permission.</FormDescription>
@@ -194,6 +202,7 @@ watch(
         size="sm"
         type="button"
         class=""
+        dusk="permission-save"
         :disabled="
           createPermissionIsPending || updatePermissionIsPending || !isFormDirty
         "

@@ -33,7 +33,7 @@ const allowedDomainFormIsPending = computed(
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger as-child>
-      <Button variant="default" size="sm">
+      <Button variant="default" size="sm" dusk="allowed-domain-open-create">
         <FontAwesomeIcon class="mr-2" :icon="faPlus" fixed-width />
 
         <span>Add Domain</span>
@@ -45,7 +45,11 @@ const allowedDomainFormIsPending = computed(
         <DialogTitle>Create Allowed Domain</DialogTitle>
       </DialogHeader>
 
-      <AllowedDomainForm ref="allowedDomainForm" @is-success="closeDialog" />
+      <AllowedDomainForm
+        ref="allowedDomainForm"
+        :allowed-domain="null"
+        @is-success="closeDialog"
+      />
 
       <DialogFooter
         class="flex flex-row items-center justify-end space-x-2 pt-4"
@@ -63,6 +67,7 @@ const allowedDomainFormIsPending = computed(
           type="button"
           variant="default"
           size="sm"
+          dusk="allowed-domain-submit-create"
           :disabled="
             allowedDomainFormIsPending || !allowedDomainForm?.isFormDirty
           "

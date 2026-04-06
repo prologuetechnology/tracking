@@ -2,7 +2,7 @@
 import { faTrashAlt } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -59,7 +59,11 @@ const handleDelete = () => {
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger as-child>
-      <Button variant="destructive" size="sm">
+      <Button
+        :dusk="`allowed-domain-delete-${props.allowedDomain.id}`"
+        variant="destructive"
+        size="sm"
+      >
         <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
       </Button>
     </DialogTrigger>
@@ -78,7 +82,12 @@ const handleDelete = () => {
       <DialogFooter>
         <Button variant="secondary" @click="closeDialog">Cancel</Button>
 
-        <Button variant="destructive" @click="handleDelete">Delete</Button>
+        <Button
+          :dusk="`allowed-domain-confirm-delete-${props.allowedDomain.id}`"
+          variant="destructive"
+          @click="handleDelete"
+          >Delete</Button
+        >
       </DialogFooter>
     </DialogContent>
   </Dialog>

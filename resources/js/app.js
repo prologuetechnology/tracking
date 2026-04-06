@@ -1,3 +1,5 @@
+import './bootstrap'
+
 import { createInertiaApp } from '@inertiajs/vue3'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'

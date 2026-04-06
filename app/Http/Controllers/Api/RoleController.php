@@ -2,103 +2,84 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Roles\CreateRole;
+use App\Actions\Roles\ListRoles;
+use App\Actions\Roles\ShowRole;
+use App\Actions\Roles\SyncRolePermissions;
+use App\Actions\Roles\UpdateRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignRolePermissionsRequest;
-use App\Http\Requests\StoreUserRolesRequest;
+use App\Http\Requests\DeleteRoleRequest;
+use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\RoleResource;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class RoleController extends Controller
 {
+    public function __construct(
+        private readonly ListRoles $listRoles,
+        private readonly CreateRole $createRole,
+        private readonly ShowRole $showRole,
+        private readonly UpdateRole $updateRole,
+        private readonly SyncRolePermissions $syncRolePermissions,
+    ) {}
+
     public function index(): JsonResponse
     {
-        if (Auth::user()->cannot('role:show')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
-
-        $roles = Role::with('permissions')->get();
-
-        return response()->json($roles);
+        return response()->json(
+            RoleResource::collection($this->listRoles->execute())->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
-    /**
-     * Store a newly created role in storage.
-     */
-    public function store(StoreUserRolesRequest $request): JsonResponse
+    public function store(StoreRoleRequest $request): JsonResponse
     {
-        if (Auth::user()->cannot('role:create')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
+        $role = $this->createRole->execute($request->validated());
 
-        $validated = $request->validated();
-
-        $role = Role::create(['name' => $validated['name']]);
-
-        if (! empty($validated['permissions'])) {
-            $role->syncPermissions($validated['permissions']);
-        }
-
-        return response()->json($role->load('permissions'), Response::HTTP_CREATED);
+        return response()->json(
+            RoleResource::make($role)->resolve(),
+            Response::HTTP_CREATED,
+        );
     }
 
-    /**
-     * Display the specified role.
-     */
     public function show(Role $role): JsonResponse
     {
-        if (Auth::user()->cannot('role:show')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
-
-        return response()->json($role->load('permissions'));
+        return response()->json(
+            RoleResource::make($this->showRole->execute($role))->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
     {
-        if (Auth::user()->cannot('role:update')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
+        $role = $this->updateRole->execute($role, $request->validated());
 
-        $validated = $request->validated();
-
-        $role->update(['name' => $validated['name']]);
-
-        if (isset($validated['permissions'])) {
-            $role->syncPermissions($validated['permissions']);
-        }
-
-        return response()->json($role->load('permissions'), Response::HTTP_OK);
+        return response()->json(
+            RoleResource::make($role)->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
-    /**
-     * Remove the specified role from storage.
-     */
-    public function destroy(Role $role): JsonResponse
+    public function destroy(Role $role, DeleteRoleRequest $request): JsonResponse
     {
-        if (Auth::user()->cannot('role:delete')) {
-            return response()->json(null, Response::HTTP_FORBIDDEN);
-        }
-
         $role->delete();
 
-        return response()->json(['message' => 'Role deleted.']);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
-    /**
-     * Assign permissions to a role.
-     */
     public function assignPermissions(AssignRolePermissionsRequest $request, Role $role): JsonResponse
     {
-        $validated = $request->validated();
-
-        $role->syncPermissions($validated['permissions']);
+        $role = $this->syncRolePermissions->execute(
+            $role,
+            $request->validated('permissions'),
+        );
 
         return response()->json([
             'message' => 'Permissions assigned successfully.',
-            'role' => $role->load('permissions'),
+            'role' => RoleResource::make($role)->resolve(),
         ], Response::HTTP_OK);
     }
 }
