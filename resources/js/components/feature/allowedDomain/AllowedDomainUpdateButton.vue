@@ -1,5 +1,5 @@
 <script setup>
-import { faPencil, faPlus } from '@fortawesome/pro-duotone-svg-icons'
+import { faPencil } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { computed, ref } from 'vue'
 
@@ -40,7 +40,11 @@ const allowedDomainFormIsPending = computed(
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger as-child>
-      <Button variant="outline" size="icon">
+      <Button
+        :dusk="`allowed-domain-edit-${props.allowedDomain.id}`"
+        variant="outline"
+        size="icon"
+      >
         <FontAwesomeIcon :icon="faPencil" fixed-width />
       </Button>
     </DialogTrigger>
@@ -72,12 +76,14 @@ const allowedDomainFormIsPending = computed(
           type="button"
           variant="default"
           size="sm"
+          :dusk="`allowed-domain-save-${props.allowedDomain.id}`"
           :disabled="
             allowedDomainFormIsPending || !allowedDomainForm?.isFormDirty
           "
           @click="allowedDomainForm?.submitForm"
-          >Create</Button
         >
+          Save
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

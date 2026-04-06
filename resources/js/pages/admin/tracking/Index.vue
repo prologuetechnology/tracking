@@ -27,16 +27,22 @@ const {
 const trackingNumber = ref(``)
 const searchOption = ref(``)
 
-const { data, refetch, isError, isLoading, isFetching } = useTrackShipmentQuery(
-  {
-    config: {
-      enabled: false,
-    },
-
-    trackingNumber: trackingNumber,
-    searchOption: searchOption,
+const {
+  data,
+  refetch,
+  dataUpdatedAt,
+  isError,
+  isLoading,
+  isFetching,
+  isRefetching,
+} = useTrackShipmentQuery({
+  config: {
+    enabled: false,
   },
-)
+
+  trackingNumber: trackingNumber,
+  searchOption: searchOption,
+})
 
 const resetForm = () => {
   trackingNumber.value = ``
@@ -67,6 +73,7 @@ const submitForm = () => {
             <Input
               id="trackingNumber"
               v-model="trackingNumber"
+              dusk="tracking-number-input"
               name="trackingNumber"
               type="text"
               :disabled="isLoading || isFetching"
@@ -83,13 +90,19 @@ const submitForm = () => {
               name="searchOption"
               :disabled="isLoading || isFetching"
             >
-              <SelectTrigger>
+              <SelectTrigger dusk="tracking-search-option-trigger">
                 <SelectValue placeholder="Select a type" />
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="bol">Bill of Lading</SelectItem>
-                <SelectItem value="carrierPro">Carrier PRO</SelectItem>
+                <SelectItem value="bol" dusk="tracking-search-option-bol">
+                  Bill of Lading
+                </SelectItem>
+                <SelectItem
+                  value="carrierPro"
+                  dusk="tracking-search-option-carrier-pro"
+                  >Carrier PRO</SelectItem
+                >
               </SelectContent>
             </Select>
           </div>
@@ -130,6 +143,7 @@ const submitForm = () => {
           <Button
             variant="default"
             size="sm"
+            dusk="tracking-search-submit"
             :disabled="isLoading || isFetching"
             @click="submitForm"
           >
@@ -145,13 +159,14 @@ const submitForm = () => {
         :company="data?.company"
         :shipment-coordinates="data?.shipmentCoordinates"
         :shipment-documents="data?.shipmentDocuments"
-        :use-track-shipment-query-refetch="refetch"
+        :on-refresh="refetch"
+        :is-refreshing="isRefetching"
         :last-updated="dataUpdatedAt"
       />
     </div>
 
     <section
-      v-if="isError && !data?.trackingData?.bol_num"
+      v-if="isError && !data?.trackingData?.bolNum"
       class="mt-24 flex flex-col items-center justify-center space-y-12"
     >
       <h2 class="text-center text-3xl font-semibold text-primary">

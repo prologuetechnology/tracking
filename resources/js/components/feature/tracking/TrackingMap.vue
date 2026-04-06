@@ -1,5 +1,4 @@
 <script setup>
-import TrimbleMaps from '@trimblemaps/trimblemaps-js'
 import { onMounted, useTemplateRef } from 'vue'
 
 const props = defineProps({
@@ -11,7 +10,9 @@ const props = defineProps({
 
 const trackingMap = useTemplateRef(`trackingMap`)
 
-onMounted(() => {
+onMounted(async () => {
+  const { default: TrimbleMaps } = await import(`@trimblemaps/trimblemaps-js`)
+
   TrimbleMaps.APIKey = import.meta.env.VITE_TRIMBLE_API_KEY
 
   const lngLat = new TrimbleMaps.LngLat(

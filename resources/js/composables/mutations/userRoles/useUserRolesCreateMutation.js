@@ -3,7 +3,7 @@ import axios from 'axios'
 
 // API call to create a role
 const createUserRole = async (formData) => {
-  const { data } = await axios.post(route(`api.roles.store`), formData)
+  const { data } = await axios.post(route(`api.admin.roles.store`), formData)
   return data
 }
 

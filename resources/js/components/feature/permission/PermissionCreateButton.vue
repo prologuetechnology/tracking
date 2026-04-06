@@ -10,14 +10,19 @@ const { userCan } = useRolesAndPermissions()
 </script>
 
 <template>
-  <Button variant="default" as-child size="sm">
+  <Button
+    v-if="userCan(`permission:store`)"
+    variant="default"
+    as-child
+    size="sm"
+  >
     <Link
-      v-if="userCan(`permission:create`)"
       :href="route('admin.permissions.create')"
+      dusk="permission-create-link"
     >
       <FontAwesomeIcon :icon="faPlus" class="mr-2" fixed-width />
 
-      <span>Create Permission</span></Link
-    >
+      <span>Create Permission</span>
+    </Link>
   </Button>
 </template>

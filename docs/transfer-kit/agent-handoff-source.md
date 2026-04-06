@@ -1,0 +1,1084 @@
+# Agent Handoff
+
+Last updated: 2026-03-06
+
+## Active Onboarding Task
+
+- Cross-project transfer kit prepared for reusing project patterns in an existing repo:
+  - `docs/transfer-kit/project-transfer-kit.md`
+  - `docs/transfer-kit/source-project-reference.md`
+  - `docs/transfer-kit/files-to-transfer.md`
+  - `docs/transfer-kit/pattern-adaptation-pass.md`
+  - `docs/transfer-kit/agent-onboarding-prompt.md`
+- Pattern transfer checklists are now discoverable via `docs/context-index.md`.
+- This handoff is now the source for onboarding another agent or another project.
+
+## Current Focus
+
+- V1.1 cleanup pass: tool UX/layout standardization + snippet/share polish.
+- Working preference: before implementation, provide a brief summary of requested changes so the user can quickly confirm alignment (do not block waiting unless asked).
+- Keep docs explicit and current after each implementation chunk (`agent-handoff`, relevant task board, architecture conventions).
+- Feature Expansion Phase 6: frontend discoverability polish + Phase 7 release hardening.
+- V1 launch gate execution started (P0) with checklist: `docs/v1-launch-checklist.md`.
+- Post-deployment prioritized board added: `docs/roadmap.md`.
+  - Reorganized into track-based priorities: Platform, Stability & Health, Features, Bugfixes, Improvements, General Backlog.
+  - Public pages (landing/features/pricing + login routing) marked as top `Critical` priority.
+  - Added `Critical Execution Queue (Active)` as cross-track implementation order.
+  - Added next feature slot: `Admin dashboard + complimentary entitlements` (UUID-first Spatie RBAC foundation).
+  - Added improvements task: public page cleanup/polish pass.
+- Post-launch planning doc added: `docs/v1-1-roadmap.md`.
+  - Includes planned V1.1 utility feature: Hidden Character Checker.
+  - Includes planned V1.1 Date Conversion upgrade: timestamp format/unit detection.
+  - Implementation board: `docs/roadmap.md`.
+  - Includes planned V1.1 open cleanup/polish initiative:
+    - `docs/roadmap.md`
+- Snippet Option 1 encryption implementation completed; board updated: `docs/roadmap.md`.
+- Keep `Cron Parser / AI Builder` as coming soon.
+- React migration planning branch created: `codex/react-migration`.
+- Migration task board: `docs/roadmap.md`.
+- Frontend structure contract added: `docs/react-frontend-structure-contract.md`.
+- Multi-chat collaboration/docs index added:
+  - `docs/multi-chat-collaboration-playbook.md`
+  - `docs/workstream-locks.md`
+  - `docs/context-index.md`
+- React runtime cutover is now active:
+  - `resources/js/app.js` now boots Inertia React + React Query.
+  - React page entries added for all backend-rendered Inertia pages.
+  - Vite now uses React plugin only.
+  - Vue runtime/plugin dependencies were removed from `package.json`.
+  - composables now import from `@tanstack/react-query`.
+  - non-UI Vue page/layout/feature files were removed.
+  - current React pages are intentionally minimal migration UIs for testability.
+
+## Completed Recently
+
+- SEO + favicon baseline pass completed:
+  - added centralized SEO defaults:
+    - `config/seo.php`
+    - `.env.example` (`SEO_DESCRIPTION`, `SEO_OG_IMAGE`, `SEO_TWITTER_SITE`)
+  - wired `favicon.webp` globally (with `.ico` fallback):
+    - `resources/views/app.blade.php`
+    - `resources/views/vendor/spark/app.blade.php`
+  - added default canonical/description/OG/Twitter tags in root Inertia blade with route-aware robots:
+    - marketing routes index/follow
+    - non-marketing routes noindex/nofollow
+  - upgraded marketing head tags with stable `head-key` dedupe metadata and cleaner title normalization:
+    - `resources/js/components/feature/marketing/MarketingHead.jsx`
+  - switched feature/pricing social preview image references to raster hero image:
+    - `resources/js/Pages/public/Features.jsx`
+    - `resources/js/Pages/public/Pricing.jsx`
+  - validation:
+    - `npm run lint` passed.
+- API documentation baseline is now live with Scribe:
+  - installed `knuckleswtf/scribe` (dev dependency) and published config:
+    - `config/scribe.php`
+  - configured Bearer-token auth docs + Cereal Eyes intro copy.
+  - disabled live response calls for stable generation in local/dev environments.
+  - generated docs endpoints:
+    - `/docs` (HTML)
+    - `/docs.postman` (Postman collection)
+    - `/docs.openapi` (OpenAPI spec)
+  - added runbook:
+    - `docs/api-docs-scribe.md`
+  - added composer script:
+    - `composer docs:api`
+- Sanctum API scopes expanded to cover tools:
+  - added `tools:run` ability metadata + default inclusion in:
+    - `config/api_access.php`
+  - added bearer-token scope enforcement middleware:
+    - `app/Http/Middleware/EnsureApiTokenAbility.php`
+    - alias in `bootstrap/app.php` as `api_token_ability`
+  - enforced `tools:run` across authenticated tool API routes:
+    - `routes/api.php` (`api.auth.tools.*`)
+  - tests added:
+    - `tests/Feature/ApiTokenAccessTest.php`
+      - token missing tools scope is forbidden for tool API calls
+      - token with tools scope can run tool endpoints
+  - validation:
+    - `php artisan test --filter=ApiTokenAccessTest` passed
+    - `npm run lint` passed
+- Sanctum API access settings UI shipped (branch: `codex/sanctum-api-platform`):
+  - added new settings page with initial-data hydration (no first-render flash):
+    - `resources/js/Pages/settings/ApiAccess.jsx`
+    - route: `authed.settings.api-access` in `routes/web.php`
+    - settings nav entry in `resources/js/components/feature/account/SettingsLayout.jsx`
+  - added React Query hooks for API keys:
+    - `resources/js/composables/queries/account/api-tokens/*`
+    - `resources/js/composables/mutations/account/api-tokens/*`
+  - one-time plain token reveal + copy UX included.
+  - revoke + rotate flows include confirm dialogs.
+  - rotate now issues a replacement key and revokes the old key in one action:
+    - `POST /api/settings/api-tokens/{tokenId}/rotate`
+    - route name: `api.auth.settings.api-tokens.rotate`
+  - non-Pro upgrade state included with billing CTA.
+  - command palette now includes API Access jump:
+    - `resources/js/components/layout/AppLayout.jsx`
+  - backend data payload extraction added for shared web/api use:
+    - `app/Actions/Settings/ListApiTokens.php`
+    - `app/Http/Controllers/Api/Settings/ApiTokenController.php` now uses action.
+  - validation:
+    - `php artisan test --filter=ApiTokenAccessTest` passed
+    - `npm run lint` passed
+- Sanctum API access Phase 1 backend foundation started (branch: `codex/sanctum-api-platform`):
+  - added API ability config and tier API-access limits:
+    - `config/api_access.php`
+    - `config/plan_limits.php`
+  - added Pro-gated bearer-token middleware (cookie-auth SPA exempt):
+    - `app/Http/Middleware/EnsureProApiTokenAccess.php`
+    - `bootstrap/app.php` alias `pro_api_token`
+  - added API token lifecycle endpoints:
+    - `GET /api/settings/api-tokens`
+    - `POST /api/settings/api-tokens`
+    - `DELETE /api/settings/api-tokens/{tokenId}`
+    - controller: `app/Http/Controllers/Api/Settings/ApiTokenController.php`
+    - request validation: `app/Http/Requests/Settings/CreateApiTokenRequest.php`
+    - routes wired in `routes/api.php`
+  - added coverage:
+    - `tests/Feature/ApiTokenAccessTest.php`
+      - Pro key creation success
+      - non-Pro creation denied
+      - non-Pro bearer token blocked
+      - non-Pro cookie-auth API calls still allowed
+      - Pro bearer token allowed
+  - task board updated:
+    - `docs/roadmap.md`
+- Post-deployment board status normalization completed:
+  - stability/health items now explicitly track:
+    - implementation complete,
+    - production verification/sign-off pending.
+  - file:
+    - `docs/roadmap.md`
+- Production sanity sweep follow-up completed:
+  - confirmed `sessions` table is already created in:
+    - `database/migrations/0001_01_01_000000_create_users_table.php`
+  - corrected an accidental duplicate sessions migration addition (removed).
+  - updated deployment docs with explicit handling for:
+    - missing `sessions` table,
+    - production DB falling back to `127.0.0.1` defaults.
+  - files:
+    - `docs/forge-deploy-runbook.md`
+    - `docs/production-go-live-checklist.md`
+- Public-page polish pass completed:
+  - homepage hero now uses `home-hero.webp` for both `MarketingHead` social image and visible hero image.
+  - hero image frame padding reduced for a subtler look.
+  - copy tone refined across pricing/contact/privacy/terms/features pages.
+  - pricing comparison table now supports horizontal overflow on mobile.
+  - files:
+    - `resources/js/Pages/public/Home.jsx`
+    - `resources/js/Pages/public/Pricing.jsx`
+    - `resources/js/Pages/public/Contact.jsx`
+    - `resources/js/Pages/public/Privacy.jsx`
+    - `resources/js/Pages/public/Terms.jsx`
+    - `resources/js/Pages/public/Features.jsx`
+  - validation:
+    - `npm run lint` passed.
+- Email branding pass completed:
+  - added global Markdown mail header override so all Markdown emails render `logo.webp` in the header (includes app mailables and Spark markdown emails):
+    - `resources/views/vendor/mail/html/header.blade.php`
+  - logo URL is resolved from `APP_URL` (`/images/logo.webp`).
+- Marketing/public branding pass completed:
+  - added dark hero illustration variant:
+    - `public/images/marketing-preview-dark.svg`
+  - wired homepage hero preview to auto-swap by system color scheme via `<picture>`:
+    - `resources/js/Pages/public/Home.jsx`
+  - swapped brand icon glyphs to `logo.webp` in public/auth/app shell surfaces:
+    - `resources/js/components/layout/PublicLayout.jsx`
+    - `resources/js/components/app-sidebar.jsx`
+    - `resources/js/Pages/auth/Login.jsx`
+    - `resources/js/Pages/auth/Register.jsx`
+    - `resources/js/Pages/auth/ForgotPassword.jsx`
+    - `resources/js/Pages/auth/ResetPassword.jsx`
+    - `resources/js/Pages/auth/MfaChallenge.jsx`
+- Admin mobile button-density polish pass completed:
+  - users/roles action clusters now stack into clean 2-column button grids on small screens and collapse to inline controls on larger breakpoints.
+  - audit/logs/entitlements filter bars and pagination controls now wrap with clearer spacing and full-width mobile tap targets to avoid crowding/overlap.
+  - files:
+    - `resources/js/Pages/admin/Users.jsx`
+    - `resources/js/Pages/admin/Roles.jsx`
+    - `resources/js/Pages/admin/Entitlements.jsx`
+    - `resources/js/Pages/admin/Audit.jsx`
+    - `resources/js/Pages/admin/Logs.jsx`
+- Admin consistency + mobile hardening pass completed:
+  - normalized admin split-page mobile spacing by adding explicit section stacking rhythm (`gap-6`) and top separators on secondary panes.
+  - tightened header action wrapping in users/roles to prevent mobile overlap around reset/save controls.
+  - standardized audit/logs/entitlements filter bars for small screens (search + narrower selects + refresh controls that wrap without clipping).
+  - logs list alignment tightened (left-aligned request/path metadata + consistent compact item spacing).
+  - files:
+    - `resources/js/Pages/admin/Users.jsx`
+    - `resources/js/Pages/admin/Roles.jsx`
+    - `resources/js/Pages/admin/Permissions.jsx`
+    - `resources/js/Pages/admin/Entitlements.jsx`
+    - `resources/js/Pages/admin/Audit.jsx`
+    - `resources/js/Pages/admin/Logs.jsx`
+- HTTP Status Lookup sticky-header fix completed:
+  - removed nested table-scroll-container behavior that prevented sticky `<th>` from sticking during vertical list scroll.
+  - table now renders with a single vertical scroller and sticky column headers.
+  - file:
+    - `resources/js/Pages/tools/HttpStatusLookup.jsx`
+- Admin mobile layout stability pass completed across admin pages:
+  - removed mobile-only split-pane overflow constraints that were causing squashed/non-scrollable sections,
+  - preserved constrained split-pane behavior for desktop (`md+`),
+  - normalized admin page stacking so sections flow naturally on small viewports.
+  - files:
+    - `resources/js/Pages/admin/Users.jsx`
+    - `resources/js/Pages/admin/Roles.jsx`
+    - `resources/js/Pages/admin/Permissions.jsx`
+    - `resources/js/Pages/admin/Entitlements.jsx`
+    - `resources/js/Pages/admin/Audit.jsx`
+    - `resources/js/Pages/admin/Logs.jsx`
+    - `resources/js/components/layout/AppLayout.jsx`
+- Audit/Logs item parity pass completed:
+  - moved item timestamps to bottom-left inline metadata with clock icon on both pages,
+  - logs now highlight channel + level with compact chips instead of datetime badge-right pattern,
+  - filter bars on audit/logs switched to responsive wrap layout to avoid control overlap at narrower widths.
+  - files:
+    - `resources/js/Pages/admin/Audit.jsx`
+    - `resources/js/Pages/admin/Logs.jsx`
+- Account security UX sync fix completed:
+  - after setting password from social-auth account, account card now updates immediately to `Email + password: Enabled`,
+  - action button flips to reset flow without manual hard refresh,
+  - lightweight Inertia reload keeps shared auth/social props in sync.
+  - file:
+    - `resources/js/Pages/settings/Account.jsx`
+- Admin logs page received full parity cleanup pass:
+  - migrated to split-view admin layout (list left, details right) for consistency with audit/permissions.
+  - filter toolbar spacing normalized (search/channel/level/action buttons aligned and wrapping safely).
+  - channel and level labels/options normalized to title case.
+  - list row density + selected-state + hover treatment aligned with other admin pages.
+  - details pane hierarchy tightened (metadata blocks + message + structured payload sections).
+  - file:
+    - `resources/js/Pages/admin/Logs.jsx`
+  - validation:
+    - targeted eslint pass + production build pass completed.
+- Admin permissions detail affordance tweak completed:
+  - assigned-role items in right detail panel now show a subtle hover/focus `Eye` action icon to communicate click-through behavior.
+  - file:
+    - `resources/js/Pages/admin/Permissions.jsx`
+- Admin list-density + selection affordance polish completed:
+  - applied a consistent selector-list treatment across admin list panels:
+    - unselected rows are borderless (`default` + transparent border),
+    - selected rows use explicit border (`outline`) + subtle muted background,
+    - tighter vertical row density (`py-2.5`, `px-3`),
+    - small vertical gaps between rows (`ItemGroup` gap),
+    - subtle hover background on unselected rows.
+  - applied on:
+    - `resources/js/Pages/admin/Users.jsx` (left user list),
+    - `resources/js/Pages/admin/Roles.jsx` (left role list),
+    - `resources/js/Pages/admin/Permissions.jsx` (left permission list),
+    - `resources/js/Pages/admin/Audit.jsx` (left audit list),
+    - `resources/js/Pages/admin/Logs.jsx` (log event list).
+  - validation:
+    - targeted eslint pass + production build pass completed.
+- Admin UI follow-up polish pass (v2) completed:
+  - users:
+    - role assignment rows compacted to single-line title + right-aligned user counts.
+    - role names normalized to title case in assignment UI.
+    - direct-permission group spacing increased for scanability.
+  - roles:
+    - role list panel now follows same selected-row rhythm as users.
+    - roles page now accepts `?role=` query and preselects that role.
+  - permissions:
+    - left list panel aligned to users/roles selected-row pattern.
+    - domain/resource labels title-cased.
+    - assigned roles in detail pane are now clickable items linking to roles page with preselection.
+  - entitlements:
+    - user picker migrated to shadcn combobox with clear affordance.
+    - start/end fields converted to date-only:
+      - start => `00:00:00`,
+      - end => `23:59:59`.
+    - filter toolbar updated to wrap safely and prevent refresh-button clipping.
+    - revoke action remains available as explicit row action for active grants.
+  - app shell:
+    - sidebar subtitle now shows plan label only (`Free`/`Standard`/`Pro`) without "tier".
+    - reduced default bottom padding in app main content area to remove admin-page "invisible action bar" feel.
+  - validation:
+    - targeted eslint pass + production build pass completed.
+- Admin UX follow-up polish completed:
+  - users:
+    - role assignment rows tightened to single-line choice cards with right-aligned user counts.
+    - role display labels now title-cased for readability.
+    - direct-permission grouping spacing increased to reduce visual crowding.
+  - roles:
+    - role list pane aligned to users-pane rhythm and now supports deep-link preselection via query (`?role=`).
+  - permissions:
+    - left list pane aligned with users-pane visual rhythm and selected-state affordance.
+    - domain/resource labels are now title-cased.
+    - assigned-role list items are clickable and route to roles page with preselected role context.
+  - entitlements:
+    - user picker migrated to shadcn combobox pattern with clear affordance.
+    - date pickers simplified to date-only semantics:
+      - starts => `00:00:00`,
+      - ends => `23:59:59`.
+    - start/end calendar popovers constrained to calendar width.
+    - filter row updated so status/source + refresh remain inline at large breakpoints.
+    - revoke action in grant rows now explicit (`Revoke` button).
+  - global copy tweak:
+    - sidebar subtitle under app name now shows plan name only (`Free`, `Standard`, `Pro`) without the word `tier`.
+  - validation:
+    - targeted eslint pass + production build pass completed.
+- Admin UI polish pass (split-view standardization + higher-density controls) completed:
+  - users:
+    - role assignments and direct permissions switched to shadcn field choice-card checkbox pattern.
+    - split-view layout moved from bordered cards to a cleaner separator-based two-pane rhythm.
+  - roles:
+    - role permissions switched to the same field choice-card checkbox pattern.
+    - split-view layout aligned with users/permissions patterns (separator + typographic hierarchy).
+  - entitlements:
+    - user combobox empty states cleaned up for search/no-result paths.
+    - status/source values normalized to title case in filters + list metadata.
+    - filter row adjusted so status/source are left-aligned with wider controls, refresh remains right.
+    - notes textarea now expands to fill remaining left-pane height.
+    - pane styling aligned to separator-based split layout (no card-in-card framing).
+  - permissions:
+    - split-view shell aligned with the same separator-based admin rhythm.
+  - audit:
+    - refactored from list + sheet into a standardized split view (list left, detail pane right).
+    - improved typographical hierarchy and metadata readability in the detail pane.
+  - validation:
+    - `npm run lint` (targeted admin pages) passed.
+    - `npm run build` passed.
+- Admin UI/data parity pass completed (users/roles/permissions/entitlements/audit/logs):
+  - backend:
+    - added enum-backed entitlement source values:
+      - `app/Enums/SubscriptionGrantSource.php`
+      - entitlement request validation now uses enum (`source`),
+      - grants default `source` to `manual` when omitted.
+    - entitlement listing now supports server-side source filtering.
+    - permissions listing now returns parsed metadata + attached roles for split-pane UX (`domain`, `resource`, `action`, `roles[]`).
+    - added system log read APIs:
+      - `app/Actions/Admin/ListSystemLogs.php`
+      - `app/Http/Controllers/Api/Admin/AdminSystemLogController.php`
+      - `app/Http/Requests/Admin/AdminSystemLogIndexRequest.php`
+      - `app/Http/Resources/Admin/AdminSystemLogResource.php`
+    - added `admin:logs:view` permission and role mappings:
+      - `app/Enums/PermissionName.php`
+      - `app/Services/Auth/RbacCatalog.php`
+    - added admin logs web/api routes:
+      - `authed.admin.logs`
+      - `api.auth.admin.logs.index`
+  - frontend:
+    - added `resources/js/Pages/admin/Logs.jsx` with:
+      - debounced search
+      - channel/level filters
+      - pagination
+      - polling pause/resume
+      - details sheet for raw context
+    - refactored admin pages for cleaner list/detail rhythm using Item-based UI and live/debounced filters:
+      - `resources/js/Pages/admin/Users.jsx`
+      - `resources/js/Pages/admin/Roles.jsx`
+      - `resources/js/Pages/admin/Permissions.jsx`
+      - `resources/js/Pages/admin/Entitlements.jsx`
+      - `resources/js/Pages/admin/Audit.jsx`
+    - updated admin query exports:
+      - `resources/js/composables/queries/admin/logs/useAdminSystemLogsQuery.js`
+      - `resources/js/composables/queries/admin/logs/index.js`
+      - `resources/js/composables/queries/admin/index.js`
+    - updated app shell admin navigation/command entries to include logs (`admin:logs:view` gated).
+  - verification:
+    - `npm run lint` on touched admin/react files passed.
+    - `php -l` on touched backend files passed.
+    - `php artisan test tests/Feature/AdminAccessTest.php tests/Feature/AdminRolePermissionFlowTest.php tests/Feature/AdminEntitlementApiTest.php` passed.
+- Admin RBAC phase follow-up completed:
+  - first-render/no-flash pass for admin pages:
+    - admin users now hydrates `initialSelectedUser` from backend for immediate detail-pane render,
+    - admin users/roles/permissions/entitlements/audit queries use initial data + mount revalidation.
+  - local RBAC usage docs added:
+    - `docs/admin-rbac-usage-snippets.md` (backend guard pattern, frontend helper usage, nav gating, initialData + revalidation, audit pattern).
+  - context/docs wiring:
+    - added RBAC snippets references in architecture conventions + context index.
+- Admin RBAC hardening + coverage pass completed:
+  - service-layer protections:
+    - blocked reserved system-role creation and reserved-role renaming in admin role actions,
+    - destructive system-role update/delete protections covered with feature tests.
+  - audit coverage expanded:
+    - admin user role sync and direct-permission sync now audit-asserted,
+    - admin role create/update/sync/delete now audit-asserted,
+    - owner grant artisan command now writes and is tested for audit entry.
+  - new tests:
+    - `tests/Feature/AdminRolePermissionFlowTest.php`
+    - expanded `tests/Feature/AdminRbacCommandTest.php`
+  - task board progress:
+    - admin RBAC board now marks Phase 1/2/8 test/protection items complete.
+- Admin RBAC entitlements + audit implementation pass completed:
+  - backend:
+    - added `subscription_grants` data model + migration and integrated manual-grant precedence into `PlanResolver`,
+    - added `admin_audit_logs` model + migration and centralized `AdminAuditLogger` service,
+    - added admin actions/requests/resources/controllers for:
+      - entitlements list/create/revoke (`api.auth.admin.entitlements.*`),
+      - audit list (`api.auth.admin.audit.index`),
+    - wired admin mutation audit logging for users/roles/entitlements + owner grant command.
+  - frontend:
+    - replaced admin entitlements and audit placeholders with functional pages using initial Inertia data + TanStack query revalidation,
+    - added admin composables:
+      - queries: `admin/entitlements`, `admin/audit`,
+      - mutations: `admin/entitlements` create/revoke.
+  - tests added:
+    - `tests/Feature/AdminEntitlementApiTest.php`
+    - `tests/Unit/PlanResolverGrantTest.php`
+  - validation:
+    - lint pass on admin/react surfaces,
+    - tests passing for admin access, RBAC command, entitlement APIs, and grant resolver behavior.
+- Admin RBAC phase-1 follow-up polish completed:
+  - admin API permission checks now return clean 403s when permission records are absent (no `PermissionDoesNotExist` 500 in deny paths),
+  - admin route/API coverage tests pass:
+    - `tests/Feature/AdminAccessTest.php`
+    - `tests/Feature/AdminRbacCommandTest.php`
+  - admin navigation visibility now resolves per destination permission (not just broad admin visibility),
+  - admin users/roles/permissions pages received UX cleanup:
+    - dirty-state save guards,
+    - reset actions,
+    - permission filtering for large lists.
+- Public pages launch pass completed:
+  - new guest marketing pages:
+    - `/` (landing) -> `resources/js/Pages/public/Home.jsx`
+    - `/features` -> `resources/js/Pages/public/Features.jsx`
+    - `/pricing` -> `resources/js/Pages/public/Pricing.jsx`
+  - new public utility pages for footer/legal links:
+    - `/privacy`, `/terms`, `/contact`
+  - added shared public shell + SEO metadata helpers:
+    - `resources/js/components/layout/PublicLayout.jsx`
+    - `resources/js/components/feature/marketing/MarketingHead.jsx`
+  - login page now includes public-nav links (`Features`, `Pricing`) and brand link to home.
+  - authenticated dashboard route moved to `/dashboard` (`authed.dashboard`) to free root path for public landing.
+  - added marketing placeholders under `public/images/` for landing/features/pricing previews.
+  - configured marketing pricing + comparison data in `config/marketing.php`.
+  - follow-up UX/mobile pass completed for all public pages:
+    - tightened copy density + responsive spacing on `Home`, `Features`, `Pricing`, `Privacy`, `Terms`, `Contact`.
+  - feature/limit audit hardening:
+    - pricing comparison rows now derived from `config/plan_limits.php` via `MarketingPageController::buildComparisonRows()` (reduces drift risk).
+    - feature-page snippet/tool tier callouts now explicitly match actual product gating (Free/Standard/Pro).
+  - status link behavior updated:
+    - footer `Status` link is hidden unless `MARKETING_STATUS_URL` is set.
+  - footer branding tweak:
+    - bottom row now shows `Built in TX with` heart icon.
+    - optional GitHub link added and hidden unless `MARKETING_GITHUB_URL` is set.
+  - post-deployment board execution queue updated:
+    - Q1 and Q2 marked complete in `docs/roadmap.md`.
+- P1 snippets + history launch polish pass completed:
+  - snippet list hierarchy cleanup:
+    - removed extra encryption callouts from list pages to reduce visual noise,
+    - kept encrypted-content disclosure on create/show flows where actions occur.
+  - tier-consistent snippet UX:
+    - burner page now shows explicit Pro upgrade empty-state when unavailable,
+    - shared outbox page now shows explicit Standard upgrade empty-state when unavailable,
+    - snippet show sidebar now displays clear tier nudges for restricted sharing, burner links, and public expiration.
+  - history UX polish:
+    - added filter reset action (`Clear filters`) and improved row metadata with type badge,
+    - added destructive confirmation dialogs for `Delete selected` and `Delete archived`,
+    - tightened bulk-action disabled states while mutations run.
+  - checklist/docs updates:
+    - marked P1 sections complete in `docs/v1-launch-checklist.md`,
+    - closed QA checklist in `docs/roadmap.md`.
+- Tool-page privacy/logging indicator header tweak completed:
+  - moved indicator from left title block to trailing header controls (end of sticky header row),
+  - added concise tooltip copy per state (`on`, `off`, `not logged`) to match app tone.
+  - files:
+    - `resources/js/components/layout/AppLayout.jsx`
+    - `resources/js/components/feature/tools/ToolHistoryLoggingIndicator.jsx`
+- P0 launch blockers fully closed (except optional Herd wrapper tooling task):
+  - mobile/theme hardening finalized:
+    - sticky bottom action/footer bars in app layout,
+    - safe-area + overlay clipping guards for Radix `popover/dialog/sheet`,
+    - system-theme bootstrap on first paint (`resources/views/app.blade.php`) + `next-themes` storage key enforcement.
+  - verification refresh:
+    - `npm run lint` pass
+    - `npm run build` pass
+    - `php artisan test` pass (`124 passed`, `894 assertions`)
+  - launch checklist updated:
+    - `docs/v1-launch-checklist.md` now marks all P0 items complete and no unresolved P0 regressions.
+- Billing launch-blocker hardening pass completed:
+  - replaced `authed.billing` Inertia location redirect with a dedicated billing workspace page:
+    - `resources/js/Pages/settings/Billing.jsx`
+    - `routes/web.php` (`authed.billing`)
+  - billing page now shows:
+    - current resolved tier (`billing.tier` shared prop),
+    - Spark portal configuration status,
+    - portal launch action (`spark.portal`) only when configured.
+  - billing regression coverage updated:
+    - `tests/Feature/BillingFlowTest.php` now asserts billing workspace render for configured + misconfigured states.
+  - launch checklist moved Herd wrapper from P0 blocker to Nice-to-have tooling item:
+    - `docs/v1-launch-checklist.md`.
+- Launch-blocker validation pass (P0 partial) completed:
+  - `php artisan test tests/Feature/CriticalRouteSmokeTest.php tests/Feature/BillingFlowTest.php` passed (`5 passed`, `62 assertions`).
+  - critical route runtime blocker now closed in checklist.
+  - billing portal still requires environment-level validation against live Stripe/Spark config (manual).
+- Output formatting/readability pass completed:
+  - Date Conversion output now renders a readable key/value result view with mode/timezone badges.
+  - JSON Schema Validator output now renders validation status + structured error list instead of raw JSON block.
+  - files:
+    - `resources/js/Pages/tools/DateConversion.jsx`
+    - `resources/js/Pages/tools/JsonSchemaValidator.jsx`
+- JWT Inspector clarity pass completed:
+  - output now renders structured decoded sections (`Header`, `Payload`, `Timing`) with readable badges (`token type`, `signed/unsigned`, `expired/not expired`).
+  - keeps fallback display for non-JSON/error outputs.
+  - file: `resources/js/Pages/tools/JwtInspector.jsx`.
+- HTTP Status Lookup layout cleanup completed:
+  - removed card-in-card stacking; search controls now sit on clean page surface.
+  - table is now a single bordered, scrollable container.
+  - file: `resources/js/Pages/tools/HttpStatusLookup.jsx`.
+  - follow-up pending: sticky table header behavior still needs a final pass in constrained viewport cases.
+- Snippet list density + consistency polish completed (P2 pass):
+  - tightened snippet list page section spacing for public/private/burner/shared/shared-with-me pages.
+  - normalized list container style to cleaner bordered `ItemGroup` surfaces.
+  - standardized empty-state CTA copy to `New snippet` with leading plus icon.
+  - normalized snippet preview fallback copy to `No preview.` across snippet list/share lists.
+  - aligned icon usage in shared snippet read page copy action (`Copy` with icon).
+  - files:
+    - `resources/js/components/feature/snippets/SnippetsListSection.jsx`
+    - `resources/js/Pages/snippets/Public.jsx`
+    - `resources/js/Pages/snippets/Private.jsx`
+    - `resources/js/Pages/snippets/Burner.jsx`
+    - `resources/js/Pages/snippets/SharedOutbox.jsx`
+    - `resources/js/Pages/snippets/SharedWithMe.jsx`
+    - `resources/js/Pages/snippets/Shared.jsx`
+- History UX enhancement Phase 7 completed:
+  - full history list run-details panel now matches per-tool history detail pattern.
+  - details panel includes readable split input/output panes with sticky copy actions.
+  - archived state badge is surfaced in details when applicable.
+  - file: `resources/js/Pages/tools/History.jsx`.
+- Navigation persistence Phase 6 completed:
+  - sidebar open/closed state now persists in localStorage and is wired through `SidebarProvider` controlled state.
+  - nested snippet active highlighting now stays stable from snippet show routes (`public`/`private`/`burner` and `shared with me`).
+  - route navigation now auto-expands active sidebar groups so the current page link is always visible + highlighted.
+  - mobile drawer now closes on internal navigation across main/secondary/user/brand links.
+  - files:
+    - `resources/js/components/layout/AppLayout.jsx`
+    - `resources/js/components/nav-main.jsx`
+    - `resources/js/components/nav-secondary.jsx`
+    - `resources/js/components/nav-user.jsx`
+    - `resources/js/components/app-sidebar.jsx`
+- Tool catalog icon legend pass completed:
+  - added tooltip legend on tools index for history icon semantics.
+  - added per-tool icon tooltip on tool cards.
+  - logging-state icon map now uses:
+    - `Eye` (history on),
+    - `EyeOff` (history off),
+    - `CircleSlash` (not logged by design).
+- Sticky header history indicator placement updated:
+  - moved to left side near page title block.
+  - reduced size for better visual fit.
+  - removed right-side history icon near command toggle.
+- UUID Generator UX refinement completed:
+  - generated UUID output now renders as multiline rows with per-line copy + copy-all actions.
+  - implemented using shared `ToolFormPage` output customization (`renderOutput`) to keep tool-shell consistency.
+- Snippet sharing copy/CTA clarity pass completed:
+  - create flow now clearly separates `Save + email invite` (private only) vs `Save + copy URL` (public only).
+  - burner-enable flow now auto-switches visibility to private with explicit messaging.
+  - snippet show page sharing copy now explicitly states private/public semantics and CTA intent.
+  - shared snippet read page now uses clearer copy actions and plain-language empty/error states.
+- New snippet sidebar parity update completed:
+  - sidebar now follows the same sectioned panel style as snippet show (`metadata`, `privacy`, `sharing`).
+  - burner max-view default now starts at `1` in create flow (and remains min 1 across snippet surfaces).
+  - snippet create burner settings now use shadcn `Accordion`.
+  - snippet create expiration popover is now `w-fit` so width matches calendar content instead of oversized panel width.
+  - burner view-limit input now includes `-` / `+` controls sized to match the input height.
+  - fixed runtime regression on create page (`Badge is not defined`) by restoring `Badge` import.
+  - tuned burner accordion trigger typography/spacing to better align with snippet show section tone.
+  - fixed expiration calendar popover viewport collisions on snippet create/show (`align=end`, collision padding, max viewport width/height with internal overflow).
+  - strengthened popover edge-case handling with Radix sticky positioning + available-height max to prevent clipping in very small browser windows.
+  - Phase 5 list consistency pass completed:
+    - `Shared with me` now consistently opens via share URL token route when available.
+    - `Burner` list rows now include explicit snippet navigation action (chevron) while preserving copy/revoke controls.
+  - Snippet list/share behavior update:
+    - private list now includes snippets that have active burner links and marks them with a burner icon.
+    - burner list styling now matches list-system conventions: title + burner URL description + metadata icons (created, views).
+    - shared outbox now excludes restricted shares once all recipients are removed.
+    - burner list metadata now places `views` next to `created` with a visual divider to match list rhythm.
+  - Regression coverage updated:
+    - `tests/Unit/ListSnippetsActionTest.php`
+    - `tests/Feature/SnippetShareApiTest.php`
+- URL Parser layout pass:
+  - adjusted to 70/30-style split (`flex-[7]/flex-[3]`) for better sidebar readability.
+- URL Parser and Query Editor refactor completed:
+  - moved from JSON-updates request/response flow to interactive field-driven query editing.
+  - live URL preview now updates as params are edited/added/removed.
+  - added quick actions in footer: copy URL, copy query JSON, reset-from-URL.
+  - file: `resources/js/Pages/tools/UrlParserQueryEditor.jsx`.
+- Tool shell/layout standardization pass completed:
+  - shared tool shell supports layout variants (`outputPosition`, `multiTextareaLayout`) and compact control-strip pattern.
+  - shadcn `Select` integrated in shared shell for dropdown fields.
+  - mode/config controls standardized toward top compact strip with explicit widths (`controlWidthClass`).
+  - copy/placeholder wording normalized across tool pages (`Run to see output.`, `Paste ...` patterns).
+  - tool-specific layouts updated:
+    - Diff + JSON Schema: side-by-side inputs with output below.
+    - CSV/JSON + Hash + URL Parser: compact controls with output below.
+    - Date + UUID + Base64 aligned to compact mode/config controls.
+- App shell scrolling/inset fixes completed:
+  - removed phantom page scroll regression.
+  - restored inset footer appearance while keeping internal pane scrolling behavior.
+  - snippet show page bottom scroll padding adjusted to prevent content clipping at footer.
+- P0 execution follow-up completed (excluding Herd wrapper blocker):
+  - Tool API telemetry capture added via middleware:
+    - `app/Http/Middleware/CaptureToolRunTelemetry.php`
+    - persisted model/table: `ToolRunTelemetry`, `tool_run_telemetries`
+  - Dashboard ops snapshot added (24h usage/failures/p95 latency):
+    - backend aggregation in `app/Actions/Dashboard/BuildDashboardData.php`
+    - UI section in `resources/js/Pages/Dashboard.jsx`
+  - Auth flow hardening/tests:
+    - social callback intended-route redirect + graceful provider-failure fallback in `tests/Feature/SocialLoginProvidersTest.php`
+  - Runtime smoke tightened:
+    - critical route assertions now require `< 400` in `tests/Feature/CriticalRouteSmokeTest.php`
+  - Mobile/theme hardening baseline:
+    - safe-area/min-height updates in `resources/css/app.css`
+    - `min-h-dvh/min-h-svh` applied to root app layout containers.
+  - New regression tests:
+    - `tests/Feature/ToolRunTelemetryTest.php`
+    - `tests/Feature/DashboardOpsMetricsTest.php`
+  - Verification refresh:
+    - `npm run lint` pass
+    - `npm run build` pass
+    - `php artisan test` pass (`107 passed`, `810 assertions`)
+- Account deletion privacy hard-delete flow implemented:
+  - challenge endpoint + destroy endpoint under `api.auth.settings.security.account-deletion.*`,
+  - MFA purpose `account_delete` added,
+  - dedicated mail + template for account deletion code,
+  - purge action removes user and associated records (snippets, shares, histories, aliases, identities, tokens, sessions, usage counters, pivots),
+  - settings UI wired with destructive dialog + code verification,
+  - feature coverage added in `tests/Feature/AccountDeletionApiTest.php`.
+- P0 execution block (post-Herd-skip) completed:
+  - Billing hardening:
+    - added `BillingConfigurationValidator` (`app/Services/Billing/BillingConfigurationValidator.php`),
+    - added Spark middleware guard `EnsureSparkBillingConfigured` (`app/Http/Middleware/EnsureSparkBillingConfigured.php`),
+    - wired Spark middleware in `config/spark.php`,
+    - added internal billing route `authed.billing` (`/workspace/billing`) in `routes/web.php`,
+    - switched frontend billing links from direct `spark.portal` to `authed.billing`.
+  - Runtime smoke coverage:
+    - added `tests/Feature/CriticalRouteSmokeTest.php` for critical authenticated/guest route behavior.
+    - added `tests/Feature/BillingFlowTest.php` for misconfigured billing redirect behavior.
+  - Analytics + error monitoring baseline:
+    - Umami frontend integration in `resources/js/lib/signals/collector.js`,
+    - app boot wiring in `resources/js/app.js` (page views, user identity sync, client error capture),
+    - analytics instrumentation added to core tool/snippet/share mutations.
+    - backend unhandled exception reporting now logs to `error_monitoring` in `bootstrap/app.php`.
+  - Documentation updates:
+    - analytics event schema: `docs/analytics-event-taxonomy.md`,
+    - runbook retention/analytics updates: `docs/dev-runbook.md`,
+    - architecture updates: `docs/architecture-conventions.md`,
+    - launch checklist updated in `docs/v1-launch-checklist.md`.
+- Strict P0 verification sweep executed (2026-02-10):
+  - `php artisan test` passing (`83 passed`, `656 assertions`).
+  - `npm run lint` passing.
+  - `npm run build` passing.
+  - `herd php artisan test` still failing due Herd wrapper (`.../Herd/bin/php: File name too long` + `herd.phar` warnings).
+  - Launch checklist updated with evidence-based P0 statuses in `docs/v1-launch-checklist.md`.
+- Auth flow regression coverage added:
+  - `tests/Feature/AuthFlowTest.php` verifies authenticated redirect away from guest login and intended-route support via dev login route.
+- Privacy-first logging baseline implemented:
+  - request correlation middleware: `AttachRequestContext` (`X-Request-Id` + shared log context),
+  - structured JSON log formatting via `App\Logging\ConfigureStructuredLogging`,
+  - sensitive context redaction via `App\Logging\RedactSensitiveContextProcessor`,
+  - dedicated channels in `config/logging.php`: `app`, `auth_billing`, `security_audit`, `error_monitoring`,
+  - sensitive payload preview removed from `PhpUnserialize` warning logs,
+  - social auth failures routed to `auth_billing` channel.
+- Phase 4 completed:
+  - JWT Inspector (free)
+  - CSV to/from JSON (standard)
+  - JSON Schema Validator (standard)
+- Phase 5 completed:
+  - Diff Viewer (pro)
+  - Locked/upgrade states for gated tools in navigation and tool index
+  - Guardrails for large diff inputs
+- Added backend actions, requests, API routes, web routes, composables, pages, and tests.
+- Updated tool catalog activation in `config/tools.php`.
+- Added event-driven email notifications:
+  - signup welcome email on first social/dev account creation
+  - alias verification email when adding a new unverified alias
+  - markdown mail templates + event/listener wiring + feature tests
+  - signup mail listener now has an idempotency cache guard to prevent duplicate welcome sends
+  - alias mail listener now has an idempotency cache guard (per alias+token)
+  - add-alias no longer reissues/resends when an active token already exists
+  - resend alias verification now triggers an actual email send
+- Snippet sharing Phase 3/4/5 backend + frontend proof flow completed:
+  - auth API routes for share create/list/revoke
+  - guest API route for share resolve
+  - actions + requests + resources for share lifecycle and token resolution
+  - tier gates for restricted/burner + burner max view enforcement
+  - composables for share query/mutations
+  - minimal snippet share UI on snippets page and token-based shared snippet page
+  - feature tests added in `tests/Feature/SnippetShareApiTest.php` (execution blocked locally by Herd CLI wrapper error)
+  - restricted share creation now dispatches invite emails to each recipient
+  - invite URL now targets auth-protected `authed.snippet-shares.show`
+  - social/dev login flows now honor intended redirect targets for invite-link return after auth
+- Snippet sharing Phase 6 hardening completed:
+  - rate limiting added for share resolve + alias add/verify/resend endpoints
+  - restricted-share resolve now returns a generic unavailable payload for not-found/access/revoked/exhausted paths
+  - alias add errors avoid cross-account enumeration details
+  - ownership checks normalized for UUID string comparisons to avoid false mismatches
+  - added unit coverage in `tests/Unit/SnippetShareActionsTest.php` for token hashing/lookup and burner max-view consumption
+  - full test suite now passing (`75 passed`)
+- History Phase 7 relevance update completed:
+  - Search now normalizes terms and ranks results by relevance before time sorting.
+  - Scout key ordering is preserved when available; SQL fallback now applies weighted scoring.
+  - Tool label/slug/tag matching now supports loose fuzzy typos (for example `jsoon skema` -> JSON Schema Validator).
+  - Added regression tests in `tests/Feature/ToolHistorySearchTest.php` for ranking and typo-fuzzy matching.
+- Tool-page history visibility indicator implemented:
+  - Backend resolver action: `app/Actions/Tools/History/ResolveToolHistoryLoggingState.php`.
+  - Tool routes now pass `historyLogging` prop via web render closures.
+  - Sticky-header indicator + tooltip in `AppLayout` via `ToolHistoryLoggingIndicator`.
+  - States: `enabled`, `disabled`, `not_logged` (policy/user-preference aware).
+- Global privacy-visibility surfacing implemented:
+  - Shared map in Inertia props: `tools.history_logging` from `BuildToolHistoryLoggingMap`.
+  - Tool catalog cards now show logging-state icon + compact status text.
+  - Command palette tool results now show logging-state icon.
+  - Privacy page per-tool rows now show logging-state icon.
+  - Tool-page tooltip deep-links to `#history-capture-controls` on Privacy settings.
+- Added coverage:
+  - `tests/Feature/ToolHistoryLoggingVisibilityTest.php` (shared map + page props)
+  - `tests/Feature/InitialDataHydrationContractTest.php` (initialData contract for key pages)
+
+## In Progress / Next
+
+1. V1.1 cleanup next items:
+   - Validate all share list pages for consistent Item hierarchy and navigation.
+   - Final snippet sharing behavior polish around burner/public transitions.
+2. Keep history/search/pagination behavior stable while polishing tool surfaces (no regressions).
+3. Continue strict documentation sync protocol after each chunk.
+4. Finish Phase 6 discoverability polish.
+5. Phase 7 hardening (lint strategy + alias cleanup decision + final consistency pass).
+6. Close remaining P0 items:
+   - OAuth provider callback validation under live provider availability.
+   - Spark billing portal live-state validation against Stripe test mode.
+   - critical-route manual browser console pass for runtime errors.
+   - minimal ops dashboard for usage/failure/latency.
+7. Keep cron tool as coming soon for now; decide whether to add manual cron decoder/builder in late V1.
+8. Keep AI cron builder in V2 scope.
+9. Snippet sharing Phase 1-6 completed; Phase 7 deferred items tracked in `docs/roadmap.md`.
+10. React migration next steps:
+    - migrate snippet share flows in React pages,
+    - finish billing/tier lock UX in React,
+    - implement real hooks/forms in `resources/js/composables/hooks/**` and `resources/js/composables/forms/**`,
+    - replace temporary billing payload view with final Spark portal UX.
+11. Tool UX follow-ups:
+    - Rework URL Parser & Query Editor into an interactive client-side editor (not request/response tool flow).
+    - Revisit JWT Inspector UX for clearer decode/verify affordances.
+    - Add syntax highlighting for code-like outputs (JSON/XML) and diff blocks.
+12. History cleanup implementation board:
+    - `docs/roadmap.md`
+    - Includes filters/pagination contract, bulk actions, privacy delete-all flows, retention enforcement, and per-tool embeds.
+    - Phase 1 (contract + paginator metadata + query hook update) completed.
+    - Added Phase 7 placeholder for fuzzy search rollout.
+    - History search input is currently disabled in UI pending fuzzy-search implementation; type + status + sort filters remain active.
+    - Phase 2 partial now live: type/status/date-range filters + row multi-select + bulk archive/delete + delete-archived endpoint.
+    - Phase 3 partial now live: settings IA (`/settings/account`, `/settings/privacy`) with AlertDialog-confirmed destructive privacy actions (delete archived history, delete all history).
+    - Phase 4 retention enforcement now live:
+      - retention source of truth added to `config/plan_limits.php` (`history_retention_days` per tier),
+      - prune action: `app/Actions/Tools/History/PruneToolHistoryByRetention.php`,
+      - prune command: `app/Console/Commands/PruneToolHistoryRetentionCommand.php`,
+      - scheduler entry: `routes/console.php` (scheduled call named `history:prune-retention`, daily at 03:30),
+      - retention boundary tests: `tests/Unit/PruneToolHistoryByRetentionTest.php`.
+    - Phase 6 partial now live:
+      - centralized logging policy: `app/Services/Tools/HistoryLoggingPolicy.php`,
+      - tool logging catalog: `app/Services/Tools/HistoryLoggingCatalog.php`,
+      - explicit `logs_history` flags in `config/tools.php`,
+      - user-level logging preferences API:
+        - `GET api.auth.settings.history-logging.index`
+        - `PUT api.auth.settings.history-logging.update`
+      - Privacy settings UI now includes per-tool history capture toggles.
+      - controller audit pass completed:
+        - non-conversion helper endpoint `UtilityController@whatIsMyIp` no longer attempts to write tool history.
+        - conversion/inspect endpoints continue to log through `LogToolHistory` only.
+      - regression coverage expanded:
+        - widget refreshes do not create tool history rows (`tests/Feature/HistoryLoggingPreferencesTest.php`).
+    - Phase 7 partial now live:
+      - History search input restored on `/tools/history`.
+      - Debounced backend-driven search (75ms) wired into query filters.
+      - Search now matches tool label/type (fuzzy by catalog mapping) in addition to input/output text.
+      - Laravel Scout installed and wired for history search with SQL fallback.
+      - Relevance scoring now orders best matches first (type/label matches ahead of weak payload hits).
+    - Additional safety hardening now live:
+      - server-side user scoping for history archive/delete/delete-archived/delete-all is regression-tested in `tests/Feature/ToolHistoryScopeTest.php`.
+    - Labeling convention pass:
+      - form-field labels now use shadcn `Label` in active tool/settings surfaces (`ToolFormPage`, `ToolApiPage`, `HttpStatusLookup`, `Settings Account`).
+13. Add a later phase for component-level query hydration audit (non-page components) to enforce no-flash `initialData` patterns outside `Pages/**`.
+14. Revisit snippet list UI cleanup pass (item density, row hierarchy, and action affordances) before V1 freeze.
+15. Add share-management actions on the new "Shared with me" page (revoke local access affordance, archive, and filters).
+
+## Known Constraints
+
+- Do not edit `resources/js/components/ui/**` (shadcn registry source).
+- Shadcn-first UI rule: check installed shadcn primitives/patterns before using native/custom components.
+- First-render hydration rule: for query-backed pages, provide initial dataset from Inertia web route props and pass to query hooks as `initialData` to prevent UI flash.
+- Keep domain-oriented structure for tools:
+  - `app/Actions/Tools/<Domain>`
+  - `app/Http/Controllers/Api/Tools/<DomainController>`
+  - `app/Http/Requests/Tools/<Domain>`
+- Keep thin controllers; business logic in actions.
+- Keep API responses on the shared envelope used by `ConsumesToolRunQuota`.
+- Keep all tool access checks via:
+  - tool catalog (`config/tools.php`)
+  - tier checks (`minimum_tier`)
+  - usage quotas (`UsageMeter`)
+- Local command convention:
+  - run PHP commands as `herd php ...`
+  - run Composer commands as `herd composer ...`
+
+## Current Tool Status
+
+- Active free: base64, php-unserialize, json-to-xml, xml-to-json, date-conversion, url-parser-query-editor, uuid-generator-validator, hash-generator, http-status-lookup, what-is-my-ip, jwt-inspector.
+- Active standard: csv-json, json-schema-validator.
+- Active pro: diff-viewer.
+- Coming soon: cron-builder.
+
+## Billing Snapshot
+
+- Spark + Stripe is used for subscriptions.
+- Tier resolution is in `app/Services/Billing/PlanResolver.php`.
+- Plan limits are in `config/plan_limits.php`.
+
+## Validation Snapshot
+
+- `php artisan test` passed after Phase 5.
+- `npm run build` passed after Phase 5.
+- `npm run build` passed after React foundation/scaffolding changes.
+- `npm run build` passes after React runtime cutover.
+- `npm run lint` now passes with current ignore policy (including `resources/js/components/ui/**`).
+- `npm run lint` passes on current branch as of 2026-02-10.
+- `npm run build` passes on current branch as of 2026-02-10 (bundle-size warning only).
+- `php artisan test` passes on current branch as of 2026-02-10 (`79 passed`, `600 assertions`).
+- `php artisan test` passes on current branch as of 2026-02-10 (`83 passed`, `656 assertions`).
+- `php artisan test` passes on current branch as of 2026-02-10 evening (`107 passed`, `810 assertions`).
+- Herd CLI currently errors in this environment (`.../Herd/bin/php: File name too long`), which blocks `herd php artisan ...` command execution checks.
+
+## Open Risks
+
+- Global lint debt may hide real regressions unless scoped lint is used during active development.
+- Route alias cleanup still pending in architecture board Phase 5.
+
+## Pre-V1 Launch TODOs
+
+- Run manual browser verification for P0 items that cannot be proven via backend tests:
+  - Spark billing portal reflects active subscription state in Stripe test mode.
+  - mobile safe-area behavior on iOS notches + dynamic URL bar.
+  - no critical frontend console/runtime errors on authenticated core routes.
+
+## V2 Parking Lot (Deferred)
+
+- Explore NativePHP desktop distribution for macOS + Windows with native installer.
+- Keep core tools local-first with SQLite for offline/local workflows.
+- Keep snippets cloud-authoritative for public/shared visibility and future vanity URLs.
+- Use hybrid auth/entitlements:
+  - desktop login validates against cloud authority
+  - local app enforces cached tier/limits with periodic revalidation
+  - support lifetime/giveaway entitlements independent of Stripe subscription state.
+- Avoid syncing raw SQLite files across devices; use API-level record sync (or manual encrypted backup/export) when revisited.
+- Not in V1 scope; parked for later design/implementation.
+- Add cache-hit UX visibility for deduped tool runs (`meta.cached`) as a subtle V2 UI enhancement.
+- Full dashboard UX refactor:
+  - tighten layout hierarchy and spacing,
+  - simplify activity/widget information architecture,
+  - improve mobile and responsive behavior with a polished app-like feel.
+
+## Planned Epic
+
+- Snippet sharing via recipient email (standard/pro) with burner share limits (pro).
+- Verified email aliases on accounts for restricted share access.
+- Implementation checklist: `docs/roadmap.md`.
+
+## Planned Epic (Next) - Admin RBAC + Complimentary Entitlements
+
+- Canonical task board: `docs/roadmap.md`.
+- Branch kickoff: `codex/admin-rbac-phase1`.
+- Phase-1/2 baseline now in progress:
+  - Colon-delimited permission enum (`app/Enums/PermissionName.php`).
+  - System role enum (`app/Enums/RoleName.php`).
+  - Baseline role->permission mapping service (`app/Services/Auth/RbacCatalog.php`).
+  - RBAC seeder (`database/seeders/RbacSeeder.php`) integrated into `DatabaseSeeder`.
+  - Default member assignment consolidated (`app/Actions/Auth/EnsureDefaultUserRole.php`) and wired into social + dev login flows.
+  - Owner/bootstrap commands added:
+    - `php artisan admin:grant-owner --email=...`
+    - `php artisan admin:seed-rbac`
+  - Admin route shell stubs added under `authed.admin.*` with permission middleware.
+  - Frontend authorization helper added for Spatie-style checks:
+    - `resources/js/composables/hooks/auth/useAuthorization.js`
+  - Sidebar/command palette now include admin section only when user has admin permissions.
+  - Admin page controller + initial-data hydration wired for Users/Roles/Permissions pages.
+  - Admin API surface now available:
+    - `api.auth.admin.users.*` (list/show + sync roles + sync direct permissions)
+    - `api.auth.admin.roles.*` (list/create/update/delete + sync permissions)
+    - `api.auth.admin.permissions.index`
+  - Admin UI delivered (v1 scaffolding):
+    - `/admin/users`: searchable user list + role/direct-permission assignment
+    - `/admin/roles`: create/update/delete custom roles + permission mapping
+    - `/admin/permissions`: permission catalog view
+  - Current guardrail:
+    - system roles are protected from rename/delete in role mutation flow.
+    - role permission mapping remains editable (intentional).
+
+## Epic Progress - Snippet Sharing
+
+- Phase 1 completed:
+  - New tables: `user_emails`, `snippet_shares`, `snippet_share_recipients`.
+  - New models and relationships: `UserEmail`, `SnippetShare`, `SnippetShareRecipient`.
+  - Tier capability config added under `plan_limits.tiers.*.snippet_sharing`.
+- Phase 2 mostly completed:
+  - Verified alias actions implemented (`Add/List/Verify/Resend/Delete`).
+  - Auth API endpoints added for alias lifecycle.
+  - Settings IA now uses `authed.settings.account` for alias management.
+  - Primary email alias is auto-ensured on social/dev login.
+- Phase 3/4/5 implemented with minimal proof UI.
+- Phase 6 completed:
+  - unit + feature coverage added for core share lifecycle and hardening paths
+  - security controls added for rate limiting and anti-enumeration responses
+  - targeted and full-suite test runs passing
+- Next: deferred Phase 7 follow-ups (vanity URLs, invite UX polish, analytics).
+
+## Update Protocol (Always)
+
+- After each meaningful implementation chunk:
+  1. Update this file (`docs/agent-handoff.md`) with status and next steps.
+  2. Update the relevant task board checklist.
+  3. Record any new constraints or decisions in `docs/architecture-conventions.md`.
+
+## Latest Update - 2026-02-12 (Admin UX Cleanup Pass)
+
+- Admin pages tightened with shadcn-first patterns and consistent Item-based lists:
+  - `resources/js/Pages/admin/Users.jsx`
+  - `resources/js/Pages/admin/Roles.jsx`
+  - `resources/js/Pages/admin/Permissions.jsx`
+  - `resources/js/Pages/admin/Entitlements.jsx`
+  - `resources/js/Pages/admin/Audit.jsx`
+- Users page updates:
+  - debounced server-side search + paginated results,
+  - clearer selected-user feedback,
+  - role count in Item actions,
+  - grouped direct-permission list with live local filtering.
+- Roles page updates:
+  - list/detail cleanup to match Users UX,
+  - grouped permission mapping with live filter,
+  - cleaner mutation controls and destructive guardrails.
+- Permissions page updates:
+  - split-pane list/detail UX,
+  - click permission to inspect attached roles.
+- Entitlements updates:
+  - user lookup upgraded to combobox-style search picker with debounced backend queries,
+  - source now enum-backed (`SubscriptionGrantSource`),
+  - start/end moved to shadcn calendar+time popovers,
+  - status/source/search filters now drive live paginated server requests.
+- Audit updates:
+  - clickable Item list,
+  - detail sheet with richer metadata hierarchy.
+- New admin logs surface added:
+  - web page: `/admin/logs`,
+  - API: `api.auth.admin.logs.index`,
+  - action: `app/Actions/Admin/ListSystemLogs.php`,
+  - includes debounced search, channel/level filters, pagination, and polling pause/resume.
+- New permission added and seeded via enum/catalog:
+  - `admin:logs:view`.
+- Validation snapshot for this pass:
+  - `npx eslint ...` on touched admin/frontend files: pass.
+  - `php artisan test tests/Feature/AdminAccessTest.php tests/Feature/AdminRolePermissionFlowTest.php tests/Feature/AdminEntitlementApiTest.php`: pass.
+
+## Latest Update - 2026-02-12 (Admin Filter Bar Alignment)
+
+- Standardized admin list filter bars to a shared layout rhythm:
+  - wide search input,
+  - narrower select filters,
+  - vertical separator,
+  - inline right-side action button group.
+- Applied to:
+  - `resources/js/Pages/admin/Logs.jsx`
+  - `resources/js/Pages/admin/Audit.jsx`
+  - `resources/js/Pages/admin/Entitlements.jsx`
+- Logs overlap regression addressed by moving the toolbar from flex-wrap to responsive grid columns so actions stay aligned in-flow.
+- Validation snapshot:
+  - `npm run lint -- resources/js/Pages/admin/Logs.jsx resources/js/Pages/admin/Audit.jsx resources/js/Pages/admin/Entitlements.jsx`: pass.
+
+## Latest Update - 2026-02-12 (Admin Filter Controls Minimalized)
+
+- Admin filter bar actions on Logs/Audit/Entitlements were simplified to icon-only controls:
+  - refresh buttons now icon-only,
+  - logs polling toggle now icon-only (pause/resume icon state),
+  - vertical separator removed from these toolbars per UX preference.
+- Accessibility preserved via `aria-label` + `title` attributes on icon buttons.
+
+## Latest Update - 2026-02-12 (Admin Filter Overlap Fix)
+
+- Fixed overlapping controls on admin filter bars by deferring single-row layouts to wider breakpoints:
+  - `Logs`: `xl:grid-cols-[minmax(0,1fr)_130px_130px_auto]`
+  - `Audit`: `xl:grid-cols-[minmax(0,1fr)_180px_auto]`
+  - `Entitlements`: `xl:grid-cols-[minmax(0,1fr)_180px_180px_auto]`
+- Removed leftover separator grid columns from templates and aligned action controls with `xl:justify-end`.
+- Validation snapshot:
+  - `npm run lint -- resources/js/Pages/admin/Logs.jsx resources/js/Pages/admin/Audit.jsx resources/js/Pages/admin/Entitlements.jsx`: pass.
+
+## Latest Update - 2026-02-12 (Owner Self-Protection in Role Assignment)
+
+- Added backend guard to prevent an owner from removing `owner` from their own account during admin role sync.
+  - Action updated: `app/Actions/Admin/SyncAdminUserRoles.php`
+  - Controller passes actor context: `app/Http/Controllers/Api/Admin/AdminUserController.php`
+- Added UI guard in admin users role list:
+  - disables the owner checkbox for self when currently checked,
+  - shows helper copy explaining why.
+  - File: `resources/js/Pages/admin/Users.jsx`
+- Added feature test coverage:
+  - `tests/Feature/AdminRolePermissionFlowTest.php` (`it blocks owner from removing owner role from their own account`)
+- Validation snapshot:
+  - `npm run lint -- resources/js/Pages/admin/Users.jsx`: pass
+  - `php artisan test tests/Feature/AdminRolePermissionFlowTest.php`: pass
+
+## Latest Update - 2026-02-12 (Owner Promotion/Demotion Policy Lockdown)
+
+- Owner role policy tightened:
+  - owner demotion is now blocked for all admin UI/API role-sync paths.
+  - only existing owners can promote users to owner.
+- Backend enforcement:
+  - `app/Actions/Admin/SyncAdminUserRoles.php`
+  - `app/Http/Controllers/Api/Admin/AdminUserController.php`
+- UI guardrails:
+  - owner checkbox is disabled when demotion is not allowed (including owner accounts),
+  - non-owner actors cannot select owner for promotion.
+  - file: `resources/js/Pages/admin/Users.jsx`
+- New server-only demotion command added:
+  - `php artisan admin:revoke-owner --email=... --force`
+  - prevents revoking owner from the last remaining owner account.
+  - file: `app/Console/Commands/RevokeOwnerRoleCommand.php`
+- Test coverage added:
+  - `tests/Feature/AdminRolePermissionFlowTest.php`
+    - non-owner cannot promote owner
+    - owner can promote owner
+    - owner demotion remains blocked via API
+  - `tests/Feature/AdminRbacCommandTest.php`
+    - revoke-owner succeeds with multiple owners
+    - revoke-owner fails on last owner
+- Validation snapshot:
+  - `npm run lint -- resources/js/Pages/admin/Users.jsx`: pass
+  - `php artisan test tests/Feature/AdminRolePermissionFlowTest.php tests/Feature/AdminRbacCommandTest.php`: pass
+
+## Latest Update - 2026-02-12 (Public Copy + Policy Pages + Logout Redirect)
+
+- Public-page voice pass completed for a friendlier, more human solo-dev tone:
+  - `resources/js/Pages/public/Home.jsx`
+  - `resources/js/Pages/public/Features.jsx`
+  - `resources/js/Pages/public/Pricing.jsx`
+  - `resources/js/Pages/public/Contact.jsx`
+- Replaced placeholder legal pages with production-ready starter content:
+  - `resources/js/Pages/public/Privacy.jsx` (goals, data handling, commitments)
+  - `resources/js/Pages/public/Terms.jsx` (terms/acceptable use/liability/changes)
+- Login page now includes explicit terms acknowledgement copy with links:
+  - `resources/js/components/login-form.jsx`
+- Logout flow now redirects to home page instead of login:
+  - `routes/web.php` (`authed.logout` closure now redirects `guest.home`)
+- Footer copy polish:
+  - “Built in TX” -> “Built in Texas”
+  - friendlier footer product tagline
+  - `resources/js/components/layout/PublicLayout.jsx`
+- Validation snapshot:
+  - `npm run lint -- --no-warn-ignored resources/js/Pages/public/Home.jsx resources/js/Pages/public/Features.jsx resources/js/Pages/public/Pricing.jsx resources/js/Pages/public/Contact.jsx resources/js/Pages/public/Privacy.jsx resources/js/Pages/public/Terms.jsx resources/js/components/login-form.jsx resources/js/components/layout/PublicLayout.jsx`: pass
+
+## Latest Update - 2026-02-12 (Login Splash + Pricing-to-Spark Plan Preselect)
+
+- Login page visual update:
+  - right-hand desktop panel now renders `/images/login-splash.png` with subtle gradient overlay.
+  - file: `resources/js/Pages/auth/Login.jsx`
+- Pricing-to-Spark onboarding flow added:
+  - marketing payload now includes Spark plan IDs and prebuilt `spark.portal` subscribe URLs per interval:
+    - `marketing.spark_plan_ids.standard|pro.monthly|yearly`
+    - `marketing.spark_subscribe_urls.standard|pro.monthly|yearly`
+  - file: `app/Http/Controllers/MarketingPageController.php`
+- Pricing CTA behavior:
+  - Free: login normally.
+  - Standard/Pro: login with `intended=/billing?subscribe=<price_id>` for post-auth redirect into Spark with selected plan preloaded.
+  - file: `resources/js/Pages/public/Pricing.jsx`
+- Validation snapshot:
+  - `npm run lint -- --no-warn-ignored resources/js/Pages/public/Pricing.jsx resources/js/Pages/auth/Login.jsx`: pass
+  - `php -l app/Http/Controllers/MarketingPageController.php`: pass

@@ -9,8 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * 
- *
  * @property int $id
  * @property string $uuid
  * @property int $company_id
@@ -19,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Company|null $company
+ *
  * @method static \Database\Factories\CompanyApiTokenFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyApiToken newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyApiToken newQuery()
@@ -30,8 +29,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyApiToken whereIsValid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyApiToken whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyApiToken whereUuid($value)
+ *
  * @property string $bol
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyApiToken whereBol($value)
+ *
  * @mixin \Eloquent
  */
 class CompanyApiToken extends Model

@@ -1,5 +1,4 @@
 <script setup>
-import { faIcons } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useClipboard } from '@vueuse/core'
 

@@ -20,9 +20,9 @@ defineProps({
     default: null,
   },
   action: {
-    type: Function,
+    type: [Function, Object],
     required: false,
-    default: () => null,
+    default: null,
   },
 })
 
@@ -85,7 +85,7 @@ onMounted(() => {
       >
         <h1 v-if="title" class="mb-4 text-2xl font-semibold">{{ title }}</h1>
 
-        <action v-if="action" />
+        <component :is="action" v-if="action" />
       </div>
 
       <slot />

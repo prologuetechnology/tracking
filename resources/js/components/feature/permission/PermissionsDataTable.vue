@@ -16,25 +16,25 @@ import {
 } from '@/components/ui/table'
 import usePermissionsQuery from '@/composables/queries/permission/usePermissionsQuery.js'
 
-const { permissions } = usePage().props
+const { initialPermissions } = usePage().props
 
 const { data, isError } = usePermissionsQuery({
   config: {
-    initialData: permissions,
+    initialData: initialPermissions,
   },
 })
 
 const columns = [
   {
     accessorKey: `name`,
-    header: () => h(`div`, { class: `text-sm font-semibold` }, `First Name`),
+    header: () => h(`div`, { class: `text-sm font-semibold` }, `Name`),
     cell: ({ row }) => {
       return h(`span`, { class: `text-sm font-semibold` }, row.original.name)
     },
   },
   {
     accessorKey: `guard_name`,
-    header: () => h(`div`, { class: `text-sm font-semibold` }, `First Name`),
+    header: () => h(`div`, { class: `text-sm font-semibold` }, `Guard`),
     cell: ({ row }) => {
       return h(
         `span`,
@@ -101,7 +101,7 @@ const companiesTable = useVueTable(tableOptions)
         <template v-if="companiesTable.getRowModel().rows?.length">
           <TableRow
             v-for="row in companiesTable.getRowModel().rows"
-            :key="row.uuid"
+            :key="row.original.id"
           >
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
               <FlexRender

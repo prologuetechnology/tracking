@@ -6,17 +6,17 @@ import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vu
 import { usePermissionQuery } from '@/composables/queries/permission'
 
 const props = defineProps({
-  permissions: {
+  initialPermission: {
     type: Object,
     required: true,
   },
 })
 
 const { data: permission, isError } = usePermissionQuery({
-  id: props.permissions.id,
+  id: props.initialPermission.id,
 
   config: {
-    initialData: props.permissions,
+    initialData: props.initialPermission,
   },
 })
 </script>

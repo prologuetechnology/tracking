@@ -1,7 +1,8 @@
 <script setup>
 import { router } from '@inertiajs/vue3'
+import { useQueryClient } from '@tanstack/vue-query'
 import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
-import { computed, h, reactive } from 'vue'
+import { computed, h, reactive, ref } from 'vue'
 
 import RolePermissionCheckbox from '@/components/feature/role/RolePermissionCheckbox.vue'
 import { Button } from '@/components/ui/button/index.js'
@@ -14,8 +15,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table/index.js'
+import { useToast } from '@/components/ui/toast'
+import { useUserRolesAssignPermissionsMutation } from '@/composables/mutations/userRoles'
 
 const props = defineProps({
+  role: {
+    type: Object,
+    required: true,
+  },
   permissions: {
     type: Array,
     required: true,
@@ -26,22 +33,51 @@ const props = defineProps({
   },
 })
 
+const queryClient = useQueryClient()
+const { toast } = useToast()
+const selectedPermissions = ref(
+  props.permissions.map((permission) => permission.name),
+)
+
 const permissionsWithChecked = computed(() => {
   return props.allPermissions.map((permission) => ({
     ...permission,
-    checked: props.permissions.some((p) => p.name === permission.name),
+    checked: selectedPermissions.value.includes(permission.name),
   }))
 })
 
 const checkedPermissions = computed(() => {
-  return permissionsWithChecked.value
-    .filter((permission) => permission.checked)
-    .map((permission) => permission.name)
+  return selectedPermissions.value
 })
 
 const cancelDialog = () => {
-  // Emit an event to close the dialog
   router.visit(route(`admin.role.index`))
+}
+
+const { mutate: assignPermissions, isPending } =
+  useUserRolesAssignPermissionsMutation({
+    config: {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: [`roles`],
+        })
+
+        await toast({
+          title: `Updated role permissions`,
+          description: `Permissions were synced for ${props.role.name}.`,
+          duration: 5000,
+        })
+
+        router.visit(route(`admin.role.index`))
+      },
+    },
+  })
+
+const submitForm = () => {
+  assignPermissions({
+    roleId: props.role.id,
+    permissions: checkedPermissions.value,
+  })
 }
 
 const columns = [
@@ -57,7 +93,19 @@ const columns = [
     header: () => h(`div`, { class: `text-sm font-semibold` }, `Assign`),
     cell: ({ row }) => {
       return h(RolePermissionCheckbox, {
-        modelValue: row.original.checked,
+        'modelValue': row.original.checked,
+        'onUpdate:modelValue': (checked) => {
+          if (checked) {
+            selectedPermissions.value = [
+              ...new Set([...selectedPermissions.value, row.original.name]),
+            ]
+            return
+          }
+
+          selectedPermissions.value = selectedPermissions.value.filter(
+            (name) => name !== row.original.name,
+          )
+        },
       })
     },
   },
@@ -98,7 +146,7 @@ const companiesTable = useVueTable(tableOptions)
         <template v-if="companiesTable.getRowModel().rows?.length">
           <TableRow
             v-for="row in companiesTable.getRowModel().rows"
-            :key="row.uuid"
+            :key="row.original.id"
           >
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
               <FlexRender

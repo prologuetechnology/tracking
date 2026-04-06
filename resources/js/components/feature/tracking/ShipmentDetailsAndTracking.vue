@@ -15,17 +15,19 @@ import {
 import { faSync } from '@fortawesome/pro-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import dayjs from 'dayjs'
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 
 import AddressCard from '@/components/feature/tracking/AddressCard.vue'
 import ShipmentDetail from '@/components/feature/tracking/ShipmentDetail.vue'
 import ShipmentDocuments from '@/components/feature/tracking/ShipmentDocuments.vue'
 import StatusStepper from '@/components/feature/tracking/StatusStepper.vue'
-import TrackingMap from '@/components/feature/tracking/TrackingMap.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCompanyFeatures } from '@/composables/helpers'
-import { useTrackShipmentQuery } from '@/composables/queries/trackShipment'
+
+const TrackingMap = defineAsyncComponent(
+  () => import(`@/components/feature/tracking/TrackingMap.vue`),
+)
 
 const props = defineProps({
   trackingData: {
@@ -46,13 +48,18 @@ const props = defineProps({
     type: Array,
     required: true,
   },
-  useTrackShipmentQueryRefetch: {
+  onRefresh: {
     type: Function,
     required: false,
     default: () => null,
   },
+  isRefreshing: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
   lastUpdated: {
-    type: String,
+    type: [Number, String],
     required: false,
     default: null,
   },
@@ -60,12 +67,6 @@ const props = defineProps({
 
 const { companyHasFeature } = useCompanyFeatures({
   company: props.company,
-})
-
-const { refetch, dataUpdatedAt, isRefetching } = useTrackShipmentQuery({
-  trackingNumber: props.trackingData.bolNum,
-  searchOption: `bol`,
-  companyId: props.company?.pipeline_company_id ?? ``,
 })
 
 const bolNumber = computed(() => {
@@ -97,27 +98,27 @@ const numberOfPieces = computed(() => {
 
 <template>
   <div
-    v-if="dataUpdatedAt"
+    v-if="lastUpdated"
     class="mb-4 flex items-center justify-between gap-x-2 text-xs text-muted-foreground"
   >
     <p>
       <strong>Last Updated:</strong>
 
-      {{ dayjs(dataUpdatedAt).format('MMMM D, YYYY h:mm A') }}
+      {{ dayjs(lastUpdated).format('MMMM D, YYYY h:mm A') }}
     </p>
 
     <div>
       <Button
         variant="ghost"
-        :disabled="isRefetching"
+        :disabled="isRefreshing"
         size="xs"
-        @click="refetch"
+        @click="onRefresh"
       >
         <FontAwesomeIcon
           class="mr-2"
           :icon="faSync"
           fixed-width
-          :spin="isRefetching"
+          :spin="isRefreshing"
         />
 
         <span>Refresh</span>

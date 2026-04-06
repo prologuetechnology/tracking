@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
@@ -31,12 +32,14 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user()?->loadMissing(['roles.permissions', 'permissions']);
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
-                'roles' => $request->user()?->getRoleNames() ?? [],
-                'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
+                'user' => $user ? UserResource::make($user)->resolve() : null,
+                'roles' => $user?->getRoleNames()->values()->all() ?? [],
+                'permissions' => $user?->getAllPermissions()->pluck('name')->values()->all() ?? [],
             ],
             'is_impersonating' => $request->session()->has('impersonate_original_id'),
             'app' => [

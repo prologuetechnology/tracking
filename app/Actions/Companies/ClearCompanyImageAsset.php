@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Actions\Companies;
+
+use App\Enums\ImageTypeEnum;
+use App\Models\Company;
+use InvalidArgumentException;
+
+class ClearCompanyImageAsset
+{
+    public function execute(Company $company, string $type): Company
+    {
+        match ($type) {
+            ImageTypeEnum::LOGO->value => $company->forceFill([
+                'logo_image_id' => null,
+            ]),
+            ImageTypeEnum::BANNER->value => $company->forceFill([
+                'banner_image_id' => null,
+            ]),
+            ImageTypeEnum::FOOTER->value => $company->forceFill([
+                'footer_image_id' => null,
+            ]),
+            default => throw new InvalidArgumentException('Invalid image type.'),
+        };
+
+        $company->save();
+
+        return $company->load(ListCompanies::RELATIONS);
+    }
+}

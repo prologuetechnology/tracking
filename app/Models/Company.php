@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * 
- *
  * @property int $id
  * @property string $uuid
  * @property int $is_active
@@ -38,6 +36,7 @@ use Illuminate\Support\Facades\Schema;
  * @property-read \App\Models\Image|null $footer
  * @property-read \App\Models\Image|null $logo
  * @property-read \App\Models\Theme|null $theme
+ *
  * @method static CompanyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company newQuery()
@@ -59,9 +58,12 @@ use Illuminate\Support\Facades\Schema;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereUuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereWebsite($value)
+ *
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CompanyFeature> $features
  * @property-read int|null $features_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereEnableDocuments($value)
+ *
  * @mixin \Eloquent
  */
 class Company extends Model
@@ -205,6 +207,10 @@ class Company extends Model
 
     public function hasFeature(string $slug): bool
     {
+        if (in_array($slug, self::featureBackedBooleanFields(), true) && (bool) $this->getAttribute($slug)) {
+            return true;
+        }
+
         if ($this->relationLoaded('features')) {
             return $this->features->contains('slug', $slug);
         }
@@ -293,18 +299,30 @@ class Company extends Model
 
             switch (true) {
                 case $brand:
-                    $company = $query->whereRaw('BINARY `brand` = ?', [$brand])->first();
+                    $company = $query->where('brand', $brand)->first();
 
-                    if ($company->pipeline_company_id !== $pipelineCompanyId) {
-                        return $company = null;
+                    if (! $company) {
+                        return null;
+                    }
+
+                    if ($company->brand !== $brand) {
+                        return null;
+                    }
+
+                    if ($pipelineCompanyId !== null && $company->pipeline_company_id !== $pipelineCompanyId) {
+                        return null;
                     }
 
                     break;
                 case $companyId:
                     $company = $query->where('pipeline_company_id', $companyId)->first();
 
-                    if ($company->pipeline_company_id !== $pipelineCompanyId) {
-                        return $company = null;
+                    if (! $company) {
+                        return null;
+                    }
+
+                    if ($pipelineCompanyId !== null && $company->pipeline_company_id !== $pipelineCompanyId) {
+                        return null;
                     }
 
                     break;
@@ -314,10 +332,6 @@ class Company extends Model
                     break;
                 default:
                     return null;
-            }
-
-            if ($company && $company->requires_brand && ! $brand) {
-                return null;
             }
 
             return $company;

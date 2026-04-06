@@ -2,47 +2,74 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Permissions\CreatePermission;
+use App\Actions\Permissions\ListPermissions;
+use App\Actions\Permissions\ShowPermission;
+use App\Actions\Permissions\UpdatePermission;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\DeletePermissionRequest;
+use App\Http\Requests\StorePermissionRequest;
+use App\Http\Requests\UpdatePermissionRequest;
+use App\Http\Resources\PermissionResource;
 use Spatie\Permission\Models\Permission;
 use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends Controller
 {
-    public function index()
-    {
-        $permissions = Permission::all();
+    public function __construct(
+        private readonly ListPermissions $listPermissions,
+        private readonly CreatePermission $createPermission,
+        private readonly ShowPermission $showPermission,
+        private readonly UpdatePermission $updatePermission,
+    ) {}
 
-        return response()->json($permissions, Response::HTTP_OK);
+    public function index(): \Illuminate\Http\JsonResponse
+    {
+        return response()->json(
+            PermissionResource::collection($this->listPermissions->execute())->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
-    public function store(Request $request)
+    public function store(StorePermissionRequest $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['name' => 'required|string|unique:permissions,name']);
+        $permission = $this->createPermission->execute($request->validated());
 
-        $permission = Permission::create(['name' => $request->name]);
-
-        return response()->json($permission, Response::HTTP_OK);
+        return response()->json(
+            PermissionResource::make($permission)->resolve(),
+            Response::HTTP_CREATED,
+        );
     }
 
-    /**
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update(Request $request, Permission $permission)
+    public function show(Permission $permission): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['name' => 'required|string|unique:permissions,name,'.$permission->id]);
-        $permission->update(['name' => $request->name]);
-
-        return response()->json($permission, Response::HTTP_OK);
+        return response()->json(
+            PermissionResource::make($this->showPermission->execute($permission))->resolve(),
+            Response::HTTP_OK,
+        );
     }
 
-    /**
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function destroy(Permission $permission)
-    {
+    public function update(
+        UpdatePermissionRequest $request,
+        Permission $permission,
+    ): \Illuminate\Http\JsonResponse {
+        $permission = $this->updatePermission->execute(
+            $permission,
+            $request->validated(),
+        );
+
+        return response()->json(
+            PermissionResource::make($permission)->resolve(),
+            Response::HTTP_OK,
+        );
+    }
+
+    public function destroy(
+        Permission $permission,
+        DeletePermissionRequest $request,
+    ): \Illuminate\Http\JsonResponse {
         $permission->delete();
 
-        return response()->json($permission, Response::HTTP_OK);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

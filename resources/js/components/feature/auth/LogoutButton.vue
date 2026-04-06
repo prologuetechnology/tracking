@@ -19,7 +19,13 @@ defineProps({
 </script>
 
 <template>
-  <Button variant="outline" :size="size" as="button" @click="logout">
+  <!-- prettier-ignore -->
+  <Button
+    variant="outline"
+    :size="size"
+    as="button"
+    @click="logout"
+  >
     <FontAwesomeIcon class="mr-2" :icon="faSignOut" fixed-width />
     Sign Out
   </Button>

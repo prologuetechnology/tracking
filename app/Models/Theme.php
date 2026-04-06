@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * 
- *
  * @property int $id
  * @property string $uuid
  * @property string $name
@@ -18,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $derive_from
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ *
  * @method static \Database\Factories\ThemeFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Theme newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Theme newQuery()
@@ -31,6 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Theme whereRadius($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Theme whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Theme whereUuid($value)
+ *
  * @mixin \Eloquent
  */
 class Theme extends Model

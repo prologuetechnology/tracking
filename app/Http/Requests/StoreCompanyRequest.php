@@ -6,19 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCompanyRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('company:store') ?? false;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
@@ -26,7 +18,8 @@ class StoreCompanyRequest extends FormRequest
             'website' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'string', 'max:255'],
-            'pipeline_company_id' => ['required', 'integer'],
+            'pipeline_company_id' => ['required', 'integer', 'unique:companies,pipeline_company_id'],
+            'theme_id' => ['nullable', 'integer', 'exists:themes,id'],
             'requires_brand' => ['boolean'],
             'brand' => ['nullable', 'string', 'max:255', 'required_if:requires_brand,true'],
         ];

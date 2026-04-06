@@ -23,8 +23,8 @@ const initialData = {
   shipmentDocuments: initialShipmentDocuments,
 }
 
-const { data, refetch, dataUpdatedAt } = useTrackShipmentQuery({
-  trackingNumber: initialTrackingData.data[0].bolNum,
+const { data, refetch, dataUpdatedAt, isRefetching } = useTrackShipmentQuery({
+  trackingNumber: initialTrackingData.bolNum,
   searchOption: params.get(`searchOption`),
   companyId: initialCompany?.pipeline_company_id ?? ``,
 
@@ -65,7 +65,8 @@ const proNumber = computed(() => {
       :company="data?.company"
       :shipment-coordinates="data?.shipmentCoordinates"
       :shipment-documents="data?.shipmentDocuments"
-      :use-track-shipment-query-refetch="refetch"
+      :on-refresh="refetch"
+      :is-refreshing="isRefetching"
       :last-updated="dataUpdatedAt"
     />
   </TrackingLayout>

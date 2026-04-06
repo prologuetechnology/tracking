@@ -49,6 +49,7 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
   <DropdownMenu>
     <DropdownMenuTrigger>
       <Button
+        dusk="user-menu-trigger"
         class="flex flex-row items-center justify-center space-x-1"
         variant="outline"
         size="xs"
@@ -84,6 +85,7 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
 
         <DropdownMenuItem>
           <Link :href="route(`admin.allowed-domains.index`)" class="w-full">
+            <span dusk="nav-allowed-domains-link" class="hidden" />
             <FontAwesomeIcon class="mr-2" :icon="faGlobePointer" fixed-width />
             <span>Allowed Domains</span>
           </Link>
@@ -91,6 +93,7 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
 
         <DropdownMenuItem>
           <Link :href="route(`admin.users.index`)" class="w-full">
+            <span dusk="nav-users-link" class="hidden" />
             <FontAwesomeIcon class="mr-2" :icon="faUserGear" fixed-width />
             <span>Users</span>
           </Link>
@@ -98,6 +101,7 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
 
         <DropdownMenuItem>
           <Link :href="route(`admin.role.index`)" class="w-full">
+            <span dusk="nav-roles-link" class="hidden" />
             <FontAwesomeIcon class="mr-2" :icon="faShieldKeyhole" fixed-width />
             <span>Roles</span>
           </Link>
@@ -108,6 +112,7 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
 
       <DropdownMenuItem
         v-if="isCurrentlyImpersonating"
+        dusk="stop-impersonation"
         @click="mutateImpersonateUserStop"
       >
         <FontAwesomeIcon class="mr-2" :icon="faStop" fixed-width />
@@ -117,7 +122,7 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
 
       <DropdownMenuSeparator />
 
-      <DropdownMenuItem @click="logout">
+      <DropdownMenuItem dusk="sign-out" @click="logout">
         <FontAwesomeIcon class="mr-2" :icon="faSignOut" fixed-width />
 
         <span>Sign out</span>

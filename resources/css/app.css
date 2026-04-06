@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@view-transition {
+  navigation: auto;
+}
+
 body {
   @apply min-h-screen bg-background text-foreground;
 }

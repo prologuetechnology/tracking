@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { faUserLock, faUserShield } from '@fortawesome/pro-duotone-svg-icons'
+import { faUserShield } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { usePage } from '@inertiajs/vue3'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -20,8 +20,6 @@ import { useUserQuery } from '@/composables/queries/user'
 
 const { user: initialCurrentUser } = usePage().props.auth
 
-const { data: roles } = useRolesQuery()
-
 const { data: currentUser } = useUserQuery({
   userId: initialCurrentUser.id,
 
@@ -35,10 +33,21 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  allRoles: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
 })
 
 const isCurrentUser = computed(() => {
   return props.user.id === currentUser.value.id
+})
+
+const { data: roles } = useRolesQuery({
+  config: {
+    initialData: props.allRoles,
+  },
 })
 
 const queryClient = useQueryClient()
@@ -69,6 +78,7 @@ const handleRoleChange = async (role) => {
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <Button
+        :dusk="`user-role-trigger-${user.id}`"
         variant="text"
         :disabled="isCurrentUser || isUpdatingRole"
         size="sm"
@@ -86,10 +96,14 @@ const handleRoleChange = async (role) => {
 
       <DropdownMenuItem
         v-for="role in roles"
-        :key="role.value"
+        :key="role.id"
         @click="() => handleRoleChange(role)"
       >
-        {{ role.name }}
+        <span
+          :dusk="`user-role-option-${role.name.toLowerCase().replace(/\s+/g, '-')}`"
+        >
+          {{ role.name }}
+        </span>
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

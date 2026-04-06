@@ -54,7 +54,7 @@ const cancelDialog = () => {
 
 <template>
   <Dialog v-model:open="isOpen">
-    <template v-if="userCan(`theme:delete`)">
+    <template v-if="userCan(`theme:destroy`)">
       <DialogTrigger as-child>
         <Button variant="destructive" size="sm">
           <FontAwesomeIcon class="mr-2" :icon="faTrashAlt" fixed-width />
