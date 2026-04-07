@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Tracking\ResolveTrackingPayload;
+use App\Http\Resources\CompanyResource;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -35,7 +36,7 @@ class DetailedTrackingController extends Controller
         return Inertia::render('brandedTracking/Index', [
             'initialTrackingData' => $payload['trackingData'],
             'initialCompany' => $payload['company']
-                ? \App\Http\Resources\CompanyResource::make($payload['company'])->resolve()
+                ? CompanyResource::make($payload['company'])->resolve()
                 : null,
             'initialShipmentCoordinates' => $payload['shipmentCoordinates'],
             'initialShipmentDocuments' => $payload['shipmentDocuments'],

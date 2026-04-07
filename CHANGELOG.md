@@ -10,10 +10,15 @@
 - Additional production-confidence coverage for active admin middleware,
   super-admin page hydration, branded tracking success rendering, and the
   remaining normalized resource payloads.
+- SVG upload regression coverage for the shared image library under Laravel's
+  explicit SVG image validation rules.
 
 ### Changed
 
 - Transfer-kit adaptation pass completed for the Laravel + Inertia Vue stack.
+- Upgraded the application runtime from Laravel 11 to Laravel 13 on PHP 8.4,
+  including stable compatible package lines for Inertia Laravel, Sanctum,
+  Socialite, Dusk, Pest, PHPUnit, Spatie Permission, Ziggy, and Tinker.
 - Repo conventions now explicitly document server-first hydration, thin page
   controllers, action/service layering, and Vue Query domain composables.
 - `.env.example` is now a project-specific local env contract covering Azure
@@ -56,3 +61,5 @@
 - Company brand lookups now use a database-agnostic exact-match check instead
   of a MySQL-only `BINARY` clause, keeping branded tracking resolution
   consistent in both sqlite-backed tests and production.
+- Dusk now starts its local test server with the active PHP binary so browser
+  runs stay aligned with the PHP 8.4 framework runtime.

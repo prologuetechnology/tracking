@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Traits\HasUuid;
+use Database\Factories\BackgroundFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -13,9 +16,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $url
  * @property int $is_system
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Company> $companies
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Company> $companies
  * @property-read int|null $companies_count
  *
  * @method static \Database\Factories\BackgroundImageFactory factory($count = null, $state = [])
@@ -34,7 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class BackgroundImage extends Model
 {
-    /** @use HasFactory<\Database\Factories\BackgroundFactory> */
+    /** @use HasFactory<BackgroundFactory> */
     use HasFactory, HasUuid;
 
     protected $fillable = [

@@ -15,7 +15,7 @@ This repo contains:
 The standard local runtime is:
 
 - Laravel Herd for local web serving
-- Herd-managed PHP 8.2+
+- Herd-managed PHP 8.4
 - Herd-managed or otherwise local MySQL for the app database
 - npm for Vite assets
 
@@ -27,7 +27,7 @@ same MySQL setup.
 Install and confirm:
 
 - Laravel Herd
-- PHP 8.2 or newer through Herd
+- PHP 8.4 through Herd
 - Composer
 - Node 20 or newer
 - npm
@@ -44,9 +44,19 @@ Point a Herd site at this repository root.
 
 - Recommended site name: `tracking`
 - Recommended local URL: `https://tracking.test`
+- Required PHP runtime: `8.4`
 
 Keep the Herd site URL, `APP_URL`, and Azure redirect URI in sync. If you use a
 different Herd domain, update `.env` and your Azure app registration to match.
+
+Confirm the CLI runtime before installing dependencies:
+
+```bash
+herd php -r 'echo PHP_VERSION, PHP_EOL;'
+```
+
+If that reports PHP 8.3 or older, switch this Herd project to PHP 8.4 before
+continuing. The Composer platform constraint is `php:^8.4`.
 
 ## 3. Install Dependencies
 

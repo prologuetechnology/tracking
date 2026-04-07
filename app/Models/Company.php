@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\Traits\HasUuid;
 use Database\Factories\CompanyFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
@@ -29,13 +31,13 @@ use Illuminate\Support\Facades\Schema;
  * @property int $enable_documents
  * @property int $requires_brand
  * @property string|null $brand
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read CompanyApiToken|null $apiToken
- * @property-read \App\Models\Image|null $banner
- * @property-read \App\Models\Image|null $footer
- * @property-read \App\Models\Image|null $logo
- * @property-read \App\Models\Theme|null $theme
+ * @property-read Image|null $banner
+ * @property-read Image|null $footer
+ * @property-read Image|null $logo
+ * @property-read Theme|null $theme
  *
  * @method static CompanyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company newModelQuery()
@@ -59,7 +61,7 @@ use Illuminate\Support\Facades\Schema;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereUuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereWebsite($value)
  *
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CompanyFeature> $features
+ * @property-read Collection<int, CompanyFeature> $features
  * @property-read int|null $features_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereEnableDocuments($value)

@@ -24,6 +24,8 @@ class ImageAdminAlignmentTest extends TestCase
     {
         parent::setUp();
 
+        config()->set('filesystems.image_library_disk', 'spaces');
+
         $this->seed([
             RolesAndPermissionsSeeder::class,
             ImageTypeSeeder::class,
@@ -125,6 +127,31 @@ class ImageAdminAlignmentTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['image']);
+    }
+
+    public function test_authorized_users_can_upload_svg_images(): void
+    {
+        Storage::fake('spaces');
+
+        $superAdmin = $this->createSuperAdmin();
+        $imageType = $this->findImageType(ImageTypeEnum::LOGO->value);
+        $file = UploadedFile::fake()->create('acme-logo.svg', 10, 'image/svg+xml');
+
+        $this->actingAs($superAdmin)
+            ->postJson(route('api.images.store'), [
+                'name' => 'Acme SVG Logo',
+                'image_type_id' => $imageType->id,
+                'image' => $file,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('name', 'Acme SVG Logo')
+            ->assertJsonPath('image_type.id', $imageType->id);
+
+        Storage::disk('spaces')->assertExists('images/'.$file->hashName());
+        $this->assertDatabaseHas('images', [
+            'name' => 'Acme SVG Logo',
+            'image_type_id' => $imageType->id,
+        ]);
     }
 
     public function test_images_can_be_filtered_by_image_type_id(): void

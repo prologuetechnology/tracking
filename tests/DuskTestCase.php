@@ -96,7 +96,7 @@ abstract class DuskTestCase extends BaseTestCase
         }
 
         static::$server = new Process(
-            ['php', 'artisan', 'serve', '--env=dusk.local', '--host=127.0.0.1', '--port=8000'],
+            [PHP_BINARY, 'artisan', 'serve', '--env=dusk.local', '--host=127.0.0.1', '--port=8000'],
             dirname(__DIR__),
             static::duskServerEnvironment(),
         );
