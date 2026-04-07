@@ -1,6 +1,6 @@
 # Tracking
 
-Tracking is a Laravel 11 + Inertia Vue 3 application for branded shipment
+Tracking is a Laravel 13 + Inertia Vue 3 application for branded shipment
 tracking and internal administration. It serves two main audiences:
 
 - customers who need a branded public shipment-tracking experience
@@ -22,8 +22,8 @@ pattern reference. The project-specific source of truth for this app starts in
 
 ## Stack
 
-- PHP 8.2
-- Laravel 11
+- PHP 8.4
+- Laravel 13
 - Inertia Laravel
 - Vue 3
 - TanStack Vue Query
@@ -40,6 +40,7 @@ We use Laravel Herd as the standard local workflow on macOS. The recommended
 local app URL for this repo is `https://tracking.test`.
 
 1. Create or link a Herd site that points at this repository root.
+   Make sure Herd is using PHP 8.4 for this project.
 2. Install backend dependencies:
 
    ```bash
@@ -200,6 +201,9 @@ Use Herd for PHP and Composer commands:
 `composer dev` still exists, but it uses `php artisan serve`. With Herd, the
 recommended path is to let Herd serve the app and run only the frontend watcher
 or any targeted artisan processes you need.
+
+If `herd php -r 'echo PHP_VERSION, PHP_EOL;'` reports PHP 8.3 or older, switch
+the Herd site/CLI runtime to PHP 8.4 before running Composer, tests, or Dusk.
 
 ## Verification Checklist
 

@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use App\Traits\HasUuid;
+use Database\Factories\ImageTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $uuid
  * @property string $name
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  *
  * @method static \Database\Factories\ImageTypeFactory factory($count = null, $state = [])
@@ -29,7 +31,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ImageType extends Model
 {
-    /** @use HasFactory<\Database\Factories\ImageTypeFactory> */
+    /** @use HasFactory<ImageTypeFactory> */
     use HasFactory, HasUuid;
 
     protected $fillable = [

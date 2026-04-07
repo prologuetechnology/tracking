@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\ImageTypeEnum;
+use App\Models\ImageType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Arr;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ImageType>
+ * @extends Factory<ImageType>
  */
 class ImageTypeFactory extends Factory
 {

@@ -3,10 +3,12 @@
 Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snippet sharing, safe PHP unserializer, Base64 and JSON↔XML converters, and a date conversion tool (timestamp ↔ datetime). Everything uses UUID primary/foreign keys (no integers), Sanctum for auth, and Spatie Permissions.
 
 ## Stack
+
 - Laravel 12, MySQL, Sanctum (stateful SPA + token), Spatie Permission (UUID models), Pest tests, Pint strict, Larastan.
 - Inertia.js (React), Tailwind CSS v4 + ShadCN components, TanStack React Query + Zod, Ziggy route helper, Vite + React plugin.
 
 ## Features
+
 - **Snippet sharing**: create/list/delete, copy content or share UUID URL, optional expiration, public/private flag, policies for `snippets.view-own | snippets.view-all | snippets.manage`.
 - **PHP unserializer**: safe `unserialize` with `allowed_classes=false`, friendly error messages.
 - **Base64 encode/decode**: toggle modes, inline validation.
@@ -15,6 +17,7 @@ Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snipp
 - **Subscription foundation**: Free/Standard/Pro plan config, effective tier resolver, billing page (`/billing`), and per-user override grants for lifetime/giveaway access.
 
 ## Architecture & Conventions
+
 - **UUIDs everywhere**: migrations, factories, seeders, pivot FKs. Trait `App\Models\Concerns\HasUuidPrimary` applied to User, Permission/Role, Snippet, PersonalAccessToken. Migrations use `uuid()`/`uuidMorphs()`.
 - **Actions first**: controllers delegate to `app/Actions/**` (e.g., `StoreSnippet`, `JsonToXml`, `PhpUnserialize`).
 - **Domain-first tools backend**:
@@ -37,6 +40,7 @@ Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snipp
 - **Styling**: Tailwind v4 (`@import "tailwindcss"; @source "../js/**/*.{js,jsx}"`) plus lightweight ShadCN-like components (Button, Input, Card, etc.).
 
 ## Project Layout (high level)
+
 - `app/Models` — UUID models (User, Snippet, Permission, Role, PersonalAccessToken)
 - `app/Services/Subscriptions` — effective tier resolution and future Cashier/Spark mapping
 - `app/Actions` — Snippets + tool converters
@@ -47,9 +51,10 @@ Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snipp
 - `tests` — Pest config + feature tests for snippets
 
 ## Local Setup (macOS / Laravel Herd)
+
 1. **Prereqs**: Composer, Node 20+, npm, MySQL, and **Laravel Herd**. We use Herd for local development and expect contributors to use it (it's the documented path).
    - Point a Herd site to this repo (e.g., `cereal-eyes-bravo.test`).
-2. **Install**  
+2. **Install**
    ```bash
    herd composer install
    npm install
@@ -60,8 +65,8 @@ Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snipp
    ```
 3. **Env**: update `.env` for MySQL (DB_DATABASE, DB_USERNAME, DB_PASSWORD), `SANCTUM_STATEFUL_DOMAINS=cereal-eyes-bravo.test,localhost:3000`, `APP_URL=https://cereal-eyes-bravo.test`.
    - Subscription env: set `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, and Stripe price IDs for standard/pro plans.
-4. **Auth seeds**:  
-   - Admin: `admin@example.com` / `password` (role: admin, all permissions)  
+4. **Auth seeds**:
+   - Admin: `admin@example.com` / `password` (role: admin, all permissions)
    - Demo: `demo@example.com` / `password` (role: user, `snippets.view-own`)
 5. **Run tests/lint**: `herd php artisan test`, `herd composer pint`, `npm run lint`.
 
@@ -73,8 +78,9 @@ Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snipp
 - Release process: `docs/release-process.md`
 
 ## Deployment (Laravel Forge on DigitalOcean)
+
 1. **Server**: create DO droplet, provision via Forge with PHP 8.2+, MySQL. Enable queue worker if background jobs added later.
-2. **Clone & Build** (Forge deploy script example):  
+2. **Clone & Build** (Forge deploy script example):
    ```bash
    git pull origin main
    composer install --no-dev --optimize-autoloader
@@ -89,6 +95,7 @@ Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snipp
 5. **Cron/Queue**: add `* * * * * php /home/forge/site.com/artisan schedule:run >> /dev/null 2>&1`; configure a queue worker if you add jobs later.
 
 ## Commands
+
 - Dev server: `npm run dev`
 - Lint JS/Vue (repo-wide): `npm run lint`
 - Lint JS/Vue and auto-fix: `npm run lint:fix`
@@ -102,6 +109,7 @@ Developer toolbox built with **Laravel 12 + Inertia.js + React**. Includes snipp
   - `php artisan subscriptions:override user@example.com --remove`
 
 ## Notes
+
 - Tailwind v4 uses config-less `@theme`/`@source`; styles live in `resources/css/app.css`.
 - Ziggy routes generated to `resources/js/ziggy.js` (`php artisan ziggy:generate`).
 - In testing env, the Inertia root skips Vite asset loading to keep tests fast.

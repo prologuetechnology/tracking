@@ -1,9 +1,13 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\DuskServiceProvider;
+use SocialiteProviders\Manager\ServiceProvider;
+
 return array_values(array_filter([
-    App\Providers\AppServiceProvider::class,
-    \SocialiteProviders\Manager\ServiceProvider::class,
+    AppServiceProvider::class,
+    ServiceProvider::class,
     in_array(env('APP_ENV'), ['local', 'testing', 'dusk.local'], true)
-        ? App\Providers\DuskServiceProvider::class
+        ? DuskServiceProvider::class
         : null,
 ]));

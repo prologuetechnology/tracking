@@ -29,6 +29,8 @@ Use this file for regular development, verification, and debugging.
 
 - Herd is the source of truth for local web serving. Use the Herd site for the
   app and run `npm run dev` separately for Vite.
+- This app requires PHP 8.4. Confirm `herd php -r 'echo PHP_VERSION, PHP_EOL;'`
+  reports 8.4 before running Composer, tests, or Dusk.
 - `composer dev` still exists, but it uses `php artisan serve`. Prefer Herd for
   normal local work unless you intentionally want the combined artisan stack.
 - Standard local runtime uses MySQL. Automated tests and Dusk use sqlite-backed

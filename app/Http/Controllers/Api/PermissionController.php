@@ -11,6 +11,7 @@ use App\Http\Requests\DeletePermissionRequest;
 use App\Http\Requests\StorePermissionRequest;
 use App\Http\Requests\UpdatePermissionRequest;
 use App\Http\Resources\PermissionResource;
+use Illuminate\Http\JsonResponse;
 use Spatie\Permission\Models\Permission;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +24,7 @@ class PermissionController extends Controller
         private readonly UpdatePermission $updatePermission,
     ) {}
 
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         return response()->json(
             PermissionResource::collection($this->listPermissions->execute())->resolve(),
@@ -31,7 +32,7 @@ class PermissionController extends Controller
         );
     }
 
-    public function store(StorePermissionRequest $request): \Illuminate\Http\JsonResponse
+    public function store(StorePermissionRequest $request): JsonResponse
     {
         $permission = $this->createPermission->execute($request->validated());
 
@@ -41,7 +42,7 @@ class PermissionController extends Controller
         );
     }
 
-    public function show(Permission $permission): \Illuminate\Http\JsonResponse
+    public function show(Permission $permission): JsonResponse
     {
         return response()->json(
             PermissionResource::make($this->showPermission->execute($permission))->resolve(),
@@ -52,7 +53,7 @@ class PermissionController extends Controller
     public function update(
         UpdatePermissionRequest $request,
         Permission $permission,
-    ): \Illuminate\Http\JsonResponse {
+    ): JsonResponse {
         $permission = $this->updatePermission->execute(
             $permission,
             $request->validated(),
@@ -67,7 +68,7 @@ class PermissionController extends Controller
     public function destroy(
         Permission $permission,
         DeletePermissionRequest $request,
-    ): \Illuminate\Http\JsonResponse {
+    ): JsonResponse {
         $permission->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);

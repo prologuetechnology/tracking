@@ -13,17 +13,17 @@ Before filling this out, read:
 
 ### 1.1 Runtime stack
 
-| Area | Target project current state | Source pattern | Adopt / Adapt / Skip | Notes |
-| --- | --- | --- | --- | --- |
-| Backend framework | Laravel 11 | Laravel | Adopt | Same framework family, older minor version than source. |
-| PHP version | PHP 8.2 | Laravel-compatible | Adopt | Compatible with the transfer pattern. |
-| Frontend framework | Vue 3 + Inertia | React + Inertia | Adapt | Preserve Inertia architecture and hydration rules, translate components/hooks to Vue SFCs and composables. |
-| Component kit | shadcn-vue structure in `resources/js/components/ui` | shadcn UI | Adopt | Same architectural intent with Vue primitives. |
-| Data fetching | TanStack Vue Query | TanStack Query | Adapt | Keep query/mutation split and initial-data hydration. |
-| Queue/Cache | Default Laravel config, no local queue discipline docs yet | Redis/DB queue | Skip | No project-specific queue/cache pattern is defined locally yet. |
-| Logging | Laravel logging + custom database channel | Structured channels + JSON | Adapt | Keep privacy-first logging rules locally; skip source-specific channel architecture until grounded here. |
-| Billing | No billing or tiering present in local product | Stripe/Spark | Skip | Do not force billing patterns into this repo. |
-| CI/test runner | Pest, PHPUnit, Dusk, ESLint, Prettier, Vite build | Pest + JS lint/test | Adopt | Local docs should explicitly name the real commands. |
+| Area               | Target project current state                               | Source pattern             | Adopt / Adapt / Skip | Notes                                                                                                      |
+| ------------------ | ---------------------------------------------------------- | -------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Backend framework  | Laravel 13                                                 | Laravel                    | Adopt                | Same framework family; target has been upgraded beyond the original source pattern version.                |
+| PHP version        | PHP 8.4                                                    | Laravel-compatible         | Adopt                | Compatible with the transfer pattern and required by the current target app.                               |
+| Frontend framework | Vue 3 + Inertia                                            | React + Inertia            | Adapt                | Preserve Inertia architecture and hydration rules, translate components/hooks to Vue SFCs and composables. |
+| Component kit      | shadcn-vue structure in `resources/js/components/ui`       | shadcn UI                  | Adopt                | Same architectural intent with Vue primitives.                                                             |
+| Data fetching      | TanStack Vue Query                                         | TanStack Query             | Adapt                | Keep query/mutation split and initial-data hydration.                                                      |
+| Queue/Cache        | Default Laravel config, no local queue discipline docs yet | Redis/DB queue             | Skip                 | No project-specific queue/cache pattern is defined locally yet.                                            |
+| Logging            | Laravel logging + custom database channel                  | Structured channels + JSON | Adapt                | Keep privacy-first logging rules locally; skip source-specific channel architecture until grounded here.   |
+| Billing            | No billing or tiering present in local product             | Stripe/Spark               | Skip                 | Do not force billing patterns into this repo.                                                              |
+| CI/test runner     | Pest, PHPUnit, Dusk, ESLint, Prettier, Vite build          | Pest + JS lint/test        | Adopt                | Local docs should explicitly name the real commands.                                                       |
 
 ### 1.2 App surface map
 

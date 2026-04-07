@@ -5,6 +5,8 @@
 - [x] Transfer-kit alignment baseline docs completed and kept current
 - [x] Herd-first onboarding docs and env contract refreshed for fresh-machine
       setup
+- [x] Laravel 13 and PHP 8.4 framework/runtime upgrade completed with stable
+      package constraints
 - [ ] Page routes moved to thin controllers
 - [ ] Company admin surface refactored to actions/resources with stable payloads
 - [ ] Theme admin surface refactored to actions/resources with stable payloads

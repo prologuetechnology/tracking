@@ -4,6 +4,7 @@ Last updated: 2026-02-08
 Scope: React migration branch `codex/react-migration`
 
 ## Purpose
+
 - Lock down frontend structure before migration work.
 - Keep imports explicit and discoverable.
 - Preserve one-intent-per-file and adjacent index re-exports.
@@ -112,6 +113,7 @@ resources/js/
 ```
 
 ## Naming Rules
+
 - Query hooks: `useXQuery.js`
 - Mutation hooks: `useYMutation.js`
 - Generic hooks: `useZHookName.js` or domain-specific `useCurrentTier.js`
@@ -120,6 +122,7 @@ resources/js/
 - One intent per file.
 
 ## Re-export Rules
+
 - Every leaf folder has an adjacent `index.js`.
 - Re-export defaults with aliases, example:
 
@@ -134,6 +137,7 @@ export { default as SnippetCard } from './SnippetCard'
 ```
 
 ## Import Rules
+
 - Prefer domain-scoped imports over global barrels.
 - Good:
 
@@ -163,11 +167,13 @@ import { SnippetShareManager } from '@/components/feature'
 ```
 
 ## API Call Placement
+
 - Keep network calls inside query/mutation hooks for discoverability.
 - Shared transforms/parsers can live in `composables/helpers/**` or `lib/**`.
 - Do not introduce a separate mandatory `lib/api/**` abstraction layer unless needed later.
 
 ## TanStack Query Convention
+
 - React hooks should mirror current Vue behavior:
   - same query keys
   - same invalidation strategy
@@ -177,7 +183,7 @@ import { SnippetShareManager } from '@/components/feature'
   - to `@tanstack/react-query`
 
 ## UI Library Convention
+
 - React migration uses official React shadcn CLI:
   - `npx shadcn@latest add <component>`
 - Do not use `shadcn-vue` CLI for React files.
-

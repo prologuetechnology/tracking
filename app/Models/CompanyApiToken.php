@@ -7,6 +7,7 @@ use Database\Factories\CompanyApiTokenFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -14,9 +15,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $company_id
  * @property string $api_token
  * @property int $is_valid
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Company|null $company
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Company|null $company
  *
  * @method static \Database\Factories\CompanyApiTokenFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CompanyApiToken newModelQuery()

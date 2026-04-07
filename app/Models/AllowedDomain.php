@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Database\Factories\AllowedDomainFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,11 +17,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $is_active
  * @property int $created_by
  * @property int $updated_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\User|null $createdBy
- * @property-read \App\Models\User|null $updatedBy
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read User|null $createdBy
+ * @property-read User|null $updatedBy
  *
  * @method static \Database\Factories\AllowedDomainFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AllowedDomain newModelQuery()
@@ -43,7 +45,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class AllowedDomain extends Model
 {
-    /** @use HasFactory<\Database\Factories\AllowedDomainFactory> */
+    /** @use HasFactory<AllowedDomainFactory> */
     use HasFactory;
 
     use SoftDeletes;
