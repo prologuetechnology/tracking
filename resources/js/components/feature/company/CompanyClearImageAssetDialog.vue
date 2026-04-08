@@ -30,6 +30,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  fullWidth: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const isOpen = ref(false)
@@ -87,6 +91,9 @@ const handleClear = () => {
         :dusk="`company-image-clear-${type}`"
         variant="destructive"
         size="sm"
+        :class="{
+          'w-full justify-center': fullWidth,
+        }"
       >
         <slot>
           <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
