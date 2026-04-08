@@ -3,14 +3,19 @@
 This file is the first local index for architecture, onboarding, and release
 context in this repository.
 
-## Read First
+## Onboarding Path
 
-- `AGENTS.md`
-- `README.md`
-- `docs/architecture-conventions.md`
-- `docs/project-scaffold-playbook.md`
-- `docs/vue-frontend-structure-contract.md`
-- `docs/agent-handoff.md`
+Read these in order:
+
+1. `AGENTS.md`
+2. `README.md`
+3. `docs/local-setup.md`
+4. `docs/dev-runbook.md`
+5. `docs/context-index.md`
+6. `docs/architecture-conventions.md`
+7. `docs/project-scaffold-playbook.md`
+8. `docs/vue-frontend-structure-contract.md`
+9. `docs/agent-handoff.md`
 
 ## Source Of Truth Files
 
@@ -28,15 +33,23 @@ context in this repository.
   - `config/auth.php`
   - `config/sanctum.php`
   - `config/services.php`
+  - `config/socialite.php`
+- Storage config:
+  - `config/filesystems.php`
 - Permissions config:
   - `config/permission.php`
 - Build/test tooling:
   - `composer.json`
   - `package.json`
+  - `.env.example`
   - `.env.dusk.local`
 
 ## Local Project Docs
 
+- Fresh-machine setup:
+  - `docs/local-setup.md`
+- Daily development workflow:
+  - `docs/dev-runbook.md`
 - Architecture rules:
   - `docs/architecture-conventions.md`
 - Backend and frontend scaffold map:
@@ -47,8 +60,6 @@ context in this repository.
   - `docs/agent-handoff.md`
 - Planned work:
   - `docs/roadmap.md`
-- Daily development workflow:
-  - `docs/dev-runbook.md`
 - Release expectations:
   - `docs/release-process.md`
 - Browser smoke test runtime:

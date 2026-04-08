@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\Traits\HasUuid;
 use Database\Factories\CompanyFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
@@ -29,13 +31,13 @@ use Illuminate\Support\Facades\Schema;
  * @property int $enable_documents
  * @property int $requires_brand
  * @property string|null $brand
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read CompanyApiToken|null $apiToken
- * @property-read \App\Models\Image|null $banner
- * @property-read \App\Models\Image|null $footer
- * @property-read \App\Models\Image|null $logo
- * @property-read \App\Models\Theme|null $theme
+ * @property-read Image|null $banner
+ * @property-read Image|null $footer
+ * @property-read Image|null $logo
+ * @property-read Theme|null $theme
  *
  * @method static CompanyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company newModelQuery()
@@ -59,7 +61,7 @@ use Illuminate\Support\Facades\Schema;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereUuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereWebsite($value)
  *
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CompanyFeature> $features
+ * @property-read Collection<int, CompanyFeature> $features
  * @property-read int|null $features_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Company whereEnableDocuments($value)
@@ -167,6 +169,17 @@ class Company extends Model
     public function apiToken(): HasOne
     {
         return $this->hasOne(CompanyApiToken::class);
+    }
+
+    public static function normalizeBrand(?string $brand): ?string
+    {
+        if ($brand === null) {
+            return null;
+        }
+
+        $normalizedBrand = strtoupper(trim($brand));
+
+        return $normalizedBrand === '' ? null : $normalizedBrand;
     }
 
     public static function booleanFields(): array
@@ -293,45 +306,47 @@ class Company extends Model
     public static function findByIdentifier(?string $brand = null, ?int $companyId = null, ?int $pipelineCompanyId = null): ?self
     {
         try {
-            $query = self::query()
+            $normalizedBrand = self::normalizeBrand($brand);
+
+            if ($companyId !== null && $pipelineCompanyId !== null && $companyId !== $pipelineCompanyId) {
+                return null;
+            }
+
+            $resolvedPipelineCompanyId = $pipelineCompanyId ?? $companyId;
+
+            if ($resolvedPipelineCompanyId === null) {
+                return null;
+            }
+
+            $companies = self::query()
                 ->where('is_active', true)
-                ->with(['logo', 'banner', 'footer', 'theme', 'apiToken', 'features']);
+                ->where('pipeline_company_id', $resolvedPipelineCompanyId)
+                ->with(['logo.imageType', 'banner.imageType', 'footer.imageType', 'theme', 'apiToken', 'features'])
+                ->get();
 
-            switch (true) {
-                case $brand:
-                    $company = $query->where('brand', $brand)->first();
+            if ($companies->isEmpty()) {
+                return null;
+            }
 
-                    if (! $company) {
-                        return null;
-                    }
-
-                    if ($company->brand !== $brand) {
-                        return null;
-                    }
-
-                    if ($pipelineCompanyId !== null && $company->pipeline_company_id !== $pipelineCompanyId) {
-                        return null;
-                    }
-
-                    break;
-                case $companyId:
-                    $company = $query->where('pipeline_company_id', $companyId)->first();
-
-                    if (! $company) {
-                        return null;
-                    }
-
-                    if ($pipelineCompanyId !== null && $company->pipeline_company_id !== $pipelineCompanyId) {
-                        return null;
-                    }
-
-                    break;
-                case $pipelineCompanyId:
-                    $company = $query->where('pipeline_company_id', $pipelineCompanyId)->first();
-
-                    break;
-                default:
+            if ($companies->count() > 1) {
+                if ($normalizedBrand === null) {
                     return null;
+                }
+
+                return $companies->first(
+                    fn (Company $company): bool => self::normalizeBrand($company->brand) === $normalizedBrand,
+                );
+            }
+
+            /** @var Company $company */
+            $company = $companies->first();
+
+            if ($company->requires_brand) {
+                return self::normalizeBrand($company->brand) === $normalizedBrand ? $company : null;
+            }
+
+            if ($normalizedBrand !== null && self::normalizeBrand($company->brand) !== $normalizedBrand) {
+                return null;
             }
 
             return $company;

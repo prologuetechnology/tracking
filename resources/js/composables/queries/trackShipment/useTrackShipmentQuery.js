@@ -12,14 +12,16 @@ const useTrackShipmentQuery = ({
   trackingNumber = ``,
   searchOption = ``,
   companyId = ``,
+  brand = ``,
 } = {}) =>
   useQuery({
-    queryKey: [`trackShipment`, trackingNumber, searchOption, companyId],
+    queryKey: [`trackShipment`, trackingNumber, searchOption, companyId, brand],
     queryFn: () =>
       trackShipment({
         trackingNumber: trackingNumber?.value ?? trackingNumber,
         searchOption: searchOption?.value ?? searchOption,
         companyId,
+        brand,
       }),
 
     retry: false,

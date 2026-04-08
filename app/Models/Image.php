@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Enums\ImageTypeEnum;
 use App\Traits\HasUuid;
+use Database\Factories\ImageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,10 +17,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property int $image_type_id
  * @property string $file_path
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * @property-read \App\Models\ImageType|null $imageType
+ * @property-read ImageType|null $imageType
  *
  * @method static \Database\Factories\ImageFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Image newModelQuery()
@@ -37,7 +39,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Image extends Model
 {
-    /** @use HasFactory<\Database\Factories\ImageFactory> */
+    /** @use HasFactory<ImageFactory> */
     use HasFactory, HasUuid;
 
     protected static function booted(): void

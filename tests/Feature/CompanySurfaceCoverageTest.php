@@ -196,4 +196,158 @@ class CompanySurfaceCoverageTest extends TestCase
         $this->assertSame($sharedLogo->id, $secondCompany->logo_image_id);
         $this->assertSame(1, $sharedLogo->newQuery()->whereKey($sharedLogo->id)->count());
     }
+
+    public function test_duplicate_pipeline_company_id_creation_converts_the_active_group_to_branded_tracking(): void
+    {
+        $this->seedCoreFixtures();
+
+        $theme = $this->makeTheme();
+        $existingCompany = $this->makeCompany([
+            'pipeline_company_id' => 742,
+            'brand' => null,
+            'requires_brand' => false,
+            'theme_id' => $theme->id,
+        ]);
+        $creator = $this->makeUserWithPermission('company:store');
+
+        $created = $this->actingAs($creator)
+            ->postJson(route('api.companies.store'), [
+                'name' => 'Duplicate Pipeline Company',
+                'website' => 'https://duplicate.test',
+                'phone' => '555-000-7420',
+                'email' => 'duplicate@example.test',
+                'pipeline_company_id' => 742,
+                'theme_id' => $theme->id,
+                'requires_brand' => false,
+                'brand' => ' newco ',
+                'sibling_brand_assignments' => [
+                    [
+                        'company_id' => $existingCompany->id,
+                        'brand' => ' legacy ',
+                    ],
+                ],
+            ])
+            ->assertCreated()
+            ->assertJsonPath('pipeline_company_id', 742)
+            ->assertJsonPath('requires_brand', true)
+            ->assertJsonPath('brand', 'NEWCO')
+            ->json();
+
+        $this->assertDatabaseHas('companies', [
+            'id' => $existingCompany->id,
+            'requires_brand' => true,
+            'brand' => 'LEGACY',
+        ]);
+        $this->assertDatabaseHas('companies', [
+            'id' => $created['id'],
+            'requires_brand' => true,
+            'brand' => 'NEWCO',
+        ]);
+    }
+
+    public function test_duplicate_pipeline_company_id_creation_requires_missing_sibling_brands(): void
+    {
+        $this->seedCoreFixtures();
+
+        $theme = $this->makeTheme();
+        $this->makeCompany([
+            'pipeline_company_id' => 742,
+            'brand' => null,
+            'requires_brand' => false,
+            'theme_id' => $theme->id,
+        ]);
+        $creator = $this->makeUserWithPermission('company:store');
+
+        $this->actingAs($creator)
+            ->postJson(route('api.companies.store'), [
+                'name' => 'Duplicate Pipeline Company',
+                'website' => 'https://duplicate.test',
+                'phone' => '555-000-7420',
+                'email' => 'duplicate@example.test',
+                'pipeline_company_id' => 742,
+                'theme_id' => $theme->id,
+                'requires_brand' => false,
+                'brand' => 'NEWCO',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['sibling_brand_assignments']);
+    }
+
+    public function test_duplicate_pipeline_company_id_group_brands_must_be_unique(): void
+    {
+        $this->seedCoreFixtures();
+
+        $theme = $this->makeTheme();
+        $this->makeCompany([
+            'pipeline_company_id' => 742,
+            'brand' => 'ACME',
+            'requires_brand' => true,
+            'theme_id' => $theme->id,
+        ]);
+        $creator = $this->makeUserWithPermission('company:store');
+
+        $this->actingAs($creator)
+            ->postJson(route('api.companies.store'), [
+                'name' => 'Duplicate Pipeline Company',
+                'website' => 'https://duplicate.test',
+                'phone' => '555-000-7420',
+                'email' => 'duplicate@example.test',
+                'pipeline_company_id' => 742,
+                'theme_id' => $theme->id,
+                'requires_brand' => true,
+                'brand' => ' acme ',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['brand']);
+    }
+
+    public function test_updating_a_company_into_a_duplicate_pipeline_company_id_group_converts_the_group(): void
+    {
+        $this->seedCoreFixtures();
+
+        $theme = $this->makeTheme();
+        $existingCompany = $this->makeCompany([
+            'pipeline_company_id' => 742,
+            'brand' => null,
+            'requires_brand' => false,
+            'theme_id' => $theme->id,
+        ]);
+        $movingCompany = $this->makeCompany([
+            'pipeline_company_id' => 743,
+            'brand' => null,
+            'requires_brand' => false,
+            'theme_id' => $theme->id,
+            'email' => 'moving@example.test',
+        ]);
+        $updater = $this->makeUserWithPermission('company:update');
+
+        $this->actingAs($updater)
+            ->patchJson(route('api.companies.update', $movingCompany), [
+                'name' => $movingCompany->name,
+                'website' => $movingCompany->website,
+                'phone' => $movingCompany->phone,
+                'email' => $movingCompany->email,
+                'pipeline_company_id' => 742,
+                'theme_id' => $theme->id,
+                'requires_brand' => false,
+                'brand' => 'moving',
+                'sibling_brand_assignments' => [
+                    [
+                        'company_id' => $existingCompany->id,
+                        'brand' => 'existing',
+                    ],
+                ],
+            ])
+            ->assertOk()
+            ->assertJsonPath('pipeline_company_id', 742)
+            ->assertJsonPath('requires_brand', true)
+            ->assertJsonPath('brand', 'MOVING');
+
+        $this->assertDatabaseHas('companies', [
+            'id' => $existingCompany->id,
+            'pipeline_company_id' => 742,
+            'requires_brand' => true,
+            'brand' => 'EXISTING',
+        ]);
+    }
 }

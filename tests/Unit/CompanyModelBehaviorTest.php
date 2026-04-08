@@ -38,8 +38,51 @@ class CompanyModelBehaviorTest extends TestCase
             'requires_brand' => true,
         ]);
 
+        $this->assertSame($company->id, $company::findByIdentifier('ACME', 9988)?->id);
+        $this->assertSame($company->id, $company::findByIdentifier('acme', null, 9988)?->id);
+        $this->assertNull($company::findByIdentifier(null, 9988));
+        $this->assertNull($company::findByIdentifier('WRONG', null, 9988));
+        $this->assertNull($company::findByIdentifier(null, null, 9999));
+    }
+
+    public function test_it_resolves_single_unbranded_companies_by_pipeline_company_id(): void
+    {
+        $company = $this->makeCompany([
+            'pipeline_company_id' => 9988,
+            'brand' => null,
+            'requires_brand' => false,
+        ]);
+
         $this->assertSame($company->id, $company::findByIdentifier(null, 9988)?->id);
         $this->assertSame($company->id, $company::findByIdentifier(null, null, 9988)?->id);
-        $this->assertNull($company::findByIdentifier(null, null, 9999));
+    }
+
+    public function test_it_requires_brand_for_duplicate_active_pipeline_company_id_groups(): void
+    {
+        $firstCompany = $this->makeCompany([
+            'pipeline_company_id' => 9988,
+            'brand' => 'ACME',
+            'requires_brand' => true,
+        ]);
+        $secondCompany = $this->makeCompany([
+            'pipeline_company_id' => 9988,
+            'brand' => 'BETA',
+            'requires_brand' => true,
+            'email' => 'beta@example.test',
+        ]);
+
+        $this->assertNull($firstCompany::findByIdentifier(null, null, 9988));
+        $this->assertNull($firstCompany::findByIdentifier('WRONG', null, 9988));
+        $this->assertSame($firstCompany->id, $firstCompany::findByIdentifier('ACME', null, 9988)?->id);
+        $this->assertSame($secondCompany->id, $secondCompany::findByIdentifier('beta', null, 9988)?->id);
+    }
+
+    public function test_it_rejects_conflicting_requested_and_pipeline_company_ids(): void
+    {
+        $company = $this->makeCompany([
+            'pipeline_company_id' => 9988,
+        ]);
+
+        $this->assertNull($company::findByIdentifier(null, 1234, 9988));
     }
 }

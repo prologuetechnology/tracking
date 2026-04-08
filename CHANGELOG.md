@@ -6,15 +6,28 @@
 
 - Local onboarding and architecture baseline docs for the transfer-kit
   alignment.
+- A dedicated Herd-first fresh-machine setup guide in `docs/local-setup.md`.
 - Additional production-confidence coverage for active admin middleware,
   super-admin page hydration, branded tracking success rendering, and the
   remaining normalized resource payloads.
+- SVG upload regression coverage for the shared image library under Laravel's
+  explicit SVG image validation rules.
 
 ### Changed
 
 - Transfer-kit adaptation pass completed for the Laravel + Inertia Vue stack.
+- Upgraded the application runtime from Laravel 11 to Laravel 13 on PHP 8.4,
+  including stable compatible package lines for Inertia Laravel, Sanctum,
+  Socialite, Dusk, Pest, PHPUnit, Spatie Permission, Ziggy, and Tinker.
 - Repo conventions now explicitly document server-first hydration, thin page
   controllers, action/service layering, and Vue Query domain composables.
+- `.env.example` is now a project-specific local env contract covering Azure
+  OAuth, login allowlists, Pipeline credentials, and local image-storage
+  choices.
+- `README.md` is now a detailed developer onboarding guide for Herd-based local
+  setup and project-specific operational realities.
+- `docs/dev-runbook.md` now focuses on daily Herd-first commands and operational
+  gotchas, while `docs/local-setup.md` owns fresh-machine bootstrap.
 - PHPUnit now targets sqlite in testing by default so `php artisan test` does
   not depend on a local MySQL database.
 - OAuth-aligned auth coverage replaced the stale Laravel password/profile
@@ -48,3 +61,8 @@
 - Company brand lookups now use a database-agnostic exact-match check instead
   of a MySQL-only `BINARY` clause, keeping branded tracking resolution
   consistent in both sqlite-backed tests and production.
+- Shared Pipeline company IDs now convert to brand-required internal company
+  groups with normalized unique brands, deterministic tracking lookup, and
+  same-flow admin assignment for existing unbranded siblings.
+- Dusk now starts its local test server with the active PHP binary so browser
+  runs stay aligned with the PHP 8.4 framework runtime.

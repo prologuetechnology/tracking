@@ -4,7 +4,8 @@ Last updated: 2026-03-09
 
 ## Backend
 
-- Framework: Laravel 11.
+- Framework: Laravel 13.
+- Runtime: PHP 8.4.
 - Auth: session auth for web, Sanctum for API.
 - Exception: impersonation keeps its `/api/...` paths but must run on browser
   session middleware because it changes the authenticated session and redirects.
@@ -81,8 +82,8 @@ Last updated: 2026-03-09
 
 ## Testing And Validation
 
-- Backend verification: `php artisan test`
-- Browser verification: `php artisan dusk`
+- Backend verification: `herd php artisan test`
+- Browser verification: `herd php artisan dusk --without-tty`
 - Frontend production verification: `npm run build`
 - Static frontend verification: `npm run lint`
-- Formatting verification: `npm run format:check`
+- Formatting verification: `herd php vendor/bin/pint --test`

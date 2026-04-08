@@ -17,6 +17,7 @@ class GetTrackingStatusesRequest extends FormRequest
             'trackingNumber' => 'required|string|max:255',
             'searchOption' => 'required|string|in:bol,carrierPro',
             'companyId' => 'nullable|integer',
+            'brand' => 'nullable|string|max:255',
             'zipCode' => 'nullable|string|max:10',
         ];
     }

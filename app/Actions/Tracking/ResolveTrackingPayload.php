@@ -2,6 +2,7 @@
 
 namespace App\Actions\Tracking;
 
+use App\Models\Company;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -51,6 +52,12 @@ class ResolveTrackingPayload
                 companyId: $resolvedCompanyId,
                 pipelineCompanyId: $resolvedPipelineCompanyId,
             );
+
+            if (! $company && $resolvedPipelineCompanyId !== null && $this->pipelineCompanyGroupRequiresBrand($resolvedPipelineCompanyId)) {
+                return [
+                    'found' => false,
+                ];
+            }
 
             $company?->loadMissing([
                 'apiToken',
@@ -114,6 +121,16 @@ class ResolveTrackingPayload
         $shipment = data_get($response->json(), 'data.0');
 
         return is_array($shipment) ? $shipment : null;
+    }
+
+    private function pipelineCompanyGroupRequiresBrand(int $pipelineCompanyId): bool
+    {
+        $companies = Company::query()
+            ->where('is_active', true)
+            ->where('pipeline_company_id', $pipelineCompanyId)
+            ->get(['id', 'requires_brand']);
+
+        return $companies->count() > 1 || $companies->contains('requires_brand', true);
     }
 
     private function logSearchFailureIfNeeded(

@@ -41,32 +41,86 @@ const { data: company, isError } = useCompanyQuery({
   <Head :title="`${company?.name} - Manage Company`" />
 
   <AuthenticatedLayout :title="company?.name">
-    <div v-if="company && !isError" class="group relative mb-32 h-72">
-      <div
-        class="absolute left-8 top-40 mb-4 flex flex-col items-stretch justify-start space-y-4"
-      >
+    <div v-if="company && !isError" class="mb-6">
+      <!-- Banner -->
+      <div class="group relative h-64 overflow-hidden rounded-lg">
         <div
-          class="relative flex aspect-square h-40 w-40 flex-row items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-4 shadow-lg"
+          v-if="company.banner?.file_path"
+          class="h-full w-full opacity-65 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
         >
           <img
-            v-if="company.logo?.file_path"
-            :src="imageAssetUrl({ filePath: company.logo?.file_path })"
-            :alt="company.logo?.name"
+            :src="imageAssetUrl({ filePath: company.banner?.file_path })"
+            :alt="company.banner?.name"
+            class="h-full w-full object-cover"
           />
+        </div>
 
-          <div
-            v-else
-            class="absolute left-0 top-0 flex h-full w-full flex-row items-center justify-center overflow-hidden rounded-lg bg-muted"
+        <div
+          v-else
+          class="flex h-full w-full flex-row items-center justify-center bg-muted"
+        >
+          <FontAwesomeIcon
+            class="text-4xl text-muted-foreground"
+            :icon="faImageSlash"
+            fixed-width
+          />
+        </div>
+
+        <div
+          class="absolute right-2 top-2 flex flex-row items-center justify-end space-x-2"
+        >
+          <CompanyClearImageAssetDialog
+            v-if="company.banner?.file_path"
+            :company-id="company.id"
+            :image-name="company.banner.name"
+            type="banner"
           >
-            <FontAwesomeIcon
-              class="text-4xl text-muted-foreground"
-              :icon="faImageSlash"
-              fixed-width
-            />
+            <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
+          </CompanyClearImageAssetDialog>
+
+          <CompanySetImageAsset
+            :company="company"
+            :initial-image-types="initialImageTypes"
+            type="banner"
+          >
+            {{ company.banner?.file_path ? `Change` : `Add` }} Banner
+          </CompanySetImageAsset>
+        </div>
+      </div>
+
+      <!-- Logo row — overlaps banner bottom edge, stays in flow -->
+      <div class="relative z-20 flex flex-row items-end gap-4 px-4 -mt-14 md:-mt-16">
+        <!-- Logo thumbnail -->
+        <div class="w-28 flex-shrink-0 md:w-40">
+          <div
+            class="rounded-xl border border-border/80 bg-background/95 p-2 shadow-xl backdrop-blur-sm"
+          >
+            <div
+              class="relative flex aspect-square w-full flex-row items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-3 shadow-lg"
+            >
+              <img
+                v-if="company.logo?.file_path"
+                :src="imageAssetUrl({ filePath: company.logo?.file_path })"
+                :alt="company.logo?.name"
+                class="h-full w-full object-contain"
+              />
+
+              <div
+                v-else
+                class="absolute left-0 top-0 flex h-full w-full flex-row items-center justify-center overflow-hidden rounded-lg bg-muted"
+              >
+                <FontAwesomeIcon
+                  class="text-3xl text-muted-foreground"
+                  :icon="faImageSlash"
+                  fixed-width
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="flex flex-col items-stretch space-y-2">
+        <!-- Logo action buttons -->
+        <div class="inline-flex flex-col items-stretch gap-2 pb-2">
           <CompanySetImageAsset
             :company="company"
             :initial-image-types="initialImageTypes"
@@ -80,54 +134,12 @@ const { data: company, isError } = useCompanyQuery({
             :company-id="company.id"
             :image-name="company.logo.name"
             type="logo"
+            full-width
           >
             <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
             <span class="ml-2">Remove Logo</span>
           </CompanyClearImageAssetDialog>
         </div>
-      </div>
-
-      <div
-        class="absolute right-2 top-2 flex flex-row items-center justify-end space-x-2"
-      >
-        <CompanyClearImageAssetDialog
-          v-if="company.banner?.file_path"
-          :company-id="company.id"
-          :image-name="company.banner.name"
-          type="banner"
-        >
-          <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
-        </CompanyClearImageAssetDialog>
-
-        <CompanySetImageAsset
-          :company="company"
-          :initial-image-types="initialImageTypes"
-          type="banner"
-        >
-          {{ company.banner?.file_path ? `Change` : `Add` }} Banner
-        </CompanySetImageAsset>
-      </div>
-
-      <div
-        v-if="company.banner?.file_path"
-        class="absolute left-0 top-0 -z-10 h-full w-full overflow-hidden rounded-lg opacity-65 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-      >
-        <img
-          :src="imageAssetUrl({ filePath: company.banner?.file_path })"
-          :alt="company.banner?.name"
-          class="h-full w-full object-cover"
-        />
-      </div>
-
-      <div
-        v-else
-        class="absolute left-0 top-0 -z-10 flex h-full w-full flex-row items-center justify-center overflow-hidden rounded-lg bg-muted"
-      >
-        <FontAwesomeIcon
-          class="text-4xl text-muted-foreground"
-          :icon="faImageSlash"
-          fixed-width
-        />
       </div>
     </div>
 

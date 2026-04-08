@@ -86,7 +86,7 @@ Do not move route names, permission names, billing assumptions, or domain vocabu
 
 Run this pass before any implementation in the target project:
 
-1) Map stack equivalents
+1. Map stack equivalents
 
 Record differences in:
 
@@ -97,7 +97,7 @@ Record differences in:
 - queue/cache/logging
 - test stack
 
-2) Map app surfaces
+2. Map app surfaces
 
 In the target project, identify where each surface lives:
 
@@ -107,7 +107,7 @@ In the target project, identify where each surface lives:
 - admin surface
 - external/public API surface
 
-3) Replace domain-specific references
+3. Replace domain-specific references
 
 In each copied doc, replace product-specific terms with neutral equivalents:
 
@@ -117,7 +117,7 @@ In each copied doc, replace product-specific terms with neutral equivalents:
 - feature labels and route names
 - team/member language
 
-4) Confirm enforcement boundaries
+4. Confirm enforcement boundaries
 
 Verify each target project has explicit ownership separation for:
 
@@ -127,14 +127,14 @@ Verify each target project has explicit ownership separation for:
 - quota visibility
 - data residency/logging policy
 
-5) Validate initial data patterns
+5. Validate initial data patterns
 
 For each Inertia page with remote data:
 
 - either pass `initialData` from web route props
 - or intentionally choose loading-first where unavoidable
 
-6) Validate boot and build assumptions
+6. Validate boot and build assumptions
 
 Confirm the target project has an equivalent answer for:
 
@@ -170,15 +170,15 @@ This keeps historical project notes separate from reusable patterns.
 
 Give the new agent this sequence:
 
-1) read:
+1. read:
    - `AGENTS.md`
    - `docs/transfer-kit/project-transfer-kit.md`
    - `docs/transfer-kit/source-project-reference.md`
    - `docs/transfer-kit/pattern-adaptation-pass.md`
    - current project `docs/context-index.md`
-2) complete the adaptation pass and mark all pass/fail decisions
-3) list 2-3 assumptions from the mapping before making edits
-4) only then start implementation
+2. complete the adaptation pass and mark all pass/fail decisions
+3. list 2-3 assumptions from the mapping before making edits
+4. only then start implementation
 
 ## Anti-regression guardrails for transfer
 

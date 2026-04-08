@@ -27,6 +27,7 @@ class TrackingController extends Controller
             trackingNumber: $request->validated('trackingNumber'),
             searchOption: $request->validated('searchOption'),
             companyId: $request->validated('companyId'),
+            brand: $request->validated('brand'),
         );
 
         if (! $payload['found']) {

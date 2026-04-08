@@ -3,6 +3,7 @@
 Last updated: 2026-02-12
 
 ## Backend
+
 - Framework: Laravel 12, Sanctum auth, Spark/Stripe billing.
 - RBAC conventions:
   - Spatie Permission remains UUID-first for roles/permissions/pivots.
@@ -35,6 +36,7 @@ Last updated: 2026-02-12
 - Keep legacy route aliases only while migration compatibility is needed.
 
 ## Shared Tool Guard / Responses
+
 - Use `ConsumesToolRunQuota` in tool controllers.
 - Always apply:
   1. `denyToolAccess(<tool-slug>, user, planResolver)`
@@ -45,6 +47,7 @@ Last updated: 2026-02-12
 - Error shape should follow `errorResponse(...)` and `quotaExceededResponse(...)`.
 
 ## Tool Catalog as Source of Truth
+
 - `config/tools.php` controls:
   - `domain`
   - `status` (`active`, `planned`, `coming-soon`)
@@ -55,6 +58,7 @@ Last updated: 2026-02-12
 - Shared prop `tools.history_logging` is backend-resolved and is the source of truth for logging-visibility UI outside individual tool pages.
 
 ## History / Metrics
+
 - Tool history type enum: `app/Enums/ToolHistoryType.php`.
 - Tool history table enum values must stay in sync with enum cases.
 - Current usage quota metric: `tool_runs_total` monthly counter.
@@ -67,6 +71,7 @@ Last updated: 2026-02-12
   - Pruning runs daily via `routes/console.php` scheduled call `history:prune-retention`.
 
 ## Logging / Observability (Privacy-First)
+
 - Request correlation:
   - `AttachRequestContext` middleware sets/propagates `X-Request-Id`.
   - Shared log context includes: `request_id`, `method`, `path`, `route_name`, `user_id`.
@@ -90,6 +95,7 @@ Last updated: 2026-02-12
   - Event taxonomy source of truth: `docs/analytics-event-taxonomy.md`.
 
 ## Frontend
+
 - React + Inertia + TanStack Query.
 - Do not hardcode endpoint URLs; use Ziggy `route(...)`.
 - Shared Inertia `billing.tier` is used for locked/upgrade UI states; backend remains authoritative.
@@ -148,6 +154,7 @@ Last updated: 2026-02-12
 - Local folder barrels only (for example `.../tools/hash-generator/index.js`).
 
 ## First Render Hydration (Required)
+
 - Avoid first-render UI flashes: pages that depend on remote query data must receive an initial dataset from the web route (`Inertia::render(...)` props).
 - TanStack Query hooks on those pages must consume that dataset via `config.initialData`.
 - Pattern:
@@ -157,12 +164,14 @@ Last updated: 2026-02-12
 - Do not ship loading-only first paint for core page content when initial data can be provided from the server.
 
 ## Strict Constraint
+
 - Do not modify `resources/js/components/ui/**`.
 - For new UI needs, prefer existing shadcn components/patterns first.
 - For input/form fields, use shadcn `Label` (not plain text tags like `p`) and connect labels to controls with `htmlFor` + matching `id`.
 - If a needed shadcn component is not installed, install/add it before building native/custom UI alternatives.
 
 ## Naming / Organization Rules
+
 - One composable per file, single intent:
   - `useXQuery.js`
   - `useYMutation.js`
@@ -170,12 +179,14 @@ Last updated: 2026-02-12
 - Keep imports explicit, domain-scoped.
 
 ## Subscription / Tier Rules
+
 - Free, Standard, Pro tiers.
 - Tier checks are enforced backend-first.
 - Frontend should reflect lock state but not be trusted for enforcement.
 - Snippet sharing capabilities are tier-driven via `plan_limits.tiers.*.snippet_sharing`.
 
 ## Snippet Data Security (V1 Option 1)
+
 - Snippet content is encrypted at rest using Laravel application encryption (`APP_KEY`).
 - Snippet titles remain plaintext/searchable for discoverability.
 - UI must disclose this boundary clearly:
@@ -185,6 +196,7 @@ Last updated: 2026-02-12
 - E2EE is deferred to later roadmap (V3+).
 
 ## Account Email Aliases
+
 - Verified email aliases are stored in `user_emails`.
 - Primary alias is auto-ensured from the account login email.
 - Alias lifecycle APIs:
@@ -195,6 +207,7 @@ Last updated: 2026-02-12
   - `api.auth.user-emails.destroy`
 
 ## Snippet Sharing APIs
+
 - Authenticated management routes:
   - `api.auth.snippet-shares.index`
   - `api.auth.snippet-shares.store`
@@ -211,6 +224,7 @@ Last updated: 2026-02-12
   - burner view cap atomically
 
 ## Snippet Sharing UX Contract
+
 - Visibility intent must stay explicit in UI copy:
   - `Public`: anyone with URL can view.
   - `Private`: owner-only unless shared.
@@ -221,6 +235,7 @@ Last updated: 2026-02-12
 - Enabling burner mode during create/edit must force private visibility and show a plain-language notice.
 
 ## Notification Events / Mail
+
 - Use domain events + listeners for user lifecycle email delivery:
   - `UserSignedUp` -> `SendSignupWelcomeEmail`
   - `UserAliasAdded` -> `SendAliasAddedEmail`
@@ -228,6 +243,7 @@ Last updated: 2026-02-12
 - Dispatch signup notification only for newly created accounts (`wasRecentlyCreated`).
 
 ## V2 (Deferred) Desktop Hybrid Notes
+
 - Candidate: NativePHP desktop app (macOS/Windows) using local SQLite.
 - Model: local-first tools + cloud-authoritative account/entitlements.
 - Snippets remain cloud-backed for public/share use cases; desktop may cache/sync snippet records via API.
@@ -235,6 +251,7 @@ Last updated: 2026-02-12
 - For multi-device sync, prefer application-level delta sync APIs over raw SQLite file sync.
 
 ## Change Discipline
+
 - Update relevant task board checkboxes when complete.
 - Add or update tests for new action + endpoint behavior.
 - Validate with:
@@ -242,6 +259,7 @@ Last updated: 2026-02-12
   - `npm run build`
 
 ## Parallel Chat Discipline
+
 - Use a dedicated branch and preferably a dedicated git worktree per chat.
 - Register active scope in `docs/workstream-locks.md` before editing.
 - Read `docs/multi-chat-collaboration-playbook.md` and `docs/context-index.md` first when starting a new workstream.
