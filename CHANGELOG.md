@@ -61,5 +61,8 @@
 - Company brand lookups now use a database-agnostic exact-match check instead
   of a MySQL-only `BINARY` clause, keeping branded tracking resolution
   consistent in both sqlite-backed tests and production.
+- Shared Pipeline company IDs now convert to brand-required internal company
+  groups with normalized unique brands, deterministic tracking lookup, and
+  same-flow admin assignment for existing unbranded siblings.
 - Dusk now starts its local test server with the active PHP binary so browser
   runs stay aligned with the PHP 8.4 framework runtime.

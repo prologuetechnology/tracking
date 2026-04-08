@@ -2,7 +2,7 @@
 import { Link, router } from '@inertiajs/vue3'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useForm, useIsFormDirty } from 'vee-validate'
-import { watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import * as yup from 'yup'
 
 import CompanyDestroyDialog from '@/components/feature/company/CompanyDestroyDialog.vue'
@@ -14,19 +14,23 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/toast'
 import {
   useCompanyCreateMutation,
   useCompanyUpdateMutation,
 } from '@/composables/mutations/company'
+import { useCompaniesQuery } from '@/composables/queries/company'
 
 const props = defineProps({
   company: {
     type: Object,
-    required: true,
+    required: false,
+    default: null,
   },
   heading: {
     type: String,
@@ -35,6 +39,9 @@ const props = defineProps({
 })
 
 const queryClient = useQueryClient()
+const siblingBrandAssignments = ref({})
+
+const { data: companies } = useCompaniesQuery()
 
 const companyFormSchema = yup.object({
   name: yup.string().min(1).required(),
@@ -55,7 +62,14 @@ const companyFormSchema = yup.object({
     }),
 })
 
-const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
+const {
+  isFieldDirty,
+  handleSubmit,
+  resetForm,
+  setErrors,
+  setFieldValue,
+  values,
+} = useForm({
   validationSchema: companyFormSchema,
   initialValues: {
     name: props.company?.name,
@@ -72,6 +86,80 @@ const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
 const isFormDirty = useIsFormDirty()
 
 const { toast } = useToast()
+
+const pipelineCompanyId = computed(() => {
+  const numericPipelineCompanyId = Number(values.pipeline_company_id)
+
+  return Number.isFinite(numericPipelineCompanyId) &&
+    numericPipelineCompanyId > 0
+    ? numericPipelineCompanyId
+    : null
+})
+
+const activePipelineSiblings = computed(() => {
+  if (!pipelineCompanyId.value) {
+    return []
+  }
+
+  return (companies.value ?? []).filter((company) => {
+    return (
+      company.is_active &&
+      company.pipeline_company_id === pipelineCompanyId.value &&
+      company.id !== props.company?.id
+    )
+  })
+})
+
+const isSharedPipelineCompanyId = computed(
+  () => activePipelineSiblings.value.length > 0,
+)
+
+const siblingsMissingBrand = computed(() =>
+  activePipelineSiblings.value.filter((company) => !company.brand),
+)
+
+const siblingBrandAssignmentsAreComplete = computed(() => {
+  return siblingsMissingBrand.value.every((company) =>
+    Boolean(`${siblingBrandAssignments.value[company.id] ?? ``}`.trim()),
+  )
+})
+
+const buildSiblingBrandAssignments = () => {
+  if (!isSharedPipelineCompanyId.value) {
+    return []
+  }
+
+  return siblingsMissingBrand.value.map((company) => ({
+    company_id: company.id,
+    brand: siblingBrandAssignments.value[company.id] ?? ``,
+  }))
+}
+
+const firstServerError = (errors) => {
+  return Object.values(errors ?? {}).flat()[0] ?? `Please fix the form errors.`
+}
+
+const applyServerValidationErrors = (error) => {
+  const errors = error.response?.data?.errors
+
+  if (errors) {
+    setErrors(
+      Object.fromEntries(
+        Object.entries(errors).map(([field, messages]) => [
+          field,
+          Array.isArray(messages) ? messages[0] : messages,
+        ]),
+      ),
+    )
+  }
+
+  toast({
+    title: `Could not save company`,
+    description: firstServerError(errors),
+    variant: `destructive`,
+    duration: 5000,
+  })
+}
 
 const { mutate: createCompany, isPending: createCompanyIsPending } =
   useCompanyCreateMutation({
@@ -91,6 +179,7 @@ const { mutate: createCompany, isPending: createCompanyIsPending } =
 
         router.visit(route(`admin.companies.show`, data.uuid))
       },
+      onError: applyServerValidationErrors,
     },
   })
 
@@ -110,22 +199,40 @@ const { mutate: updateCompany, isPending: updateCompanyIsPending } =
 
         router.visit(route(`admin.companies.index`))
       },
+      onError: applyServerValidationErrors,
     },
   })
 
+const formIsPending = computed(
+  () => createCompanyIsPending.value || updateCompanyIsPending.value,
+)
+
+const saveIsDisabled = computed(() => {
+  return (
+    formIsPending.value ||
+    !isFormDirty.value ||
+    (isSharedPipelineCompanyId.value &&
+      !siblingBrandAssignmentsAreComplete.value)
+  )
+})
+
 const onValidForm = (values) => {
+  const formData = {
+    ...values,
+    requires_brand: isSharedPipelineCompanyId.value
+      ? true
+      : values.requires_brand,
+    sibling_brand_assignments: buildSiblingBrandAssignments(),
+  }
+
   if (props.company) {
     updateCompany({
       id: props.company.id,
-      formData: {
-        ...values,
-      },
+      formData,
     })
   } else {
     createCompany({
-      formData: {
-        ...values,
-      },
+      formData,
     })
   }
 }
@@ -156,6 +263,31 @@ watch(
       })
     }
   },
+)
+
+watch(
+  isSharedPipelineCompanyId,
+  (isShared) => {
+    if (isShared) {
+      setFieldValue(`requires_brand`, true)
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  siblingsMissingBrand,
+  (siblings) => {
+    const nextAssignments = {}
+
+    siblings.forEach((company) => {
+      nextAssignments[company.id] =
+        siblingBrandAssignments.value[company.id] ?? ``
+    })
+
+    siblingBrandAssignments.value = nextAssignments
+  },
+  { immediate: true },
 )
 </script>
 
@@ -218,6 +350,7 @@ watch(
             <FormDescription>
               The ID of the company in Pipeline.
             </FormDescription>
+            <FormMessage />
           </FormItem>
         </FormField>
 
@@ -297,16 +430,27 @@ watch(
               <FormDescription>
                 Require that the tracking URL contain a brand query parameter.
               </FormDescription>
+              <p
+                v-if="isSharedPipelineCompanyId"
+                class="text-sm text-muted-foreground"
+              >
+                This is required because another active company already uses
+                this Pipeline Company ID.
+              </p>
             </div>
 
             <FormControl>
-              <Switch :checked="value" @update:checked="handleChange" />
+              <Switch
+                :checked="value || isSharedPipelineCompanyId"
+                :disabled="isSharedPipelineCompanyId"
+                @update:checked="handleChange"
+              />
             </FormControl>
           </FormItem>
         </FormField>
 
         <FormField
-          v-if="values.requires_brand"
+          v-if="values.requires_brand || isSharedPipelineCompanyId"
           v-slot="{ componentField }"
           name="brand"
           :validate-on-blur="!isFieldDirty"
@@ -325,8 +469,63 @@ watch(
             </FormControl>
 
             <FormDescription> The company's brand string. </FormDescription>
+            <FormMessage />
           </FormItem>
         </FormField>
+
+        <div
+          v-if="isSharedPipelineCompanyId"
+          class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-950"
+        >
+          <h3 class="text-base font-semibold">Shared Pipeline Company ID</h3>
+
+          <p class="mt-1 text-sm">
+            This Pipeline Company ID is already used by another active company.
+            All active companies in this group will require unique brand query
+            parameters before tracking can resolve them.
+          </p>
+
+          <div class="mt-4 space-y-4">
+            <div
+              v-for="sibling in activePipelineSiblings"
+              :key="sibling.id"
+              class="rounded-md border border-amber-200 bg-background p-3"
+            >
+              <div
+                class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p class="font-medium">{{ sibling.name }}</p>
+                  <p class="text-xs text-muted-foreground">
+                    Current brand:
+                    <span class="font-semibold">
+                      {{ sibling.brand || `Not set` }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div v-if="!sibling.brand" class="mt-3">
+                <Label :for="`sibling-brand-${sibling.id}`">
+                  Brand for {{ sibling.name }}
+                </Label>
+
+                <Input
+                  :id="`sibling-brand-${sibling.id}`"
+                  v-model="siblingBrandAssignments[sibling.id]"
+                  class="mt-1"
+                  type="text"
+                  placeholder="ACME"
+                  :disabled="formIsPending"
+                />
+
+                <p class="mt-1 text-xs text-muted-foreground">
+                  Required to convert this shared Pipeline Company ID group.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- <hr class="" /> -->
 
@@ -351,9 +550,7 @@ watch(
             type="button"
             class=""
             dusk="company-form-save"
-            :disabled="
-              createCompanyIsPending || updateCompanyIsPending || !isFormDirty
-            "
+            :disabled="saveIsDisabled"
             @click="submitForm"
           >
             Save

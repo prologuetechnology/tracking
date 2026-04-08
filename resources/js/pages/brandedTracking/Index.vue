@@ -27,6 +27,7 @@ const { data, refetch, dataUpdatedAt, isRefetching } = useTrackShipmentQuery({
   trackingNumber: initialTrackingData.bolNum,
   searchOption: params.get(`searchOption`),
   companyId: initialCompany?.pipeline_company_id ?? ``,
+  brand: params.get(`brand`) ?? ``,
 
   config: {
     initialData,
