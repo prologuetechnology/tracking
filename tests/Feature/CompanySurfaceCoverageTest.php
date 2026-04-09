@@ -112,19 +112,26 @@ class CompanySurfaceCoverageTest extends TestCase
         $this->seedCoreFixtures();
 
         $company = $this->makeCompany(['enable_map' => false, 'enable_documents' => false]);
-        $user = $this->makeStandardUser();
+        $viewer = $this->makeStandardUser();
+        $updater = $this->makeUserWithPermission('company:update');
 
-        $this->actingAs($user)
+        $this->actingAs($viewer)
             ->getJson(route('api.companies.features.index'))
             ->assertOk()
             ->assertJsonCount(2);
 
-        $this->actingAs($user)
+        $this->actingAs($viewer)
             ->getJson(route('api.companies.features.show', $company))
             ->assertOk()
             ->assertExactJson([]);
 
-        $this->actingAs($user)
+        $this->actingAs($viewer)
+            ->putJson(route('api.companies.features.sync', $company), [
+                'features' => ['enable_map'],
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($updater)
             ->putJson(route('api.companies.features.sync', $company), [
                 'features' => ['enable_map'],
             ])
@@ -135,7 +142,14 @@ class CompanySurfaceCoverageTest extends TestCase
         $this->assertTrue($company->enable_map);
         $this->assertFalse($company->enable_documents);
 
-        $this->actingAs($user)
+        $this->actingAs($viewer)
+            ->patchJson(route('api.companies.features.toggle', [
+                'company' => $company->id,
+                'feature' => 'enable_documents',
+            ]))
+            ->assertForbidden();
+
+        $this->actingAs($updater)
             ->patchJson(route('api.companies.features.toggle', [
                 'company' => $company->id,
                 'feature' => 'enable_documents',
