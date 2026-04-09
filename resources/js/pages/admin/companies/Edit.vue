@@ -89,7 +89,9 @@ const { data: company, isError } = useCompanyQuery({
       </div>
 
       <!-- Logo row — overlaps banner bottom edge, stays in flow -->
-      <div class="relative z-20 flex flex-row items-end gap-4 px-4 -mt-14 md:-mt-16">
+      <div
+        class="relative z-20 -mt-14 flex flex-row items-end gap-4 px-4 md:-mt-16"
+      >
         <!-- Logo thumbnail -->
         <div class="w-28 flex-shrink-0 md:w-40">
           <div

@@ -116,7 +116,7 @@ class AdminApiHardeningTest extends TestCase
         ]);
     }
 
-    public function test_company_api_token_validate_endpoint_returns_the_normalized_token_resource(): void
+    public function test_company_api_token_validate_endpoint_returns_minimal_validation_metadata(): void
     {
         Http::preventStrayRequests();
 
@@ -142,9 +142,11 @@ class AdminApiHardeningTest extends TestCase
         $this->actingAs($viewer)
             ->getJson(route('api.admin.companyApiTokens.validate', $company))
             ->assertOk()
-            ->assertJsonPath('company_id', $company->id)
-            ->assertJsonPath('api_token', 'revalidated-token')
+            ->assertJsonPath('uuid', fn (mixed $uuid) => is_string($uuid) && $uuid !== '')
             ->assertJsonPath('is_valid', true)
+            ->assertJsonPath('updated_at', fn (mixed $updatedAt) => $updatedAt !== null)
+            ->assertJsonMissingPath('company_id')
+            ->assertJsonMissingPath('api_token')
             ->assertJsonMissingPath('data');
 
         $this->assertDatabaseHas('company_api_tokens', [

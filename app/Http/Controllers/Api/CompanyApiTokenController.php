@@ -32,7 +32,7 @@ class CompanyApiTokenController extends Controller
         );
 
         return response()->json(
-            CompanyApiTokenResource::make($companyApiToken)->resolve(),
+            CompanyApiTokenResource::withToken($companyApiToken)->resolve(),
             Response::HTTP_CREATED,
         );
     }
@@ -41,10 +41,11 @@ class CompanyApiTokenController extends Controller
     {
         $companyApiToken = $this->validateCompanyApiToken->execute($company);
 
-        return response()->json(
-            CompanyApiTokenResource::make($companyApiToken)->resolve(),
-            Response::HTTP_OK,
-        );
+        return response()->json([
+            'uuid'       => $companyApiToken->uuid,
+            'is_valid'   => (bool) $companyApiToken->is_valid,
+            'updated_at' => $companyApiToken->updated_at,
+        ], Response::HTTP_OK);
     }
 
     public function destroy(

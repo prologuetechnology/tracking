@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SyncCompanyFeaturesRequest;
+use App\Http\Requests\ToggleCompanyFeatureRequest;
 use App\Models\Company;
 use App\Models\CompanyFeature;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,7 +39,11 @@ class CompanyFeatureController extends Controller
         return response()->json($company, Response::HTTP_OK);
     }
 
-    public function toggle(Company $company, CompanyFeature $feature): JsonResponse
+    public function toggle(
+        Company $company,
+        CompanyFeature $feature,
+        ToggleCompanyFeatureRequest $request,
+    ): JsonResponse
     {
         $isEnabled = $company->features()
             ->whereKey($feature->id)

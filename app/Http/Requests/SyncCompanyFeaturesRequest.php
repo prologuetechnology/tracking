@@ -13,7 +13,7 @@ class SyncCompanyFeaturesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('company:update') ?? false;
     }
 
     /**
