@@ -1,0 +1,7 @@
+interface:
+  display_name: "Laravel Scaffold Upgrade"
+  short_description: "Upgrade a fresh Laravel app baseline"
+  default_prompt: "Use $laravel-scaffold-upgrade to bring this newly scaffolded Laravel app up to our architecture, frontend, SaaS, and quality baseline."
+
+policy:
+  allow_implicit_invocation: true

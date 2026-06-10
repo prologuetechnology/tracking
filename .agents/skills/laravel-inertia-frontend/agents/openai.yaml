@@ -1,0 +1,7 @@
+interface:
+  display_name: "Laravel Inertia Frontend"
+  short_description: "Server-seeded Inertia React or Vue patterns"
+  default_prompt: "Use $laravel-inertia-frontend to build this Inertia frontend with server-seeded data, query composables, feature components, and Tailwind tokens."
+
+policy:
+  allow_implicit_invocation: true

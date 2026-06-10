@@ -1,0 +1,7 @@
+interface:
+  display_name: "Laravel App Architecture"
+  short_description: "Thin controllers, actions, services, policies"
+  default_prompt: "Use $laravel-application-architecture to structure this Laravel feature with thin controllers, actions, resources, policies, and tests."
+
+policy:
+  allow_implicit_invocation: true

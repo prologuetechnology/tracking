@@ -1,0 +1,7 @@
+interface:
+  display_name: "Laravel Quality Testing"
+  short_description: "Pest, lint, static analysis, and CI gates"
+  default_prompt: "Use $laravel-quality-testing to add focused Pest tests, architecture checks, linting, static analysis, and verification for this change."
+
+policy:
+  allow_implicit_invocation: true

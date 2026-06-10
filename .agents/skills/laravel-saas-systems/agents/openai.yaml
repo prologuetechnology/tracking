@@ -1,0 +1,7 @@
+interface:
+  display_name: "Laravel SaaS Systems"
+  short_description: "Optional SaaS auth, billing, teams, flags"
+  default_prompt: "Use $laravel-saas-systems to design only the optional SaaS subsystems this Laravel product actually needs."
+
+policy:
+  allow_implicit_invocation: true
