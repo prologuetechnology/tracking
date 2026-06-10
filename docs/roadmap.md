@@ -22,6 +22,8 @@
 - [x] Coverage expanded for active middleware, super-admin page hydration, and
       branded tracking success flows
 - [x] Lint/build/test scripts documented and validated
+- [x] Request context, API JSON exception rendering, Vue Query defaults, and
+      pattern-alignment architecture tests added
 
 ## Next
 

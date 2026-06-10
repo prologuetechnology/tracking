@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Middleware\AttachRequestContext;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Context;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -19,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->statefulApi();
+
+        $middleware->append(AttachRequestContext::class);
 
         $middleware->redirectGuestsTo(fn (Request $request) => route('login'));
 
@@ -34,5 +38,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request, Throwable $exception): bool => $request->is('api/*') || $request->expectsJson(),
+        );
+
+        $exceptions->context(fn (): array => Context::only([
+            'request_id',
+            'route_name',
+            'user_id',
+            'company_id',
+        ]));
     })->create();

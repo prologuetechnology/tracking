@@ -29,6 +29,8 @@ Read these in order:
   - `routes/api.php`
 - Shared Inertia props:
   - `app/Http/Middleware/HandleInertiaRequests.php`
+- Request/log context:
+  - `app/Http/Middleware/AttachRequestContext.php`
 - Auth/session config:
   - `config/auth.php`
   - `config/sanctum.php`
@@ -69,6 +71,8 @@ Read these in order:
   - `tests/Feature/ImageAdminAlignmentTest.php`
 - Admin API hardening coverage:
   - `tests/Feature/AdminApiHardeningTest.php`
+- Pattern-alignment architecture coverage:
+  - `tests/Feature/PatternAlignmentArchitectureTest.php`
 
 ## Transfer-Kit Reference
 

@@ -15,6 +15,16 @@
 
 ### Changed
 
+- Boost MCP compatibility restored under PHP 8.5 by replacing deprecated PDO
+  MySQL SSL option constants with the current `Pdo\Mysql` constant when
+  available.
+- Application boot now attaches privacy-safe request context and request IDs to
+  HTTP responses/log context, and API exception rendering is explicitly JSON.
+- Inertia Vue boot now configures conservative TanStack Vue Query defaults at
+  the app root.
+- Pattern-alignment architecture coverage now enforces request context boot,
+  admin route boundaries, mutating API Form Request boundaries, frontend query
+  defaults, and sensitive logging guardrails.
 - Transfer-kit adaptation pass completed for the Laravel + Inertia Vue stack.
 - Upgraded the application runtime from Laravel 11 to Laravel 13 on PHP 8.4,
   including stable compatible package lines for Inertia Laravel, Sanctum,
