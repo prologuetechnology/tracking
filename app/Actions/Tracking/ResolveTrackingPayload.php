@@ -23,6 +23,7 @@ class ResolveTrackingPayload
         ?string $brand = null,
         ?Company $expectedCompany = null,
         ?array $visibleSections = null,
+        bool $usePublishedDesign = false,
     ): array {
         try {
             $shipmentSearchResponse = $this->search(
@@ -80,8 +81,17 @@ class ResolveTrackingPayload
                 ];
             }
 
+            $publication = $usePublishedDesign ? $company?->publications()->latest('id')->first() : null;
+            $revision = $publication?->design_proof_id
+                ? $publication->proof()->select('id', 'design_draft_revision_id')->firstOrFail()->revision
+                : $publication?->baselineRevision;
+            if ($revision) {
+                $visibleSections = $revision->design['sections'];
+            }
+
             return [
                 'found' => true,
+                'publishedRevision' => $revision,
                 'trackingData' => $trackingData,
                 'company' => $company,
                 'shipmentCoordinates' => $visibleSections === null || in_array('enable_map', $visibleSections, true)

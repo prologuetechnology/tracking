@@ -58,7 +58,7 @@ const preview = (version) =>
     <form class="grid gap-5" @submit.prevent="save">
       <Card>
         <CardHeader>
-          <CardTitle>Classic branding</CardTitle>
+          <CardTitle>Layout and branding</CardTitle>
         </CardHeader>
         <CardContent class="grid gap-5">
           <div class="grid gap-2">
@@ -79,6 +79,27 @@ const preview = (version) =>
             </p>
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
+            <DraftSelect
+              id="draft-layout"
+              v-model="form.layout"
+              label="Tracking layout"
+              :choices="[
+                { id: 'classic.v1', name: 'Classic' },
+                { id: 'answer.v1', name: 'Get the answer' },
+              ]"
+              :error="form.errors.layout"
+            />
+            <DraftSelect
+              v-if="form.layout === 'answer.v1'"
+              id="draft-emphasis"
+              v-model="form.emphasis"
+              label="Show first"
+              :choices="[
+                { id: 'delivery', name: 'Delivery timing' },
+                { id: 'event', name: 'Latest carrier event' },
+              ]"
+              :error="form.errors.emphasis"
+            />
             <DraftSelect
               id="draft-theme"
               v-model="form.theme_id"

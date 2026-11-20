@@ -7,11 +7,13 @@ use App\Http\Controllers\Pages\Admin\CompanyPageController;
 use App\Http\Controllers\Pages\Admin\DashboardController;
 use App\Http\Controllers\Pages\Admin\DesignDraftController;
 use App\Http\Controllers\Pages\Admin\DesignDraftPreviewController;
+use App\Http\Controllers\Pages\Admin\DesignProofController;
 use App\Http\Controllers\Pages\Admin\ImagePageController;
 use App\Http\Controllers\Pages\Admin\PermissionPageController;
 use App\Http\Controllers\Pages\Admin\RolePageController;
 use App\Http\Controllers\Pages\Admin\ThemePageController;
 use App\Http\Controllers\Pages\Admin\TrackingPageController;
+use App\Http\Controllers\Pages\Admin\TrackingPublicationController;
 use App\Http\Controllers\Pages\Admin\UserPageController;
 use App\Http\Controllers\Pages\HomeController;
 use App\Http\Controllers\Pages\LoginPageController;
@@ -53,12 +55,20 @@ Route::prefix('admin')
             ->middleware(['permission:company:show', 'permission:company:update', 'cache.headers:private;no_store'])
             ->scopeBindings()->group(function () {
                 Route::get('/', [DesignDraftController::class, 'index'])->name('index');
+                Route::post('publication/rollback', [TrackingPublicationController::class, 'rollback'])->name('rollback');
                 Route::get('create', [DesignDraftController::class, 'create'])->name('create');
                 Route::post('/', [DesignDraftController::class, 'store'])->name('store');
                 Route::get('{draft:uuid}', [DesignDraftController::class, 'show'])->name('show');
                 Route::put('{draft:uuid}', [DesignDraftController::class, 'update'])->name('update');
                 Route::get('{draft:uuid}/revisions/{revision:version}/preview', [DesignDraftPreviewController::class, 'show'])->name('preview');
                 Route::get('{draft:uuid}/revisions/{revision:version}/render', [DesignDraftPreviewController::class, 'render'])->name('render');
+                Route::prefix('{draft:uuid}/revisions/{revision:version}/proofs')->name('proofs.')->group(function () {
+                    Route::post('/', [DesignProofController::class, 'store'])->middleware('throttle:12,1')->name('store');
+                    Route::get('{proof:uuid}/{view}.png', [DesignProofController::class, 'download'])->whereIn('view', ['desktop', 'mobile'])->name('download');
+                    Route::post('{proof:uuid}/retry', [DesignProofController::class, 'retry'])->middleware('throttle:12,1')->name('retry');
+                    Route::post('{proof:uuid}/approve', [DesignProofController::class, 'approve'])->name('approve');
+                    Route::post('{proof:uuid}/publish', [TrackingPublicationController::class, 'publish'])->name('publish');
+                });
             });
 
         Route::controller(ThemePageController::class)

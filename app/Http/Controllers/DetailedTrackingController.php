@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\DesignDrafts\TrackingDesignPage;
 use App\Actions\Tracking\ResolveTrackingPayload;
 use App\Http\Resources\CompanyResource;
 use Illuminate\Http\Request;
@@ -27,10 +28,17 @@ class DetailedTrackingController extends Controller
             searchOption: $searchOption,
             companyId: $companyId,
             brand: $brand,
+            usePublishedDesign: true,
         );
 
         if (! $payload['found']) {
             return redirect(route('trackShipment.notFound', $trackingNumber));
+        }
+
+        if ($revision = $payload['publishedRevision'] ?? null) {
+            $page = TrackingDesignPage::fromPayload($revision, $payload);
+
+            return Inertia::render($page['component'], $page['props']);
         }
 
         return Inertia::render('brandedTracking/Classic', [

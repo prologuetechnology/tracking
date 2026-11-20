@@ -4,6 +4,12 @@
 
 ### Added
 
+- Staff can export full-page desktop and mobile PNGs from one captured shipment
+  and retrieve the archived pair from its saved design revision. Approval,
+  publication and rollback are recorded separately for each company.
+- Get the answer adds a status-first tracking layout with customer branding,
+  optional shipment sections and a choice of delivery or latest-event emphasis.
+
 - Staff with company management access can save named Classic design drafts,
   reopen saved revisions, and preview them with current company shipment data
   at desktop and mobile widths. Public tracking uses the published settings.

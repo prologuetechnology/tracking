@@ -1,12 +1,14 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 
+import PublicationHistory from '@/components/feature/designDraft/PublicationHistory.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 defineProps({
   company: { type: Object, required: true },
+  publications: { type: Array, required: true },
   drafts: { type: Object, required: true },
 })
 </script>
@@ -27,6 +29,7 @@ defineProps({
         </Link>
       </Button>
     </div>
+    <PublicationHistory :company="company" :publications="publications" />
     <Card>
       <CardContent class="p-5">
         <p v-if="!drafts.data.length" class="text-muted-foreground">

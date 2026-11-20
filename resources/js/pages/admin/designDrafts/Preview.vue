@@ -3,11 +3,15 @@ import { Head, Link } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
 import DraftSelect from '@/components/feature/designDraft/DraftSelect.vue'
+import ProofArchive from '@/components/feature/designDraft/ProofArchive.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 const props = defineProps({
+  proofs: { type: Array, required: true },
+  publication: { type: Number, required: true },
+  activeProof: { type: String, default: null },
   company: { type: Object, required: true },
   draft: { type: Object, required: true },
   revision: { type: Object, required: true },
@@ -16,9 +20,14 @@ const mobile = ref(false)
 const number = ref(props.revision.tracking_number ?? ``)
 const option = ref(props.revision.search_option)
 const frame = ref(null)
+const lookup = ref(null)
 const lookupAttempt = ref(0)
 const load = () => {
   if (!number.value.trim()) return
+  lookup.value = {
+    trackingNumber: number.value.trim(),
+    searchOption: option.value,
+  }
   lookupAttempt.value += 1
   frame.value = route(`admin.drafts.render`, {
     company: props.company.uuid,
@@ -89,13 +98,27 @@ load()
         </div>
         <Button type="submit" variant="outline">Load shipment</Button>
       </form>
+      <ProofArchive
+        :company="company"
+        :draft="draft"
+        :revision="revision"
+        :proofs="proofs"
+        :publication="publication"
+        :active-proof="activeProof"
+        :lookup="
+          lookup?.trackingNumber === number.trim() &&
+          lookup?.searchOption === option
+            ? lookup
+            : null
+        "
+      />
     </header>
     <div class="mx-auto w-full flex-1" :class="mobile ? 'max-w-[390px]' : ''">
       <iframe
         v-if="frame"
         :key="lookupAttempt"
         :src="frame"
-        title="Classic shipment preview"
+        title="Shipment preview"
         referrerpolicy="same-origin"
         class="block h-[80vh] w-full border-x bg-background"
       />

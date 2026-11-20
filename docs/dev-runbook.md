@@ -76,6 +76,44 @@ Use this file for regular development, verification, and debugging.
   values before debugging frontend behavior.
 - If Dusk fails, compare `.env.dusk.local` with `tests/DuskTestCase.php`.
 
+## Tracking proof exports
+
+From **Company → Design drafts**, save a revision and open its preview. Load a
+shipment and choose **Export desktop and mobile PNGs**. One new lookup freezes
+the shipment for both views. Reopen the revision to download either original
+PNG. Each file name identifies its revision, proof and viewport.
+
+Staff send the downloaded files through the existing customer approval channel.
+**Record customer approval** identifies the person who approved that pair.
+**Publish approved revision** applies that revision to the company's existing
+links. Public visitors continue to see current shipment data. The first
+publication saves the prior Classic branding as a revision. **Publication
+history** on the company's drafts page can restore it or an earlier publication.
+
+### Local and worker setup
+
+- Run `php artisan migrate`, `npm run build` and `npm ci --prefix tools/proof-renderer`.
+  The proof browser uses the compiled Vue assets even while the editor uses Vite HMR.
+- Install Google Chrome on the worker host. The default is the installed Chrome
+  stable channel. Set `TRACKING_PROOF_CHROME` to an absolute executable path for
+  another Chromium installation and `TRACKING_PROOF_NODE` when Node is outside
+  the worker's PATH. Use an unprivileged account with the Chromium sandbox available.
+- A local `sync` queue renders during the export request. For deployment use an
+  asynchronous worker with a retry interval of at least 150 seconds (for the
+  database driver, `DB_QUEUE_RETRY_AFTER=150`). Run `php artisan queue:work --timeout=110`
+  and restart workers on release. Use the same application build on web and worker hosts.
+- Mount and back up `storage/app/private/design-proofs` across workers and web
+  processes. Also back up the database and retain its Laravel encryption key.
+  Archives contain shipment information. Keep the directory outside the public
+  document root. Both images are verified by SHA-256 on download.
+- `TRACKING_PROOF_TIMEZONE` defaults to `America/Chicago` for both views.
+  Proofs use a 1440 × 900 desktop viewport and a 390 × 844 mobile viewport
+  at 1× pixel density. PNG height expands to include the whole tracking page.
+- Use **Retry this snapshot** on a failed export or one pending for ten minutes.
+  It reuses the original shipment data. A new export fetches a fresh shipment.
+  If exports fail, check the browser executable, compiled assets, private volume,
+  and access to the assigned branding files.
+
 ## Related Docs
 
 - Fresh-machine setup:
