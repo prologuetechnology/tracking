@@ -169,7 +169,7 @@ class TrackingAlignmentTest extends TestCase
         ]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('brandedTracking/Index')
+                ->component('brandedTracking/Classic')
                 ->where('initialTrackingData.bolNum', 'BOL123')
                 ->where('initialCompany.name', $company->name)
                 ->has('initialShipmentCoordinates', 1)

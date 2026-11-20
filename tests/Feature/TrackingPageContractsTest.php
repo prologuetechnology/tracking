@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ImageTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -50,7 +51,7 @@ class TrackingPageContractsTest extends TestCase
         ]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('brandedTracking/Index')
+                ->component('brandedTracking/Classic')
                 ->where('initialTrackingData.bolNum', 'BOL123')
                 ->where('initialCompany.name', $company->name)
                 ->where('initialCompany.enable_map', true)
@@ -92,18 +93,48 @@ class TrackingPageContractsTest extends TestCase
 
         $this->fakeTrackingApisFixture($targetCompany, 'BOL742');
 
-        $this->get(route('trackShipment.index', [
-            'trackingNumber' => 'BOL742',
-            'searchOption' => 'bol',
-            'brand' => 'TARGET',
-        ]))
+        $this->get('/trackShipment?trackingNumber=PRO-BOL742&searchOption=carrierPro&companyId=742&brand=target')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('brandedTracking/Index')
+                ->component('brandedTracking/Classic')
                 ->where('initialTrackingData.bolNum', 'BOL742')
                 ->where('initialCompany.name', 'Target Company')
                 ->where('initialCompany.theme.name', 'Target Theme')
                 ->where('initialCompany.logo.file_path', 'images/target-logo.png'));
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://pipeline.example/api/shipmentSearch'
+            && $request['trackNum'] === 'PRO-BOL742'
+            && $request['searchOption'] === 'carrierPro');
+    }
+
+    public function test_carrier_pro_email_link_infers_branding_from_the_shipment_alone(): void
+    {
+        Http::preventStrayRequests();
+        $company = $this->makeCompany(['pipeline_company_id' => 742]);
+        $this->fakeTrackingApisFixture($company, 'BOL742');
+
+        $this->get('/trackShipment?searchOption=carrierPro&trackingNumber=PRO-BOL742')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('brandedTracking/Classic')
+                ->where('initialTrackingData.carrierPro', 'PRO-BOL742')
+                ->where('initialCompany.id', $company->id)
+                ->where('initialCompany.theme.id', $company->theme_id));
+    }
+
+    public function test_an_existing_link_without_a_company_record_uses_classic_and_default_branding(): void
+    {
+        Http::preventStrayRequests();
+        $this->fakeTrackingApisFixture(trackingNumber: 'BOL123');
+
+        $this->get('/trackShipment?trackingNumber=BOL123&searchOption=bol')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('brandedTracking/Classic')
+                ->where('initialCompany', null)
+                ->where('initialTrackingData.bolNum', 'BOL123')
+                ->where('initialShipmentCoordinates', null)
+                ->has('initialShipmentDocuments', 0));
     }
 
     public function test_tracking_page_redirects_to_not_found_when_shared_pipeline_company_id_has_no_brand(): void

@@ -68,7 +68,7 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
 
 <template>
   <div
-    class="relative grid min-h-screen items-start bg-background/0"
+    class="relative grid min-h-screen grid-cols-1 items-start bg-background/0"
     :class="{
       'grid-rows-[auto,1fr,auto]': bannerFilePath,
       'grid-rows-[1fr,auto]': !bannerFilePath,

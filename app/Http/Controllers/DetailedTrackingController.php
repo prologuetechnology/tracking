@@ -33,7 +33,7 @@ class DetailedTrackingController extends Controller
             return redirect(route('trackShipment.notFound', $trackingNumber));
         }
 
-        return Inertia::render('brandedTracking/Index', [
+        return Inertia::render('brandedTracking/Classic', [
             'initialTrackingData' => $payload['trackingData'],
             'initialCompany' => $payload['company']
                 ? CompanyResource::make($payload['company'])->resolve()
