@@ -147,17 +147,15 @@ async function render({ page, images, chrome, timezone }, directory) {
     ),
   })
   try {
-    await Promise.all(
-      Object.entries(viewports).map(([view, viewport]) =>
-        captureView(browser, view, viewport, {
-          page,
-          images,
-          timezone,
-          html,
-          directory,
-        }),
-      ),
-    )
+    for (const [view, viewport] of Object.entries(viewports)) {
+      await captureView(browser, view, viewport, {
+        page,
+        images,
+        timezone,
+        html,
+        directory,
+      })
+    }
   } finally {
     await browser.close()
   }

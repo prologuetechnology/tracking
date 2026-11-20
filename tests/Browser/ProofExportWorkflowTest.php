@@ -26,7 +26,7 @@ class ProofExportWorkflowTest extends DuskTestCase
                     ->type('#tracking-number', 'BOL123')->press('Save draft')
                     ->waitForLink('Preview saved revision 1')->clickLink('Preview saved revision 1')
                     ->waitForText('Export desktop and mobile PNGs')->press('Export desktop and mobile PNGs')
-                    ->waitForLink('Desktop PNG', 60)->assertSeeLink('Mobile PNG')
+                    ->waitForLink('Desktop PNG', 120)->assertSeeLink('Mobile PNG')
                     ->press('Record customer approval')->type('input[id^="approver-"]', 'Fixture reviewer')
                     ->press('Save customer approval')->waitForText('Publish approved revision')
                     ->press('Publish approved revision')->acceptDialog()->waitForText('Live design');
