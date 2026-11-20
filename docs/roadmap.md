@@ -2,6 +2,8 @@
 
 ## Active
 
+- [x] Save private named Classic drafts with revision history and live shipment previews
+
 - [x] Serve existing public shipment links with the Classic layout and cover
       desktop and mobile branding, feature visibility, and guest refresh
 - [x] Transfer-kit alignment baseline docs completed and kept current
@@ -29,8 +31,7 @@
 
 ## Next
 
-- [ ] Let staff save design revisions, preview them with shipment data, export
-      desktop and mobile proofs, and publish the customer-approved revision
+- [ ] Export desktop and mobile proofs and publish the customer-approved revision
 - [x] Add deterministic Dusk environment wiring for repeatable browser smoke
       runs
 - [ ] Add stronger error and observability guidance around Pipeline failures

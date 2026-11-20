@@ -18,6 +18,7 @@ import Footer from '../footer/Footer.vue'
 
 const {
   app: { name: appName },
+  isDraftPreview,
   initialTrackingData,
   initialCompany,
 } = usePage().props
@@ -81,6 +82,7 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
         class="absolute left-0 top-0 h-full w-full transition-opacity duration-500 ease-in-out group-hover:opacity-100"
       >
         <div
+          v-if="!isDraftPreview"
           class="absolute right-6 top-[calc(40vh+0.75rem)] flex flex-row items-center justify-start space-x-2 self-center sm:col-start-3 sm:col-end-4 sm:row-start-1 sm:row-end-3 sm:mt-0 sm:justify-end"
         >
           <Button
@@ -126,6 +128,7 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
         </div>
 
         <div
+          v-if="!isDraftPreview"
           class="absolute right-6 top-[calc(40vh+0.75rem)] flex flex-row items-center justify-start space-x-2 self-center sm:col-start-3 sm:col-end-4 sm:row-start-1 sm:row-end-3 sm:mt-0 sm:justify-end"
         >
           <Button

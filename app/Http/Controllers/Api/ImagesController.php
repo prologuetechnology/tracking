@@ -12,6 +12,7 @@ use App\Http\Requests\StoreImageRequest;
 use App\Http\Resources\ImageResource;
 use App\Models\Image;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -59,6 +60,8 @@ class ImagesController extends Controller
                 $request->user()?->id,
                 $request->route()?->getName(),
             );
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (Throwable) {
             return response()->json(['error' => 'Failed to delete image'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

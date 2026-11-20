@@ -25,7 +25,11 @@ const isOpen = ref(false)
 
 const queryClient = useQueryClient()
 
-const { mutate: destroyImage } = useImageDestroyMutation({
+const {
+  mutate: destroyImage,
+  error,
+  reset,
+} = useImageDestroyMutation({
   config: {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -46,6 +50,7 @@ const handleDelete = () => {
 }
 
 const cancelDialog = () => {
+  reset()
   isOpen.value = false
 }
 
@@ -82,6 +87,13 @@ const usageWarning = () => {
           {{ usageWarning() }}
         </DialogDescription>
       </DialogHeader>
+
+      <p v-if="error" role="alert" class="text-sm text-destructive">
+        {{
+          error.response?.data?.errors?.image?.[0] ??
+          `The image could not be deleted.`
+        }}
+      </p>
 
       <DialogFooter
         class="flex flex-row items-center justify-end space-x-2 pt-4"
