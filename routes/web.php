@@ -5,6 +5,8 @@ use App\Http\Controllers\DetailedTrackingController;
 use App\Http\Controllers\Pages\Admin\AllowedDomainPageController;
 use App\Http\Controllers\Pages\Admin\CompanyPageController;
 use App\Http\Controllers\Pages\Admin\DashboardController;
+use App\Http\Controllers\Pages\Admin\DesignDraftController;
+use App\Http\Controllers\Pages\Admin\DesignDraftPreviewController;
 use App\Http\Controllers\Pages\Admin\ImagePageController;
 use App\Http\Controllers\Pages\Admin\PermissionPageController;
 use App\Http\Controllers\Pages\Admin\RolePageController;
@@ -45,6 +47,18 @@ Route::prefix('admin')
                 Route::get('/companies/{company:uuid}', 'show')
                     ->middleware('permission:company:show')
                     ->name('companies.show');
+            });
+
+        Route::prefix('companies/{company:uuid}/design-drafts')->name('drafts.')
+            ->middleware(['permission:company:show', 'permission:company:update', 'cache.headers:private;no_store'])
+            ->scopeBindings()->group(function () {
+                Route::get('/', [DesignDraftController::class, 'index'])->name('index');
+                Route::get('create', [DesignDraftController::class, 'create'])->name('create');
+                Route::post('/', [DesignDraftController::class, 'store'])->name('store');
+                Route::get('{draft:uuid}', [DesignDraftController::class, 'show'])->name('show');
+                Route::put('{draft:uuid}', [DesignDraftController::class, 'update'])->name('update');
+                Route::get('{draft:uuid}/revisions/{revision:version}/preview', [DesignDraftPreviewController::class, 'show'])->name('preview');
+                Route::get('{draft:uuid}/revisions/{revision:version}/render', [DesignDraftPreviewController::class, 'render'])->name('render');
             });
 
         Route::controller(ThemePageController::class)

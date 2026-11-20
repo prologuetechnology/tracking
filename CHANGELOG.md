@@ -4,6 +4,10 @@
 
 ### Added
 
+- Staff with company management access can save named Classic design drafts,
+  reopen saved revisions, and preview them with current company shipment data
+  at desktop and mobile widths. Public tracking uses the published settings.
+
 - Classic is the default layout for public shipment links. It uses each
   company's assigned branding, existing feature settings, and fixed section order.
 - Local onboarding and architecture baseline docs for the transfer-kit

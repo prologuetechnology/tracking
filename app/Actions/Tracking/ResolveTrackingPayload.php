@@ -21,6 +21,8 @@ class ResolveTrackingPayload
         string $searchOption,
         ?string $companyId = null,
         ?string $brand = null,
+        ?Company $expectedCompany = null,
+        ?array $visibleSections = null,
     ): array {
         try {
             $shipmentSearchResponse = $this->search(
@@ -53,6 +55,10 @@ class ResolveTrackingPayload
                 pipelineCompanyId: $resolvedPipelineCompanyId,
             );
 
+            if ($expectedCompany && ($resolvedPipelineCompanyId !== (int) $expectedCompany->pipeline_company_id || ! $expectedCompany->is($company))) {
+                return ['found' => false];
+            }
+
             if (! $company && $resolvedPipelineCompanyId !== null && $this->pipelineCompanyGroupRequiresBrand($resolvedPipelineCompanyId)) {
                 return [
                     'found' => false,
@@ -78,15 +84,17 @@ class ResolveTrackingPayload
                 'found' => true,
                 'trackingData' => $trackingData,
                 'company' => $company,
-                'shipmentCoordinates' => $this->getShipmentCoordinates->execute(
-                    company: $company,
-                    trackingNumber: data_get($trackingData, 'bolNum', $trackingNumber),
-                    pipelineCompanyId: is_scalar($pipelineCompanyId) ? (string) $pipelineCompanyId : null,
-                ),
-                'shipmentDocuments' => $this->getShipmentDocuments->execute(
-                    company: $company,
-                    trackingNumber: data_get($trackingData, 'bolNum', $trackingNumber),
-                ),
+                'shipmentCoordinates' => $visibleSections === null || in_array('enable_map', $visibleSections, true)
+                    ? $this->getShipmentCoordinates->execute(
+                        company: $company,
+                        trackingNumber: data_get($trackingData, 'bolNum', $trackingNumber),
+                        pipelineCompanyId: is_scalar($pipelineCompanyId) ? (string) $pipelineCompanyId : null,
+                    ) : null,
+                'shipmentDocuments' => $visibleSections === null || in_array('enable_documents', $visibleSections, true)
+                    ? $this->getShipmentDocuments->execute(
+                        company: $company,
+                        trackingNumber: data_get($trackingData, 'bolNum', $trackingNumber),
+                    ) : [],
             ];
         } catch (Throwable $exception) {
             Log::warning('Tracking payload resolution failed.', [
