@@ -4,6 +4,8 @@
 
 ### Added
 
+- Classic is the default layout for public shipment links. It uses each
+  company's assigned branding, existing feature settings, and fixed section order.
 - Local onboarding and architecture baseline docs for the transfer-kit
   alignment.
 - A dedicated Herd-first fresh-machine setup guide in `docs/local-setup.md`.
@@ -15,6 +17,8 @@
 
 ### Changed
 
+- Guests can refresh Classic through the original tracking link. On narrow
+  screens, wide document tables scroll within the shipment card.
 - Boost MCP compatibility restored under PHP 8.5 by replacing deprecated PDO
   MySQL SSL option constants with the current `Pdo\Mysql` constant when
   available.
