@@ -2,6 +2,7 @@
 
 use App\Actions\DesignDrafts\ChangeTrackingPublication;
 use App\Actions\DesignDrafts\SaveDesignDraft;
+use App\Actions\DesignDrafts\TrackingDesignPage;
 use App\Models\DesignDraftRevision;
 use App\Support\Testing\FakePipelinePayloads;
 use Dom\HTMLDocument;
@@ -90,7 +91,7 @@ it('keeps original company branding and current entitlements for a first proposa
         ->assertInertia(fn (Assert $page) => $page->where('initialValues.layout', 'classic.v1')
             ->where('initialValues.source_publication_id', null)->where('initialValues.theme_id', $this->company->theme_id)
             ->where('initialValues.sections', fn ($sections) => $sections->contains('enable_map'))
-            ->has('catalog.layouts', 4)->has('catalog.palettes', 6)->has('catalog.modules', 5));
+            ->has('catalog.layouts', 4)->has('catalog.palettes', 7)->has('catalog.modules', 5));
     expect($this->company->drafts()->count())->toBe(0);
 });
 
@@ -102,6 +103,9 @@ it('rejects unsupported layout settings for both saving and preview before searc
     Http::assertNothingSent();
     expect($this->company->drafts()->count())->toBe(0);
 })->with([
+    'hidden Classic modules' => ['hidden_modules', ['classic.v1' => ['receiving']]],
+    'repeated hidden section' => ['hidden_modules', ['journey.v1' => ['documents', 'documents']]],
+    'unknown hidden section' => ['hidden_modules', ['journey.v1' => ['dates']]],
     'unknown layout' => ['layout', 'experimental.v1'],
     'unregistered palette' => ['palette', 'random'],
     'arbitrary headline' => ['headline_style', 'script'],
@@ -109,6 +113,55 @@ it('rejects unsupported layout settings for both saving and preview before searc
     'duplicate modules' => ['section_orders', ['journey.v1' => ['map', 'receiving', 'map', 'documents', 'references']]],
     'missing modules' => ['section_orders', ['record.v1' => ['receiving', 'references']]],
 ]);
+
+it('keeps custom colors and supporting section visibility in their saved revision', function () {
+    $settings = [
+        ...$this->settings, 'palette' => 'custom',
+        'custom_colors' => ['brand' => '#ffff00', 'accent' => '#110022', 'paper' => '#ffffff'],
+        'hidden_modules' => ['journey.v1' => ['map', 'receiving'], 'record.v1' => ['documents']],
+    ];
+    $this->post(route('admin.drafts.store', $this->company->uuid), $settings)->assertSessionHasNoErrors();
+    $draft = $this->company->drafts()->sole();
+    $revision = $draft->revisions()->sole();
+    $companyTheme = $this->company->theme;
+    $payload = ['company' => $this->company, 'trackingData' => [], 'shipmentCoordinates' => [['id' => 1]], 'shipmentDocuments' => []];
+    $props = TrackingDesignPage::fromPayload($revision, $payload)['props'];
+    $colors = $props['initialCompany']['theme']['colors']['root'];
+    expect($props['presentationVersion'])->toBe(2)
+        ->and($colors['brand'])->toBe('60 100% 50%')
+        ->and($colors['brandForeground'])->toBe('0 0% 0%')
+        ->and($colors['primary'])->not->toBe($colors['brand'])
+        ->and($colors['accentForeground'])->toBe('0 0% 100%')
+        ->and($props['sectionOrder'])->not->toContain('map', 'receiving')
+        ->and($props['initialShipmentCoordinates'])->toBeNull();
+    $this->get(route('admin.drafts.show', [$this->company->uuid, $draft->uuid]))
+        ->assertInertia(fn (Assert $page) => $page->where('initialValues.custom_colors.brand', '#FFFF00')
+            ->where('initialValues.hidden_modules', fn ($groups) => $groups['journey.v1'] === ['map', 'receiving'])
+            ->where('liveDesign.label', 'Original Classic'));
+
+    $settings['custom_colors']['brand'] = '#00FFFF';
+    $this->put(route('admin.drafts.update', [$this->company->uuid, $draft->uuid]), [
+        ...$settings, 'base_version' => 1, 'layout' => 'record.v1',
+    ])->assertSessionHasNoErrors();
+    $next = $draft->revisions()->where('version', 2)->sole();
+    $nextProps = TrackingDesignPage::fromPayload($next, $payload)['props'];
+    expect($nextProps['initialCompany']['theme']['colors']['root']['brand'])->toBe('180 100% 50%')
+        ->and($nextProps['sectionOrder'])->toContain('map', 'receiving')->not->toContain('documents')
+        ->and($revision->fresh()->design['palette_theme']['colors']['root'])->toBe($colors)
+        ->and($this->company->fresh()->theme?->colors)->toEqual($companyTheme?->colors)
+        ->and($this->company->publications()->count())->toBe(0);
+});
+
+it('rejects malformed or incomplete draft colors before creating a revision', function () {
+    $bad = ['brand' => 'url(https://example.test)', 'accent' => '#000000', 'paper' => '#ffffff'];
+    $this->postJson(route('admin.drafts.store', $this->company->uuid), [
+        ...$this->settings, 'palette' => 'custom', 'custom_colors' => $bad,
+    ])->assertUnprocessable()->assertJsonValidationErrors('custom_colors.brand');
+    $this->postJson(route('admin.drafts.store', $this->company->uuid), [
+        ...$this->settings, 'palette' => 'custom',
+    ])->assertUnprocessable()->assertJsonValidationErrors('custom_colors');
+    expect($this->company->drafts()->count())->toBe(0);
+});
 
 it('scopes unsaved previews and publication seeds to authorized staff and the selected company', function () {
     $draft = app(SaveDesignDraft::class)->execute($this->company, $this->settings, $this->staff->id);

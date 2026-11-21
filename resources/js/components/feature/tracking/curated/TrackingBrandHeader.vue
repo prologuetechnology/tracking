@@ -1,14 +1,15 @@
 <script setup>
 import { router, usePage } from '@inertiajs/vue3'
-import { Check, Copy, RefreshCw, Share2 } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { Box, Check, Copy, RefreshCw, Share2 } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 
 import { Button } from '@/components/ui/button'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useTrackingDesign } from '@/composables/hooks/tracking/useTrackingDesign'
 
 const page = usePage()
-const { company, reference } = useTrackingDesign()
+const refined = computed(() => page.props.presentationVersion === 2)
+const { company, reference, shipment } = useTrackingDesign()
 const shareSupported = typeof navigator.share === `function`
 const copied = ref(false)
 const refreshing = ref(false)
@@ -50,16 +51,40 @@ const refresh = () => {
     <div
       class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-10"
     >
-      <img
-        v-if="company.logo?.file_path"
-        :src="imageAssetUrl({ filePath: company.logo.file_path })"
-        :alt="company.name"
-        class="max-h-12 max-w-36 object-contain sm:max-w-48"
-      />
-      <strong v-else class="break-words text-xl tracking-tight">{{
-        company.name
-      }}</strong>
-      <div class="flex gap-1">
+      <div
+        data-design-field="logo"
+        :class="
+          refined ? 'flex min-w-0 items-center gap-2.5 sm:gap-4' : 'contents'
+        "
+      >
+        <img
+          v-if="company.logo?.file_path"
+          :src="imageAssetUrl({ filePath: company.logo.file_path })"
+          :alt="company.name"
+          :class="
+            refined
+              ? 'max-h-9 max-w-24 object-contain sm:max-h-11 sm:max-w-40'
+              : 'max-h-12 max-w-36 object-contain sm:max-w-48'
+          "
+        />
+        <strong v-else class="break-words text-xl tracking-tight">{{
+          company.name
+        }}</strong>
+        <span
+          v-if="refined"
+          class="hidden border-l pl-3 text-sm font-medium sm:inline"
+          >Shipment tracking</span
+        >
+      </div>
+      <div class="flex gap-1" :class="{ 'items-center': refined }">
+        <span
+          v-if="refined && shipment.carrierName"
+          class="mr-2 hidden max-w-44 items-center gap-1.5 break-words text-xs text-muted-foreground md:inline-flex"
+        >
+          <Box aria-hidden="true" class="size-3.5 shrink-0" />{{
+            shipment.carrierName
+          }}
+        </span>
         <Button
           type="button"
           size="sm"

@@ -76,11 +76,16 @@ it('captures one private snapshot, retains both bytes, publishes only the approv
         ->where('activeProof', $proof->uuid)->where('proofs.0.uuid', $proof->uuid)->missing('proofs.0.snapshot'));
     foreach ($images as $view => $bytes) {
         $response = $this->get($download($view))->assertOk()->assertHeader('Content-Type', 'image/png');
+        expect($response->headers->get('Content-Disposition'))->toStartWith('attachment;');
         expect($response->streamedContent())->toBe($bytes);
+        $inline = $this->get($download($view).'?inline=1')->assertOk()->assertHeader('Content-Type', 'image/png');
+        expect($inline->headers->get('Content-Disposition'))->toStartWith('inline;');
+        expect($inline->streamedContent())->toBe($bytes);
         expect($proof->fresh()->checksums[$view])->toBe(hash('sha256', $bytes));
     }
     Storage::disk('local')->put($proof->fresh()->directory.'/mobile.png', 'damaged bytes');
     $this->get($download('mobile'))->assertServiceUnavailable();
+    $this->get($download('mobile').'?inline=1')->assertServiceUnavailable();
     $originalTheme = $this->company->theme_id;
     $this->company->update(['theme_id' => $this->makeTheme()->id]);
     $current = $this->company->publications()->sole()->id;
@@ -93,6 +98,64 @@ it('captures one private snapshot, retains both bytes, publishes only the approv
     $this->company->delete();
     expect(DesignProof::count())->toBe(0);
     Storage::disk('local')->assertMissing(DesignProof::companyDirectory($this->company->id));
+});
+
+it('exports the exact reviewed shipment and timestamp when the carrier changes before export', function () {
+    $original = FakePipelinePayloads::shipmentSearch('BOL123');
+    $later = $original;
+    $later['data'][0]['allStatuses'][0]['current_status'] = 'Corrected after review';
+    Http::fake(['*/shipmentSearch' => Http::sequence()->push($original)->push($later)]);
+    $render = route('admin.drafts.render', [...$this->params, ...$this->lookup, 'capture' => 1]);
+    $pinned = $this->get($render)->assertRedirect()->headers->get('Location');
+    $frame = $this->get($pinned)->assertOk()->inertiaProps();
+    $token = $frame['proofCapture']['token'];
+    expect($token)->not->toBeEmpty();
+    $this->travel(5)->minutes();
+
+    $export = route('admin.drafts.proofs.store', $this->params);
+    $this->post($export, [...$this->lookup, 'snapshot_token' => $token])->assertSessionHasNoErrors();
+    $proof = $this->revision->proofs()->sole();
+    expect($proof->snapshot['component'])->toBe('brandedTracking/Answer')
+        ->and($proof->snapshot['props']['initialTrackingData'])->toBe($frame['initialTrackingData'])
+        ->and($proof->snapshot['props']['initialCompany'])->toEqual($frame['initialCompany'])
+        ->and($proof->snapshot['props']['presentationVersion'])->toBe($frame['presentationVersion'])
+        ->and($proof->snapshot['props']['frozenAt'])->toBe($frame['proofCapture']['at'])
+        ->and($proof->snapshot['props'])->not->toHaveKey('proofCapture')->not->toHaveKey('auth');
+    Http::assertSentCount(1);
+    Queue::assertPushed(RenderDesignProof::class, 1);
+    $refreshed = $this->get($this->get($render)->assertRedirect()->headers->get('Location'))->inertiaProps();
+    expect($refreshed['proofCapture']['token'])->not->toBe($token)
+        ->and($refreshed['initialTrackingData']['allStatuses'][0]['current_status'])->toBe('Corrected after review')
+        ->and($proof->fresh()->snapshot['props']['initialTrackingData'])->toBe($frame['initialTrackingData']);
+    Http::assertSentCount(2);
+});
+
+it('requires a fresh review for an expired, foreign or changed saved preview without fetching another shipment', function () {
+    Http::fake(['*/shipmentSearch' => Http::response(FakePipelinePayloads::shipmentSearch('BOL123'))]);
+    $pinned = $this->get(route('admin.drafts.render', [...$this->params, ...$this->lookup, 'capture' => 1]))->assertRedirect()->headers->get('Location');
+    $token = $this->get($pinned)->inertiaProps('proofCapture.token');
+    $input = [...$this->lookup, 'snapshot_token' => $token];
+    $export = route('admin.drafts.proofs.store', $this->params);
+    $this->actingAs($this->makeCompanyAdmin())->post($export, $input)->assertSessionHasErrors('snapshot_token');
+    $this->get($pinned)->assertInertia(fn (Assert $page) => $page->component('admin/designDrafts/Unavailable')->missing('initialTrackingData'));
+    $this->actingAs($this->staff);
+    $this->post($export, [...$input, 'trackingNumber' => 'OTHER'])->assertSessionHasErrors('snapshot_token');
+    $other = $this->makeCompany();
+    $draft = app(SaveDesignDraft::class)->execute($other, $this->settings, $this->staff->id);
+    $this->post(route('admin.drafts.proofs.store', [$other->uuid, $draft->uuid, 1]), $input)->assertSessionHasErrors('snapshot_token');
+    app(SaveDesignDraft::class)->execute($this->company, [...$this->settings, 'base_version' => 1], $this->staff->id, $this->draft);
+    $this->post(route('admin.drafts.proofs.store', [$this->company->uuid, $this->draft->uuid, 2]), $input)->assertSessionHasErrors('snapshot_token');
+
+    $name = $this->company->name;
+    $this->company->update(['name' => 'Changed after review']);
+    $this->post($export, $input)->assertSessionHasErrors('snapshot_token');
+    $this->company->update(['name' => $name]);
+    $this->travel(16)->minutes();
+    $this->get($pinned)->assertInertia(fn (Assert $page) => $page->component('admin/designDrafts/Unavailable')->missing('initialTrackingData'));
+    $this->post($export, $input)->assertSessionHasErrors('snapshot_token');
+    Http::assertSentCount(1);
+    Queue::assertNothingPushed();
+    $this->assertDatabaseCount('design_proofs', 0);
 });
 
 it('enforces staff access and company, revision and shipment ownership at every proof entry point', function () {

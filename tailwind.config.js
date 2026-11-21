@@ -32,6 +32,10 @@ module.exports = {
         ring: `hsl(var(--ring))`,
         background: `hsl(var(--background))`,
         foreground: `hsl(var(--foreground))`,
+        brand: {
+          DEFAULT: `hsl(var(--tracking-brand, var(--primary)))`,
+          foreground: `hsl(var(--tracking-brand-foreground, var(--primary-foreground)))`,
+        },
         primary: {
           DEFAULT: `hsl(var(--primary))`,
           foreground: `hsl(var(--primary-foreground))`,

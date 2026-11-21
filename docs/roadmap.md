@@ -9,6 +9,8 @@
       per-layout section order.
 - [x] Give staff a private studio for named drafts and live company shipment
       previews at desktop and mobile widths. Save and reopen design revisions.
+- [x] Compare draft and live layouts on one shipment capture, inspect elements, choose private custom colors and images, and reorder or hide sections per layout.
+- [x] Start separate proposals from old revisions and review their archived approval images in the studio.
 - [x] Archive both PNGs from a single shipment snapshot. Record customer
       approval on the selected proof, publish its revision, reopen the exact
       pair from history, and restore an earlier publication or Classic.

@@ -3,6 +3,8 @@ import { Check } from 'lucide-vue-next'
 
 import DraftSelect from '@/components/feature/designDraft/DraftSelect.vue'
 
+import StudioColorFields from './StudioColorFields.vue'
+
 defineProps({
   classic: { type: Boolean, required: true },
   palettes: { type: Array, required: true },
@@ -11,6 +13,7 @@ defineProps({
 })
 // Vue's compiler requires string literals for named models.
 /* eslint-disable quotes */
+const colors = defineModel('colors', { type: Object, required: true })
 const palette = defineModel('palette', { type: String, required: true })
 const theme = defineModel('theme', { type: [String, Number], default: null })
 const headline = defineModel('headline', { type: String, required: true })
@@ -59,6 +62,11 @@ const headline = defineModel('headline', { type: String, required: true })
         {{ errors.palette }}
       </p>
     </fieldset>
+    <StudioColorFields
+      v-if="!classic && palette === 'custom'"
+      v-model="colors"
+      :errors="errors"
+    />
     <DraftSelect
       v-if="classic || palette === 'company'"
       id="draft-theme"

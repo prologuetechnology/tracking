@@ -7,7 +7,9 @@ import TrackingLayout from '@/components/layout/page/TrackingLayout.vue'
 
 const page = usePage()
 const isRefreshing = ref(false)
-const lastUpdated = Date.now()
+const lastUpdated = page.props.proofCapture?.at
+  ? Date.parse(page.props.proofCapture.at)
+  : Date.now()
 
 const proNumber = computed(() => {
   const shipment = page.props.initialTrackingData

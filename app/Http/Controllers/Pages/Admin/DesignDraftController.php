@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Pages\Admin;
 
 use App\Actions\DesignDrafts\ClassicDesign;
+use App\Actions\DesignDrafts\DesignBrandImages;
 use App\Actions\DesignDrafts\DesignCatalog;
+use App\Actions\DesignDrafts\LiveDesignSummary;
 use App\Actions\DesignDrafts\SaveDesignDraft;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SaveDesignDraftRequest;
 use App\Models\Company;
 use App\Models\DesignDraft;
+use App\Models\DesignDraftRevision;
 use App\Models\Image;
 use App\Models\Theme;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,8 +33,12 @@ class DesignDraftController extends Controller
                     'proof_uuid' => $entry->proof?->uuid,
                     'version' => $entry->proof?->revision->version,
                 ]),
-            'drafts' => $company->drafts()->withCount('revisions')->latest('updated_at')->orderByDesc('id')
-                ->paginate(20, ['id', 'uuid', 'name', 'updated_at'])->through(fn ($draft) => $draft->only(['uuid', 'name', 'revisions_count', 'updated_at'])),
+            'drafts' => $company->drafts()->select(['id', 'uuid', 'name', 'updated_at'])->withCount('revisions')
+                ->addSelect(['layout' => DesignDraftRevision::select('design->layout')->whereColumn('design_draft_id', 'design_drafts.id')->latest('version')->limit(1)])
+                ->latest('updated_at')->orderByDesc('id')->paginate(20)->through(fn ($draft) => [
+                    ...$draft->only(['uuid', 'name', 'revisions_count', 'updated_at']),
+                    'layout' => DesignCatalog::LAYOUTS[$draft->layout]['name'] ?? null,
+                ]),
         ]);
     }
 
@@ -42,6 +50,14 @@ class DesignDraftController extends Controller
     public function show(Company $company, DesignDraft $draft): Response
     {
         return $this->editor($company, $draft);
+    }
+
+    public function fork(Company $company, DesignDraft $draft, DesignDraftRevision $revision, Request $request, SaveDesignDraft $save): RedirectResponse
+    {
+        $input = $request->validate(['name' => ['required', 'string', 'max:120']]);
+        $copy = $save->fork($company, $revision, $input['name'], $request->user()->id);
+
+        return to_route('admin.drafts.show', [$company->uuid, $copy->uuid]);
     }
 
     public function store(Company $company, SaveDesignDraftRequest $request, SaveDesignDraft $save): RedirectResponse
@@ -60,30 +76,23 @@ class DesignDraftController extends Controller
 
     private function editor(Company $company, ?DesignDraft $draft = null): Response
     {
-        $publication = $draft === null ? $company->publications()->latest('id')->first() : null;
+        $publication = $company->publications()->latest('id')->first();
         $revision = $draft ? $draft->revisions()->latest('version')->firstOrFail() : $publication?->effectiveRevision();
         $available = ClassicDesign::availableSections($company);
         $images = Image::query()->with('imageType:id,name')->whereHas('imageType', fn ($q) => $q->whereIn('name', ClassicDesign::ASSETS))
-            ->orderBy('name')->get(['id', 'name', 'image_type_id'])->groupBy('imageType.name')
-            ->map(fn ($group) => $group->map->only(['id', 'name'])->values());
+            ->orderBy('name')->get(['id', 'name', 'file_path', 'image_type_id'])->groupBy('imageType.name')
+            ->map(fn ($group) => $group->map(fn (Image $image) => [
+                ...$image->only(['id', 'name']), 'preview_url' => DesignBrandImages::urlForPath($image->file_path),
+            ])->values());
         $form = [
-            'palette' => $revision?->design['palette'] ?? 'company',
-            'headline_style' => $revision?->design['headline_style'] ?? 'layout',
-            'section_orders' => array_replace(DesignCatalog::orders(), $revision?->design['section_orders'] ?? []),
-            'layout' => $revision?->design['layout'] ?? ClassicDesign::LAYOUT,
-            'emphasis' => $revision?->design['emphasis'] ?? 'delivery',
+            ...ClassicDesign::editorSettings($company, $revision?->design),
+            'upgrade_presentation' => false,
             'name' => $draft?->name ?? '',
-            'theme_id' => $revision ? ($revision->design['theme']['id'] ?? null) : $company->theme_id,
-            'sections' => $revision ? array_values(array_intersect($revision->design['sections'], $available)) : $available,
             'search_option' => $draft ? $revision->search_option : 'bol',
             'tracking_number' => $draft ? $revision->tracking_number : null,
             'base_version' => $draft ? $revision->version : null,
-            'source_publication_id' => $publication?->id,
+            'source_publication_id' => $draft ? null : $publication?->id,
         ];
-        foreach (ClassicDesign::ASSETS as $type) {
-            $field = $type.'_image_id';
-            $form[$field] = $revision ? $revision->$field : $company->$field;
-        }
         $themes = Theme::query()->orderBy('name')->get(['id', 'name'])->toBase();
         $savedTheme = $revision?->design['theme'] ?? null;
         if ($savedTheme && ! $themes->contains('id', $savedTheme['id'])) {
@@ -92,6 +101,8 @@ class DesignDraftController extends Controller
 
         return Inertia::render('admin/designDrafts/Edit', [
             'catalog' => DesignCatalog::editor(),
+            'liveDesign' => LiveDesignSummary::forPublication($publication),
+            'canUpgradePresentation' => $revision !== null && ($revision->design['presentation_version'] ?? 1) < 2 && $revision->design['layout'] !== ClassicDesign::LAYOUT,
             'company' => $company->only(['uuid', 'name']),
             'draft' => $draft?->only(['uuid', 'name']),
             'initialValues' => $form,

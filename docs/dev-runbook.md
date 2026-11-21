@@ -92,7 +92,7 @@ Herd serves the app. For live frontend edits, run `npm run dev` in another
 terminal. Proof export always reads `public/build/manifest.json`, so rerun
 `npm run build` before exporting changes made with Vite running. The proof
 worker needs Chrome and Node. A database or Redis queue also needs a running
-worker. For the local database queue, run `herd php artisan queue:work --timeout=110`
+worker. For the local database queue, run `DB_QUEUE_RETRY_AFTER=150 herd php artisan queue:work --timeout=110`
 in another terminal. Restart existing long-lived workers after code changes with
 `herd php artisan queue:restart`.
 
@@ -105,45 +105,22 @@ Keep the original public tracking link open in a private window. Include its
 existing brand parameter when the Pipeline company ID is shared. For a company
 awaiting its first publication, the link displays Classic.
 
-1. Sign in to the Herd site as a staff user with `company:show` and
-   `company:update`. Open **Companies**, choose the company, and select **Design
-   drafts → Create design draft**. Give the proposal a name. A new proposal
-   starts from that company's current publication or its original branding.
-2. Enter a bill of lading or carrier PRO and select **Update preview**.
-   Compare the four layouts using **Desktop preview** and **Mobile preview**.
-   On a small screen, switch between **Settings** and **Preview**. Choose
-   **Update preview** after changing settings or the reference.
+1. Sign in with a staff account that has `company:show` and `company:update`. Open **Companies**, choose the company, then open **Design drafts**. The list identifies the active publication. **Create design draft** starts a named proposal from the current live design. To work from an earlier saved revision, open its preview and choose **Use revision as new draft**.
+2. Open the editor's **Preview shipment** controls, choose **Bill of lading** or **Carrier PRO**, enter a shipment from this company, and choose **Load shipment**. An existing draft with a saved lookup loads automatically. Use **Draft** and **Live** to compare the two designs against one capture. **Desktop** and **Mobile** set the preview width. On narrow screens, switch between **Settings** and **Preview**.
+3. Try each inspector tab.
 
-   | Layout             | What to check                                                                                                                                                   |
-   | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-   | Classic            | Logo, banner, footer, shipment details and status history follow the current fixed layout.                                                                      |
-   | Get the answer     | Choose delivery timing or the latest event as the lead detail. Move a section up and check its placement under the shipment status.                             |
-   | Follow the journey | Check the route, date-grouped travel log and featured itinerary section. On a shipment with a past exception, select **Earlier exception** to jump to the scan. |
-   | Inspect the record | Check the featured section in the shipment file. Select a scan to inspect its time, location in the row, and available carrier evidence.                        |
+   | Tab        | What to try                                                                                                                                                                                                                                                                                       |
+   | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | Layout     | Classic retains the original customer layout. Get the answer emphasizes status and dates and opens shipment details in a dialog. Follow the journey pairs dated carrier scans with an itinerary and an expandable map. Inspect the record combines a shipment file with expandable scan evidence. |
+   | Appearance | Try a preset, a library theme, or custom brand, accent and page background colors. Choose a headline style and use the thumbnail picker to select draft brand images.                                                                                                                             |
+   | Sections   | Drag a supporting section or use the arrow buttons to move it. Toggle visibility for this layout. The editor identifies which section will appear first for this shipment. Switch layouts and back to check the independent settings.                                                             |
+   | Features   | Toggle the shipment details available to this company. The public presenter intersects the saved choices with current company entitlements.                                                                                                                                                       |
 
-3. In a curated layout, try a preset palette or a library theme, change its
-   headline style, reorder supporting sections, and toggle an available company
-   feature. A section appears when both the company and shipment support it.
-   Switch layouts and return to confirm each keeps its own order. Refresh the
-   guest window to check that the public page still shows the current publication.
-4. Select **Save draft**, reopen it from **Design drafts**, then change a
-   setting and choose **Save new revision**. Under **Saved revisions**, open
-   the version you intend to send. Load the shipment and select **Export
-   desktop and mobile PNGs**. This makes a fresh lookup and freezes the data
-   once for both images. Download **Desktop PNG** and **Mobile PNG**.
-5. Select **Back to draft**, reopen that revision, and download its files
-   again. Compare the corresponding file hashes with `shasum -a 256`. Each
-   original pair retains its proof ID and bytes even after the shipment or
-   draft changes. A second export makes a separate proof.
-6. Staff send the two images through the customer's usual approval channel.
-   On the local demo proof, select **Record customer approval**, enter the
-   approver, then choose **Save customer approval**. Only **Publish approved
-   revision** changes the tracking design on the existing guest link. Refresh
-   that link on desktop and mobile to verify its branding and live data.
-7. On **Design drafts**, select **View approved proof** to open the current
-   pair. Expand **Publication history** to open any earlier published proof,
-   **Restore this version**, or **Restore original Classic branding**. Refresh
-   the same guest link after restoring. Customers review PNGs outside the portal.
+   When reopening an older curated layout, choose **Use the updated layout** to try the new presentation. Renaming the draft or changing its shipment preserves the saved presentation. A loaded draft preview updates as settings change. In **Inspect preview element** mode, select a brand element or supporting section to open its editor controls. **Refresh shipment** fetches fresh data. A capture is private to the staff user, company and lookup and expires after 15 minutes; use a persistent cache shared by the web processes.
+
+4. Choose **Save draft** or **Save new revision**. Open the saved revision and choose **Export desktop and mobile PNGs**. Both images use the shipment and capture time displayed on that saved revision. Choose **Refresh shipment** to review newer carrier data. An expired capture requires loading the shipment again before export. Once ready, use **Review images** to check those exact files in the browser or download both PNGs.
+5. Reopen the same revision after saving another and check that its original proofs are still available. Use **Actual size** to inspect a long history at full resolution. When comparing files externally, `shasum -a 256` should produce the same digest for repeated downloads of each individual PNG.
+6. Staff send the images through the usual customer approval channel. On a local demo proof, select **Record customer approval**, enter the approver, then **Save customer approval**. **Publish approved revision** changes the design on the existing guest link. Check that link at both widths. In **Publication history**, open the original proof, **Restore this version**, or **Restore original Classic branding**.
 
 Demo the integration branch and obtain business acceptance before opening its
 PR to `develop`. Customer-specific changes follow the proof approval and

@@ -2,6 +2,8 @@ import { usePage } from '@inertiajs/vue3'
 import { onMounted, watchEffect } from 'vue'
 
 const colorProperties = {
+  brand: `--tracking-brand`,
+  brandForeground: `--tracking-brand-foreground`,
   background: `--background`,
   foreground: `--foreground`,
   muted: `--muted`,

@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
+import { Head, usePage } from '@inertiajs/vue3'
 import {
   ArrowRight,
   ChevronDown,
@@ -11,13 +11,17 @@ import {
 } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import TrackingModuleV1 from '@/components/feature/tracking/curated/legacy/TrackingModuleV1.vue'
 import TrackingBrandHeader from '@/components/feature/tracking/curated/TrackingBrandHeader.vue'
 import TrackingModule from '@/components/feature/tracking/curated/TrackingModule.vue'
+import TrackingSectionList from '@/components/feature/tracking/curated/TrackingSectionList.vue'
 import JourneyTravelLog from '@/components/feature/tracking/journey/JourneyTravelLog.vue'
 import Footer from '@/components/layout/footer/Footer.vue'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useTrackingDesign } from '@/composables/hooks/tracking/useTrackingDesign'
 
+const page = usePage()
+const refined = computed(() => page.props.presentationVersion === 2)
 const {
   company,
   shipment,
@@ -42,7 +46,11 @@ const destinationState = computed(
 const titleClass = computed(() => headlineClass.value || `font-serif`)
 const statusIcon = computed(() => {
   if (latest.value?.exception) return TriangleAlert
-  if (shipment.value.actualDeliveryDate || /^delivered$/i.test(status.value))
+  if (
+    refined.value
+      ? /^delivered\b/i.test(status.value)
+      : shipment.value.actualDeliveryDate || /^delivered$/i.test(status.value)
+  )
     return CircleCheck
   return Truck
 })
@@ -64,7 +72,11 @@ const statusIcon = computed(() => {
     <main
       class="mx-auto grid w-full max-w-7xl flex-1 content-start gap-8 px-5 py-7 sm:px-9 sm:py-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-16 lg:px-14 lg:py-12"
     >
-      <section class="min-w-0" aria-labelledby="journey-title">
+      <section
+        class="min-w-0"
+        aria-labelledby="journey-title"
+        data-design-field="palette"
+      >
         <div
           class="flex flex-wrap items-center gap-2 text-sm font-semibold text-primary"
         >
@@ -94,15 +106,24 @@ const statusIcon = computed(() => {
           <template v-else-if="origin">From {{ origin }}</template>
           <template v-else>Shipment journey</template>
         </h1>
-        <div class="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+        <div
+          class="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
+          :class="{
+            'w-fit rounded border border-amber-300 bg-amber-50 px-2 py-1 text-amber-950':
+              refined && latest?.exception,
+          }"
+        >
           <component
             :is="statusIcon"
-            class="size-5 shrink-0 text-primary"
+            class="size-5 shrink-0"
+            :class="{ 'text-primary': !refined || !latest?.exception }"
             aria-hidden="true"
           />
-          <strong class="min-w-0 break-words text-base text-primary">{{
-            status
-          }}</strong>
+          <strong
+            class="min-w-0 break-words text-base"
+            :class="{ 'text-primary': !refined || !latest?.exception }"
+            >{{ status }}</strong
+          >
           <span
             v-if="latest?.location"
             class="min-w-0 break-words text-muted-foreground"
@@ -122,12 +143,17 @@ const statusIcon = computed(() => {
         >
           <img
             v-if="company.banner"
+            data-design-field="banner"
             :src="imageAssetUrl({ filePath: company.banner.file_path })"
             alt=""
             class="h-16 w-full object-cover sm:h-36"
           />
           <div v-if="modules.length" class="min-w-0 p-4 sm:p-5">
-            <TrackingModule :section="modules[0]" featured />
+            <component
+              :is="refined ? TrackingModule : TrackingModuleV1"
+              :section="modules[0]"
+              featured
+            />
           </div>
         </div>
 
@@ -145,13 +171,18 @@ const statusIcon = computed(() => {
               aria-hidden="true"
             />
           </summary>
-          <div class="divide-y divide-border border-t border-border">
+          <TrackingSectionList
+            v-if="refined"
+            :sections="modules.slice(1)"
+            class="border-t"
+          />
+          <div v-else class="divide-y divide-border border-t border-border">
             <div
               v-for="section in modules.slice(1)"
               :key="section"
               class="min-w-0 py-4"
             >
-              <TrackingModule :section="section" />
+              <TrackingModuleV1 :section="section" />
             </div>
           </div>
         </details>
@@ -160,6 +191,7 @@ const statusIcon = computed(() => {
       <JourneyTravelLog :events="events" :heading-class="titleClass" />
       <img
         v-if="company.footer"
+        data-design-field="footer"
         :src="imageAssetUrl({ filePath: company.footer.file_path })"
         alt=""
         class="mx-auto w-auto max-w-full lg:col-span-2"

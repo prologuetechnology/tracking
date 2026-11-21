@@ -4,6 +4,10 @@
 
 ### Added
 
+- The studio compares draft and live designs on the same captured shipment. Its Layout, Appearance, Sections and Features tabs update the draft preview as staff edit. Staff can select a preview element to open its settings.
+- Curated designs support draft-specific colors, a visual brand image picker and independent section visibility. Saved revisions can be copied into separately named proposals, and both archived proof images can be inspected before approval.
+- New proposals use the refined delivery summary, route itinerary and scan register. Reopening or renaming a historical draft preserves its presentation. Staff can opt into the updated layout or change its visual settings in a new revision.
+- Saved-revision exports use the shipment capture staff reviewed. Backend and browser tests store their proof files separately from the local application's archives.
 - Tracking studio lets staff create a named proposal from the company's live
   design, preview unsaved settings with a company shipment at desktop or mobile
   width, and reopen any saved revision.

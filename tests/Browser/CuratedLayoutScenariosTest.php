@@ -81,6 +81,53 @@ class CuratedLayoutScenariosTest extends DuskTestCase
         });
     }
 
+    #[DataProvider('viewports')]
+    public function test_answer_details_and_journey_route_show_the_reported_scans_at_both_widths(int $width, int $height): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeCompanyAdmin();
+        $this->publishForBrand('ANSWER', 'answer.v1', 'lake', $staff->id);
+        $this->publishForBrand('ITINERARY', 'journey.v1', 'pine', $staff->id, showMap: true);
+
+        $this->browse(function (Browser $browser) use ($width, $height) {
+            $browser->resize($width, $height)->visit($this->trackingLink('answer'))
+                ->waitFor('#answer-history')
+                ->assertSeeIn('#answer-history', 'Tracking history')
+                ->assertSeeIn('[data-scan-index="0"]', 'Latest scan', ignoreCase: true)
+                ->assertSeeIn('[data-scan-index="1"]', 'Earlier exception', ignoreCase: true)
+                ->assertDontSee('Current exception', ignoreCase: true)
+                ->assertSee('Not available')
+                ->press('Shipment details')->waitFor('[role="dialog"]')
+                ->assertSeeIn('[role="dialog"]', 'Origin Hub')
+                ->click('[role="dialog"] details[data-section="references"] summary')
+                ->assertSeeIn('[role="dialog"]', FakePipelinePayloads::MULTIDAY_REFERENCE)
+                ->keys('[role="dialog"] summary', '{escape}')
+                ->waitUntilMissing('[role="dialog"]')
+                ->assertScript('document.activeElement.textContent.includes("Shipment details")')
+                ->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth')
+                ->visit($this->trackingLink('itinerary'))
+                ->waitFor('[data-featured][data-section="map"]')
+                ->assertScript('Array.from(document.querySelectorAll(".route-stops li"), stop => stop.textContent.trim()).join("/")', 'Dallas, TX/Memphis, TN/Chicago, IL')
+                ->assertNotPresent('#trackingMap')
+                ->click('[data-featured] summary')->waitFor('#trackingMap')
+                ->click('[data-featured] summary')->waitUntilMissing('#trackingMap')
+                ->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth');
+        });
+    }
+
+    public function test_markerless_published_answer_retains_its_original_shipment_details_and_history(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeCompanyAdmin();
+        $this->publishForBrand('ORIGINAL', 'answer.v1', 'lake', $staff->id, legacy: true);
+        $this->browse(function (Browser $browser) {
+            $browser->visit($this->trackingLink('original'))->waitFor('#answer-history')
+                ->assertSeeIn('#answer-history', 'Carrier updates')
+                ->assertSee('More shipment details')
+                ->assertNotPresent('button[aria-haspopup="dialog"]');
+        });
+    }
+
     public function test_staff_reopens_the_exact_original_proof_from_publication_history(): void
     {
         $this->seedCoreFixtures();
@@ -125,10 +172,11 @@ class CuratedLayoutScenariosTest extends DuskTestCase
         ], false);
     }
 
-    private function publishForBrand(string $brand, string $layout, string $palette, int $staffId): DesignProof
+    private function publishForBrand(string $brand, string $layout, string $palette, int $staffId, bool $showMap = false, bool $legacy = false): DesignProof
     {
         $company = $this->makeCompany([
             'name' => $brand.' Freight',
+            'enable_map' => $showMap,
             'brand' => $brand,
             'requires_brand' => true,
             'pipeline_company_id' => 1001,
@@ -138,15 +186,19 @@ class CuratedLayoutScenariosTest extends DuskTestCase
             'layout' => $layout,
             'palette' => $palette,
             'headline_style' => 'sans',
-            'section_orders' => [$layout => ['receiving', 'map', 'references', 'instructions', 'documents']],
+            'section_orders' => [$layout => $showMap ? ['map', 'receiving', 'references', 'instructions', 'documents'] : ['receiving', 'map', 'references', 'instructions', 'documents']],
             'theme_id' => null,
             'logo_image_id' => null,
             'banner_image_id' => null,
             'footer_image_id' => null,
-            'sections' => [],
+            'sections' => $showMap ? ['enable_map'] : [],
             'search_option' => 'bol',
         ], $staffId);
-        $proof = $draft->revisions()->sole()->proofs()->create([
+        $revision = $draft->revisions()->sole();
+        if ($legacy) {
+            $revision->update(['design' => collect($revision->design)->except('presentation_version')->all()]);
+        }
+        $proof = $revision->proofs()->create([
             'snapshot' => [],
             'shipment_reference' => FakePipelinePayloads::MULTIDAY_REFERENCE,
             'created_by' => $staffId,

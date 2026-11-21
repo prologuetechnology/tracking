@@ -2,9 +2,8 @@
 import { Head, Link } from '@inertiajs/vue3'
 
 import PublicationHistory from '@/components/feature/designDraft/PublicationHistory.vue'
-import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
+import TrackingStudioLayout from '@/components/layout/page/TrackingStudioLayout.vue'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 
 defineProps({
   company: { type: Object, required: true },
@@ -14,47 +13,62 @@ defineProps({
 </script>
 
 <template>
-  <Head :title="`Design drafts · ${company.name}`" />
-  <AuthenticatedLayout title="Design drafts">
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <Link
-        :href="route('admin.companies.show', company.uuid)"
-        class="text-sm underline"
-      >
-        {{ company.name }}
-      </Link>
+  <TrackingStudioLayout :company="company">
+    <Head :title="`Design drafts · ${company.name}`" />
+    <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+        Design drafts
+      </h1>
       <Button as-child>
-        <Link :href="route('admin.drafts.create', company.uuid)">
-          Create design draft
-        </Link>
+        <Link :href="route('admin.drafts.create', company.uuid)"
+          >Create design draft</Link
+        >
       </Button>
-    </div>
+    </header>
     <PublicationHistory :company="company" :publications="publications" />
-    <Card>
-      <CardContent class="p-5">
-        <p v-if="!drafts.data.length" class="text-muted-foreground">
-          No saved drafts for {{ company.name }} yet.
-        </p>
-        <ul v-else class="divide-y">
-          <li
-            v-for="item in drafts.data"
-            :key="item.uuid"
-            class="flex flex-wrap items-baseline justify-between gap-2 py-3"
-          >
+    <section
+      class="overflow-hidden rounded-lg border bg-card text-card-foreground"
+      aria-labelledby="named-drafts"
+    >
+      <h2 id="named-drafts" class="border-b px-4 py-3 font-semibold sm:px-5">
+        Saved drafts
+      </h2>
+      <p v-if="!drafts.data.length" class="p-5 text-sm text-muted-foreground">
+        No saved drafts for {{ company.name }} yet.
+      </p>
+      <ul v-else class="divide-y">
+        <li
+          v-for="item in drafts.data"
+          :key="item.uuid"
+          class="grid min-w-0 gap-2 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:px-5"
+        >
+          <div class="min-w-0">
             <Link
-              class="break-words font-semibold underline"
+              class="break-words font-semibold underline decoration-border underline-offset-4 hover:decoration-current"
               :href="route('admin.drafts.show', [company.uuid, item.uuid])"
             >
               {{ item.name }}
             </Link>
-            <span class="text-sm text-muted-foreground">
-              Revision {{ item.revisions_count }} ·
-              {{ new Date(item.updated_at).toLocaleDateString() }}
-            </span>
-          </li>
-        </ul>
-      </CardContent>
-    </Card>
+            <p class="mt-1 text-sm text-muted-foreground">
+              {{ item.layout }} · Revision {{ item.revisions_count }}
+            </p>
+          </div>
+          <div
+            class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
+          >
+            <span
+              v-if="publications[0]?.draft_uuid === item.uuid"
+              class="rounded bg-secondary px-2 py-1 font-semibold text-secondary-foreground"
+              >Revision {{ publications[0].version }} live</span
+            >
+            <time :datetime="item.updated_at"
+              >Updated
+              {{ new Date(item.updated_at).toLocaleDateString() }}</time
+            >
+          </div>
+        </li>
+      </ul>
+    </section>
     <nav
       v-if="drafts.last_page > 1"
       aria-label="Draft pages"
@@ -64,16 +78,14 @@ defineProps({
         v-if="drafts.prev_page_url"
         :href="drafts.prev_page_url"
         class="underline"
+        >Previous page</Link
       >
-        Previous page
-      </Link>
       <Link
         v-if="drafts.next_page_url"
         :href="drafts.next_page_url"
         class="ml-auto underline"
+        >Next page</Link
       >
-        Next page
-      </Link>
     </nav>
-  </AuthenticatedLayout>
+  </TrackingStudioLayout>
 </template>

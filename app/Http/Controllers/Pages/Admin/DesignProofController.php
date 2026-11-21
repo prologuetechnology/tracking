@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pages\Admin;
 
 use App\Actions\DesignDrafts\QueueDesignProof;
+use App\Actions\DesignDrafts\StudioShipmentSnapshot;
 use App\Actions\DesignDrafts\TrackingDesignPage;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
@@ -18,17 +19,24 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DesignProofController extends Controller
 {
-    public function store(Company $company, DesignDraft $draft, DesignDraftRevision $revision, Request $request, TrackingDesignPage $pages, QueueDesignProof $queue): RedirectResponse
+    public function store(Company $company, DesignDraft $draft, DesignDraftRevision $revision, Request $request, TrackingDesignPage $pages, StudioShipmentSnapshot $snapshots, QueueDesignProof $queue): RedirectResponse
     {
         $lookup = $request->validate([
             'trackingNumber' => ['required', 'string', 'max:128'],
             'searchOption' => ['required', Rule::in(['bol', 'carrierPro'])],
+            'snapshot_token' => ['sometimes', 'required', 'uuid'],
         ]);
-        $page = $pages->preview($company, $revision, $lookup);
-        if (! $page) {
-            throw ValidationException::withMessages(['trackingNumber' => 'No shipment was available for this company and reference.']);
+        if (isset($lookup['snapshot_token'])) {
+            $capture = $snapshots->savedRevision($company, $revision, $request->user()->id, $lookup, $lookup['snapshot_token']);
+            $page = $capture['page'];
+            $page['props']['frozenAt'] = $capture['captured_at'];
+        } else {
+            $page = $pages->preview($company, $revision, $lookup);
+            if (! $page) {
+                throw ValidationException::withMessages(['trackingNumber' => 'No shipment was available for this company and reference.']);
+            }
+            $page['props']['frozenAt'] = now()->toIso8601String();
         }
-        $page['props']['frozenAt'] = now()->toIso8601String();
         $page['props']['app'] = [
             'name' => config('app.name'), 'env' => 'production',
             'disks' => ['spaces' => [
@@ -58,7 +66,7 @@ class DesignProofController extends Controller
         return to_route('admin.drafts.preview', [$company->uuid, $draft->uuid, $revision->version]);
     }
 
-    public function download(Company $company, DesignDraft $draft, DesignDraftRevision $revision, DesignProof $proof, string $view): StreamedResponse
+    public function download(Company $company, DesignDraft $draft, DesignDraftRevision $revision, DesignProof $proof, string $view, Request $request): StreamedResponse
     {
         abort_unless($proof->status === 'ready', 404);
 
@@ -77,7 +85,7 @@ class DesignProofController extends Controller
             } finally {
                 fclose($stream);
             }
-        }, "revision-{$revision->version}-{$proof->uuid}-{$view}.png", ['Content-Type' => 'image/png', 'Cache-Control' => 'private, no-store']);
+        }, "revision-{$revision->version}-{$proof->uuid}-{$view}.png", ['Content-Type' => 'image/png', 'Cache-Control' => 'private, no-store'], $request->boolean('inline') ? 'inline' : 'attachment');
     }
 
     public function approve(Company $company, DesignDraft $draft, DesignDraftRevision $revision, DesignProof $proof, Request $request): RedirectResponse

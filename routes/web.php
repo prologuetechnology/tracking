@@ -57,11 +57,12 @@ Route::prefix('admin')
             ->scopeBindings()->group(function () {
                 Route::get('/', [DesignDraftController::class, 'index'])->name('index');
                 Route::post('publication/rollback', [TrackingPublicationController::class, 'rollback'])->name('rollback');
-                Route::post('studio-preview', DesignStudioPreviewController::class)->middleware('throttle:30,1')->name('studio-preview');
+                Route::post('studio-preview', DesignStudioPreviewController::class)->middleware('throttle:tracking-studio')->name('studio-preview');
                 Route::get('create', [DesignDraftController::class, 'create'])->name('create');
                 Route::post('/', [DesignDraftController::class, 'store'])->name('store');
                 Route::get('{draft:uuid}', [DesignDraftController::class, 'show'])->name('show');
                 Route::put('{draft:uuid}', [DesignDraftController::class, 'update'])->name('update');
+                Route::post('{draft:uuid}/revisions/{revision:version}/fork', [DesignDraftController::class, 'fork'])->name('fork');
                 Route::get('{draft:uuid}/revisions/{revision:version}/preview', [DesignDraftPreviewController::class, 'show'])->name('preview');
                 Route::get('{draft:uuid}/revisions/{revision:version}/render', [DesignDraftPreviewController::class, 'render'])->name('render');
                 Route::prefix('{draft:uuid}/revisions/{revision:version}/proofs')->name('proofs.')->group(function () {

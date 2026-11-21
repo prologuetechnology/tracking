@@ -9,14 +9,16 @@ import {
   PanelsTopLeft,
   Settings2,
 } from 'lucide-vue-next'
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'radix-vue'
 import { computed, nextTick, ref } from 'vue'
 
 import DraftSelect from '@/components/feature/designDraft/DraftSelect.vue'
 import StudioAppearance from '@/components/feature/designDraft/editor/StudioAppearance.vue'
+import StudioAssetPicker from '@/components/feature/designDraft/editor/StudioAssetPicker.vue'
 import StudioLayoutPicker from '@/components/feature/designDraft/editor/StudioLayoutPicker.vue'
 import StudioSections from '@/components/feature/designDraft/editor/StudioSections.vue'
 import StudioShipmentPreview from '@/components/feature/designDraft/StudioShipmentPreview.vue'
-import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
+import TrackingStudioLayout from '@/components/layout/page/TrackingStudioLayout.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,15 +32,41 @@ const props = defineProps({
   sections: { type: [Object, Array], required: true },
   revisions: { type: Array, required: true },
   catalog: { type: Object, required: true },
+  liveDesign: { type: Object, required: true },
+  canUpgradePresentation: { type: Boolean, default: false },
 })
 const form = useForm(props.initialValues)
 const mobilePane = ref(`settings`)
+const tabs = [`layout`, `appearance`, `sections`, `features`]
+const inspectorTab = ref(`layout`)
+const previewMode = ref(`draft`)
+const previewModules = ref(null)
+const inspectField = async (field, section) => {
+  mobilePane.value = `settings`
+  inspectorTab.value = field === `section` ? `sections` : `appearance`
+  await nextTick()
+  const id =
+    field === `section`
+      ? `section-visible-` + section
+      : field === `palette`
+        ? `draft-appearance`
+        : `draft-` + field
+  const target = document.getElementById(id)
+  if (target) {
+    const details = target.closest(`details`)
+    if (details) details.open = true
+    target.focus()
+    target.scrollIntoView({ block: `nearest` })
+  }
+}
 const selectedLayout = computed(() =>
   props.catalog.layouts.find((layout) => layout.id === form.layout),
 )
 const sectionError = computed(
   () =>
-    Object.entries(form.errors).find(([key]) => key.startsWith(`section`))?.[1],
+    Object.entries(form.errors).find(
+      ([key]) => key.startsWith(`section`) || key.startsWith(`hidden_modules`),
+    )?.[1],
 )
 const assets = [
   { key: `logo`, label: `Logo`, empty: `Default logo` },
@@ -48,10 +76,26 @@ const assets = [
 const preview = (version) =>
   route(`admin.drafts.preview`, [props.company.uuid, props.draft.uuid, version])
 const save = () => {
+  if (previewMode.value === `live`) return
   const options = {
     preserveState: `errors`,
     onError: async () => {
       mobilePane.value = `settings`
+      const fields = Object.keys(form.errors)
+      if (
+        fields.some((key) =>
+          /^(custom_colors|palette|theme_id|headline_style|logo_|banner_|footer_)/.test(
+            key,
+          ),
+        )
+      )
+        inspectorTab.value = `appearance`
+      else if (
+        fields.some((key) => /^(hidden_modules|section_orders)/.test(key))
+      )
+        inspectorTab.value = `sections`
+      else if (fields.includes(`sections`)) inspectorTab.value = `features`
+      else inspectorTab.value = `layout`
       await nextTick()
       const invalid = document.querySelector(
         `#design-editor [aria-invalid="true"]`,
@@ -75,7 +119,7 @@ const save = () => {
 <template>
   <div>
     <Head :title="(draft?.name ?? 'New design draft') + ' · ' + company.name" />
-    <AuthenticatedLayout wide>
+    <TrackingStudioLayout :company="company">
       <header
         class="mb-5 flex flex-wrap items-end justify-between gap-4 border-b pb-5"
       >
@@ -101,7 +145,7 @@ const save = () => {
           <Button
             type="submit"
             form="design-editor"
-            :disabled="form.processing"
+            :disabled="form.processing || previewMode === 'live'"
             >{{ draft ? 'Save new revision' : 'Save draft' }}</Button
           >
         </div>
@@ -133,7 +177,7 @@ const save = () => {
       </div>
 
       <div
-        class="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(20rem,25rem)_minmax(0,1fr)] xl:grid-cols-[26rem_minmax(0,1fr)]"
+        class="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(17rem,20rem)_minmax(0,1fr)] xl:grid-cols-[minmax(19rem,22rem)_minmax(0,1fr)]"
       >
         <div
           class="min-w-0 space-y-5 lg:block"
@@ -159,12 +203,14 @@ const save = () => {
                     : 'New draft'
               }}</span>
             </div>
-            <div class="grid gap-5 border-b p-5">
+
+            <div class="grid gap-3 border-b p-4">
               <div class="grid gap-2">
                 <Label for="draft-name">Draft name</Label>
                 <Input
                   id="draft-name"
                   v-model="form.name"
+                  :disabled="previewMode === 'live'"
                   maxlength="120"
                   required
                   :aria-invalid="!!form.errors.name"
@@ -181,119 +227,210 @@ const save = () => {
                   {{ form.errors.name }}
                 </p>
               </div>
-              <StudioLayoutPicker
-                v-model="form.layout"
-                :layouts="catalog.layouts"
-                :error="form.errors.layout"
-              />
-              <DraftSelect
-                v-if="form.layout === 'answer.v1'"
-                id="draft-emphasis"
-                v-model="form.emphasis"
-                label="Show first"
-                :choices="[
-                  { id: 'delivery', name: 'Delivery timing' },
-                  { id: 'event', name: 'Latest carrier event' },
-                ]"
-                :error="form.errors.emphasis"
-              />
-            </div>
-            <div class="grid gap-4 border-b p-5">
-              <h3 class="font-semibold">Preview shipment</h3>
-              <DraftSelect
-                id="lookup-type"
-                v-model="form.search_option"
-                label="Find shipment by"
-                :choices="[
-                  { id: 'bol', name: 'Bill of lading' },
-                  { id: 'carrierPro', name: 'Carrier PRO' },
-                ]"
-                :error="form.errors.search_option"
-              />
-              <div class="grid gap-2">
-                <Label for="tracking-number">Shipment number (optional)</Label>
-                <Input
-                  id="tracking-number"
-                  v-model="form.tracking_number"
-                  maxlength="128"
-                  :aria-invalid="!!form.errors.tracking_number"
-                  :aria-describedby="
-                    form.errors.tracking_number ? 'tracking-error' : undefined
-                  "
-                />
-                <p
-                  v-if="form.errors.tracking_number"
-                  id="tracking-error"
-                  role="alert"
-                  class="text-sm text-destructive"
-                >
-                  {{ form.errors.tracking_number }}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                class="lg:hidden"
-                @click="mobilePane = 'preview'"
-                >Open live preview</Button
-              >
-            </div>
-            <div class="grid gap-4 border-b p-5">
-              <h3 class="font-semibold">Appearance</h3>
-              <StudioAppearance
-                v-model:theme="form.theme_id"
-                v-model:palette="form.palette"
-                v-model:headline="form.headline_style"
-                :classic="form.layout === 'classic.v1'"
-                :palettes="catalog.palettes"
-                :themes="themes"
-                :errors="form.errors"
-              />
+
               <details
-                class="group rounded-md border"
-                :open="
-                  assets.some(
-                    (asset) => form.errors[asset.key + '_image_id'],
-                  ) || undefined
-                "
+                id="studio-shipment-lookup"
+                class="rounded-md border bg-muted/20"
+                :open="!draft || undefined"
               >
                 <summary
-                  class="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden"
+                  class="cursor-pointer rounded-md px-3 py-2 text-sm font-medium"
                 >
-                  <Image
-                    class="size-4 text-muted-foreground"
-                    aria-hidden="true"
-                  />Brand images<ChevronDown
-                    class="ml-auto size-4 group-open:rotate-180"
-                    aria-hidden="true"
-                  />
+                  Preview shipment
+                  <span
+                    v-if="form.tracking_number"
+                    class="ml-1 break-all font-mono text-xs text-muted-foreground"
+                    >{{ form.tracking_number }}</span
+                  >
                 </summary>
-                <div class="grid gap-4 border-t p-3">
+                <div class="grid gap-3 border-t p-3">
                   <DraftSelect
-                    v-for="asset in assets"
-                    :id="'draft-' + asset.key"
-                    :key="asset.key"
-                    v-model="form[asset.key + '_image_id']"
-                    :label="asset.label"
-                    :empty-label="asset.empty"
-                    :choices="images[asset.key] ?? []"
-                    :error="form.errors[asset.key + '_image_id']"
+                    id="lookup-type"
+                    v-model="form.search_option"
+                    label="Find shipment by"
+                    :choices="[
+                      { id: 'bol', name: 'Bill of lading' },
+                      { id: 'carrierPro', name: 'Carrier PRO' },
+                    ]"
+                    :error="form.errors.search_option"
                   />
+                  <div class="grid gap-2">
+                    <Label for="tracking-number"
+                      >Shipment number (optional)</Label
+                    >
+                    <Input
+                      id="tracking-number"
+                      v-model="form.tracking_number"
+                      maxlength="128"
+                      :aria-invalid="!!form.errors.tracking_number"
+                      :aria-describedby="
+                        form.errors.tracking_number
+                          ? 'tracking-error'
+                          : undefined
+                      "
+                    />
+                    <p
+                      v-if="form.errors.tracking_number"
+                      id="tracking-error"
+                      role="alert"
+                      class="text-sm text-destructive"
+                    >
+                      {{ form.errors.tracking_number }}
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    class="lg:hidden"
+                    @click="mobilePane = 'preview'"
+                    >Open preview</Button
+                  >
                 </div>
               </details>
             </div>
-            <div class="grid gap-3 border-b p-5">
-              <h3 class="font-semibold">Shipment sections</h3>
-              <StudioSections
-                v-if="selectedLayout"
-                v-model:orders="form.section_orders"
-                v-model:features-enabled="form.sections"
-                :layout="selectedLayout"
-                :modules="catalog.modules"
-                :features="sections"
-                :error="sectionError"
-              />
-            </div>
+
+            <TabsRoot v-model="inspectorTab">
+              <TabsList aria-label="Design settings" class="flex border-b px-2">
+                <TabsTrigger
+                  v-for="tab in tabs"
+                  :id="'inspector-tab-' + tab"
+                  :key="tab"
+                  :value="tab"
+                  :dusk="'inspector-' + tab"
+                  class="min-h-11 flex-1 border-b-2 border-transparent px-1 text-sm font-medium capitalize text-muted-foreground outline-offset-[-3px] data-[state=active]:border-primary data-[state=active]:text-foreground"
+                >
+                  {{ tab }}
+                </TabsTrigger>
+              </TabsList>
+              <fieldset :disabled="previewMode === 'live'" class="min-w-0">
+                <legend class="sr-only">Draft settings</legend>
+                <TabsContent value="layout" class="grid gap-4 p-4">
+                  <div
+                    v-if="
+                      canUpgradePresentation &&
+                      form.layout === initialValues.layout
+                    "
+                    class="grid gap-1 rounded-md border p-3 text-sm"
+                  >
+                    <label
+                      for="upgrade-presentation"
+                      class="flex items-center gap-2 font-medium"
+                    >
+                      <input
+                        id="upgrade-presentation"
+                        v-model="form.upgrade_presentation"
+                        type="checkbox"
+                        class="size-4 accent-primary"
+                      />
+                      Use the updated {{ selectedLayout?.name }} layout
+                    </label>
+                    <p class="text-xs leading-relaxed text-muted-foreground">
+                      This proposal starts with the earlier presentation.
+                      Changing the design or selecting this option uses the
+                      updated layout.
+                    </p>
+                  </div>
+                  <StudioLayoutPicker
+                    v-model="form.layout"
+                    :layouts="catalog.layouts"
+                    :error="form.errors.layout"
+                  />
+                  <DraftSelect
+                    v-if="form.layout === 'answer.v1'"
+                    id="draft-emphasis"
+                    v-model="form.emphasis"
+                    label="Show first"
+                    :choices="[
+                      { id: 'delivery', name: 'Delivery timing' },
+                      { id: 'event', name: 'Latest carrier event' },
+                    ]"
+                    :error="form.errors.emphasis"
+                  />
+
+                  <p
+                    v-if="form.layout === 'classic.v1'"
+                    class="text-xs text-muted-foreground"
+                  >
+                    Classic keeps its original section order.
+                  </p>
+                </TabsContent>
+                <TabsContent value="appearance" class="grid gap-4 p-4">
+                  <h3 id="draft-appearance" tabindex="-1" class="font-semibold">
+                    Brand appearance
+                  </h3>
+                  <StudioAppearance
+                    v-model:colors="form.custom_colors"
+                    v-model:theme="form.theme_id"
+                    v-model:palette="form.palette"
+                    v-model:headline="form.headline_style"
+                    :classic="form.layout === 'classic.v1'"
+                    :palettes="catalog.palettes"
+                    :themes="themes"
+                    :errors="form.errors"
+                  />
+                  <details
+                    id="draft-image-library"
+                    class="group rounded-md border"
+                    :open="
+                      assets.some(
+                        (asset) => form.errors[asset.key + '_image_id'],
+                      ) || undefined
+                    "
+                  >
+                    <summary
+                      class="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden"
+                    >
+                      <Image
+                        class="size-4 text-muted-foreground"
+                        aria-hidden="true"
+                      />Brand images<ChevronDown
+                        class="ml-auto size-4 group-open:rotate-180"
+                        aria-hidden="true"
+                      />
+                    </summary>
+                    <div class="grid gap-4 border-t p-3">
+                      <StudioAssetPicker
+                        v-for="asset in assets"
+                        :id="'draft-' + asset.key"
+                        :key="asset.key"
+                        v-model="form[asset.key + '_image_id']"
+                        :label="asset.label"
+                        :empty-label="asset.empty"
+                        :choices="images[asset.key] ?? []"
+                        :error="form.errors[asset.key + '_image_id']"
+                      />
+                    </div>
+                  </details>
+                </TabsContent>
+                <TabsContent
+                  v-for="tab in ['sections', 'features']"
+                  :key="tab"
+                  :value="tab"
+                  class="grid gap-3 p-4"
+                >
+                  <h3 class="font-semibold">
+                    {{
+                      tab === 'features'
+                        ? 'Visible shipment details'
+                        : 'Supporting sections'
+                    }}
+                  </h3>
+                  <StudioSections
+                    v-if="selectedLayout"
+                    v-model:hidden="form.hidden_modules"
+                    v-model:orders="form.section_orders"
+                    v-model:features-enabled="form.sections"
+                    :panel="inspectorTab"
+                    :preview-modules="previewModules"
+                    :layout="selectedLayout"
+                    :modules="catalog.modules"
+                    :features="sections"
+                    :error="sectionError"
+                  />
+                </TabsContent>
+              </fieldset>
+            </TabsRoot>
             <p
               v-if="form.errors.base_version"
               role="alert"
@@ -340,9 +477,16 @@ const save = () => {
           class="min-w-0 lg:sticky lg:top-4 lg:block"
           :class="mobilePane === 'preview' ? 'block' : 'hidden'"
         >
-          <StudioShipmentPreview :company="company" :form="form" />
+          <StudioShipmentPreview
+            v-model="previewMode"
+            :company="company"
+            :form="form"
+            :live-design="liveDesign"
+            @modules="previewModules = $event"
+            @inspect="inspectField"
+          />
         </div>
       </div>
-    </AuthenticatedLayout>
+    </TrackingStudioLayout>
   </div>
 </template>

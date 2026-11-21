@@ -50,6 +50,7 @@ final class DesignCatalog
             'name' => 'Company theme',
             'color' => '#626978',
         ],
+        'custom' => ['name' => 'Custom colors', 'color' => null],
         'lake' => [
             'name' => 'Lake blue',
             'color' => '#185e86',
