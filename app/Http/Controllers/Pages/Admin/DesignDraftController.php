@@ -20,6 +20,12 @@ class DesignDraftController extends Controller
     {
         return Inertia::render('admin/designDrafts/Index', [
             'company' => $company->only(['uuid', 'name']),
+            'publications' => $company->publications()->latest('id')->with(['proof:id,design_draft_revision_id', 'proof.revision:id,design_draft_id,version', 'proof.revision.draft:id,name'])
+                ->get()->map(fn ($entry) => [
+                    'id' => $entry->id, 'action' => $entry->action, 'at' => $entry->created_at,
+                    'name' => $entry->proof?->revision->draft->name,
+                    'version' => $entry->proof?->revision->version,
+                ]),
             'drafts' => $company->drafts()->withCount('revisions')->latest('updated_at')->orderByDesc('id')
                 ->paginate(20, ['id', 'uuid', 'name', 'updated_at'])->through(fn ($draft) => $draft->only(['uuid', 'name', 'revisions_count', 'updated_at'])),
         ]);
@@ -57,6 +63,8 @@ class DesignDraftController extends Controller
             ->orderBy('name')->get(['id', 'name', 'image_type_id'])->groupBy('imageType.name')
             ->map(fn ($group) => $group->map->only(['id', 'name'])->values());
         $form = [
+            'layout' => $revision?->design['layout'] ?? ClassicDesign::LAYOUT,
+            'emphasis' => $revision?->design['emphasis'] ?? 'delivery',
             'name' => $draft?->name ?? '',
             'theme_id' => $revision ? ($revision->design['theme']['id'] ?? null) : $company->theme_id,
             'sections' => $revision ? array_values(array_intersect($revision->design['sections'], $available)) : $available,

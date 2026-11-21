@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Actions\DesignDrafts\ClassicDesign;
+use App\Actions\DesignDrafts\TrackingDesignPage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,6 +17,8 @@ class SaveDesignDraftRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'layout' => ['sometimes', 'required', Rule::in(array_keys(TrackingDesignPage::LAYOUTS))],
+            'emphasis' => ['sometimes', 'required', Rule::in(['delivery', 'event'])],
             'name' => ['required', 'string', 'max:120'],
             'theme_id' => ['present', 'nullable', 'integer', 'min:1'],
             'logo_image_id' => ['present', 'nullable', 'integer', 'min:1'],

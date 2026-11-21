@@ -19,6 +19,7 @@ import Footer from '../footer/Footer.vue'
 const {
   app: { name: appName },
   isDraftPreview,
+  brandImageUrls,
   initialTrackingData,
   initialCompany,
 } = usePage().props
@@ -155,6 +156,11 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
           class="relative flex aspect-square h-40 w-40 flex-row items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-4 shadow-lg md:h-60 md:w-60"
         >
           <img
+            v-if="
+              initialCompany?.logo ||
+              !brandImageUrls ||
+              brandImageUrls['images/FW_Logo_Full_Color.png']
+            "
             :src="
               initialCompany?.logo?.file_path
                 ? imageAssetUrl({ filePath: initialCompany?.logo?.file_path })
@@ -162,6 +168,9 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
             "
             :alt="initialCompany?.logo?.name"
           />
+          <span v-else class="text-center text-lg font-bold">{{
+            initialCompany?.name
+          }}</span>
         </div>
       </div>
     </div>

@@ -12,8 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -74,6 +76,11 @@ class Company extends Model
     /** @use HasFactory<CompanyFactory> */
     use HasFactory, HasUuid;
 
+    public function publications(): HasMany
+    {
+        return $this->hasMany(TrackingPublication::class);
+    }
+
     protected $fillable = [
         'name',
         'logo',
@@ -100,6 +107,10 @@ class Company extends Model
 
     protected static function booted(): void
     {
+        static::deleted(function (Company $company) {
+            DB::afterCommit(fn () => Storage::disk('local')->deleteDirectory(DesignProof::companyDirectory($company->id)));
+        });
+
         static::created(function (Company $company) {
             if (! Schema::hasTable('company_features') || ! Schema::hasTable('company_has_feature')) {
                 return;

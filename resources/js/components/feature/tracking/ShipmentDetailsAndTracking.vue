@@ -30,6 +30,7 @@ const TrackingMap = defineAsyncComponent(
 )
 
 const props = defineProps({
+  showHistory: { type: Boolean, default: true },
   trackingData: {
     type: Object,
     required: true,
@@ -288,7 +289,7 @@ const numberOfPieces = computed(() => {
 
     <!-- Shipment Tracking Map -->
     <Card
-      v-if="shipmentCoordinates && companyHasFeature(`enable_map`)"
+      v-if="shipmentCoordinates?.length && companyHasFeature(`enable_map`)"
       class="w-full shadow-lg"
     >
       <CardHeader>
@@ -301,7 +302,7 @@ const numberOfPieces = computed(() => {
     </Card>
 
     <!-- Status History -->
-    <section>
+    <section v-if="showHistory">
       <h3 class="mb-6 text-2xl font-semibold">Status History</h3>
 
       <StatusStepper v-if="statuses" :statuses="statuses" />

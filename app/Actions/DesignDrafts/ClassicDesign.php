@@ -43,7 +43,8 @@ class ClassicDesign
         }
 
         $design = [
-            'layout' => self::LAYOUT,
+            'layout' => $input['layout'] ?? $previous?->design['layout'] ?? self::LAYOUT,
+            'emphasis' => $input['emphasis'] ?? $previous?->design['emphasis'] ?? 'delivery',
             'theme' => $theme,
             'sections' => array_values(array_intersect(self::availableSections($company), $input['sections'])),
         ];

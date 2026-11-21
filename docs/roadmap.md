@@ -2,6 +2,10 @@
 
 ## Active
 
+- [x] Archive desktop and mobile PNGs from one shipment snapshot per proof.
+- [x] Record customer approval, publish the selected revision and restore a previous publication or the original Classic branding.
+- [x] Add Get the answer with saved themes, optional sections and selectable emphasis.
+
 - [x] Save private named Classic drafts with revision history and live shipment previews
 
 - [x] Serve existing public shipment links with the Classic layout and cover
@@ -31,7 +35,8 @@
 
 ## Next
 
-- [ ] Export desktop and mobile proofs and publish the customer-approved revision
+- [ ] Demo the staff proof-to-publication workflow and obtain business acceptance before opening the integration PR to `develop`.
+- [ ] Extend the layout catalog with the journey and record concepts.
 - [x] Add deterministic Dusk environment wiring for repeatable browser smoke
       runs
 - [ ] Add stronger error and observability guidance around Pipeline failures
