@@ -98,13 +98,10 @@ async function captureView(
     await document.fonts.ready
     await Promise.all(Array.from(document.images, (image) => image.decode()))
   })
-  if (
-    page.props.initialShipmentCoordinates?.length &&
-    page.props.initialCompany.features.some(
-      (feature) => feature.slug === 'enable_map',
-    )
-  ) {
-    await tab
+  // An open map can still have zero height while its Vue chunk loads.
+  const maps = tab.locator('[data-proof-map]:not(details:not([open]) *)')
+  for (const map of await maps.all()) {
+    await map
       .locator('[data-map-ready="true"]')
       .waitFor({ state: 'attached', timeout: 20000 })
   }

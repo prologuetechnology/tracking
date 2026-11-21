@@ -8,11 +8,6 @@ use App\Models\DesignDraftRevision;
 
 class TrackingDesignPage
 {
-    public const LAYOUTS = [
-        'classic.v1' => 'brandedTracking/Classic',
-        'answer.v1' => 'brandedTracking/Answer',
-    ];
-
     public function __construct(private readonly ResolveTrackingPayload $resolver) {}
 
     public function preview(Company $company, DesignDraftRevision $revision, array $lookup): ?array
@@ -42,8 +37,10 @@ class TrackingDesignPage
         }
 
         return [
-            'component' => self::LAYOUTS[$design['layout']],
+            'component' => DesignCatalog::LAYOUTS[$design['layout']]['component'],
             'props' => [
+                'sectionOrder' => $design['section_orders'][$design['layout']] ?? null,
+                'headlineStyle' => $design['headline_style'] ?? 'layout',
                 'brandImageUrls' => DesignBrandImages::urls($design),
                 'emphasis' => $design['emphasis'] ?? 'delivery',
                 'initialCompany' => [
@@ -51,7 +48,7 @@ class TrackingDesignPage
                     'logo' => $design['logo'],
                     'banner' => $design['banner'],
                     'footer' => $design['footer'],
-                    'theme' => $design['theme'],
+                    'theme' => $design['layout'] === ClassicDesign::LAYOUT ? $design['theme'] : ($design['palette_theme'] ?? $design['theme']),
                     'features' => array_values(array_map(fn ($slug) => ['slug' => $slug], $visible)),
                 ],
                 'initialTrackingData' => $tracking,

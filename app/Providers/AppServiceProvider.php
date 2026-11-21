@@ -23,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('dusk.local')) {
+            // Browser tests use the built assets even when Herd is serving Vite on another origin.
+            Vite::useHotFile(storage_path('framework/dusk.hot'));
+        }
+
         Vite::prefetch(concurrency: 3);
 
         Event::listen(function (SocialiteWasCalled $event) {

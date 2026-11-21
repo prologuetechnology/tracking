@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/navigation-menu'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 
+defineProps({ sticky: { type: Boolean, default: true } })
+
 const { userCan } = useRolesAndPermissions()
 
 const {
@@ -27,7 +29,8 @@ const {
 
 <template>
   <header
-    class="sticky top-0 z-50 w-full border-b border-b-border/70 bg-background/70 backdrop-blur-lg"
+    :class="{ 'sticky top-0 z-50': sticky }"
+    class="w-full border-b border-b-border/70 bg-background/70 backdrop-blur-lg"
   >
     <nav
       class="relative mx-auto flex h-16 w-full max-w-3xl flex-row items-center justify-center px-6 lg:px-0"

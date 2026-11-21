@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pages\Admin;
 
 use App\Actions\DesignDrafts\ClassicDesign;
+use App\Actions\DesignDrafts\DesignCatalog;
 use App\Actions\DesignDrafts\SaveDesignDraft;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SaveDesignDraftRequest;
@@ -20,10 +21,12 @@ class DesignDraftController extends Controller
     {
         return Inertia::render('admin/designDrafts/Index', [
             'company' => $company->only(['uuid', 'name']),
-            'publications' => $company->publications()->latest('id')->with(['proof:id,design_draft_revision_id', 'proof.revision:id,design_draft_id,version', 'proof.revision.draft:id,name'])
+            'publications' => $company->publications()->latest('id')->with(['proof:id,uuid,design_draft_revision_id', 'proof.revision:id,design_draft_id,version', 'proof.revision.draft:id,uuid,name'])
                 ->get()->map(fn ($entry) => [
                     'id' => $entry->id, 'action' => $entry->action, 'at' => $entry->created_at,
                     'name' => $entry->proof?->revision->draft->name,
+                    'draft_uuid' => $entry->proof?->revision->draft->uuid,
+                    'proof_uuid' => $entry->proof?->uuid,
                     'version' => $entry->proof?->revision->version,
                 ]),
             'drafts' => $company->drafts()->withCount('revisions')->latest('updated_at')->orderByDesc('id')
@@ -57,20 +60,25 @@ class DesignDraftController extends Controller
 
     private function editor(Company $company, ?DesignDraft $draft = null): Response
     {
-        $revision = $draft?->revisions()->orderByDesc('version')->firstOrFail();
+        $publication = $draft === null ? $company->publications()->latest('id')->first() : null;
+        $revision = $draft ? $draft->revisions()->latest('version')->firstOrFail() : $publication?->effectiveRevision();
         $available = ClassicDesign::availableSections($company);
         $images = Image::query()->with('imageType:id,name')->whereHas('imageType', fn ($q) => $q->whereIn('name', ClassicDesign::ASSETS))
             ->orderBy('name')->get(['id', 'name', 'image_type_id'])->groupBy('imageType.name')
             ->map(fn ($group) => $group->map->only(['id', 'name'])->values());
         $form = [
+            'palette' => $revision?->design['palette'] ?? 'company',
+            'headline_style' => $revision?->design['headline_style'] ?? 'layout',
+            'section_orders' => array_replace(DesignCatalog::orders(), $revision?->design['section_orders'] ?? []),
             'layout' => $revision?->design['layout'] ?? ClassicDesign::LAYOUT,
             'emphasis' => $revision?->design['emphasis'] ?? 'delivery',
             'name' => $draft?->name ?? '',
             'theme_id' => $revision ? ($revision->design['theme']['id'] ?? null) : $company->theme_id,
             'sections' => $revision ? array_values(array_intersect($revision->design['sections'], $available)) : $available,
-            'search_option' => $revision?->search_option ?? 'bol',
-            'tracking_number' => $revision?->tracking_number,
-            'base_version' => $revision?->version,
+            'search_option' => $draft ? $revision->search_option : 'bol',
+            'tracking_number' => $draft ? $revision->tracking_number : null,
+            'base_version' => $draft ? $revision->version : null,
+            'source_publication_id' => $publication?->id,
         ];
         foreach (ClassicDesign::ASSETS as $type) {
             $field = $type.'_image_id';
@@ -83,6 +91,7 @@ class DesignDraftController extends Controller
         }
 
         return Inertia::render('admin/designDrafts/Edit', [
+            'catalog' => DesignCatalog::editor(),
             'company' => $company->only(['uuid', 'name']),
             'draft' => $draft?->only(['uuid', 'name']),
             'initialValues' => $form,

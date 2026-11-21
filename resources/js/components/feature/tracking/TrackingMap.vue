@@ -15,18 +15,21 @@ const fallback = ref(!import.meta.env.VITE_TRIMBLE_API_KEY)
 const ready = ref(false)
 let map
 let timer
+let observer
+let started = false
 let disposed = false
 const useFallback = () => {
   fallback.value = true
+  observer?.disconnect()
   clearTimeout(timer)
 }
 onBeforeUnmount(() => {
   disposed = true
+  observer?.disconnect()
   clearTimeout(timer)
   map?.remove()
 })
-onMounted(async () => {
-  if (fallback.value) return
+const initializeMap = async () => {
   timer = setTimeout(useFallback, 12000)
   try {
     const { default: TrimbleMaps } = await import(`@trimblemaps/trimblemaps-js`)
@@ -55,6 +58,21 @@ onMounted(async () => {
   } catch {
     useFallback()
   }
+}
+
+onMounted(() => {
+  if (fallback.value) return
+  observer = new ResizeObserver(([entry]) => {
+    const { width, height } = entry.contentRect
+    if (!width || !height || entry.target.closest(`details:not([open])`)) return
+    if (started) {
+      map?.resize()
+    } else {
+      started = true
+      initializeMap()
+    }
+  })
+  observer.observe(trackingMap.value)
 })
 </script>
 

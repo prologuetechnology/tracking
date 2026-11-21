@@ -1,6 +1,6 @@
 <script setup>
 import { router, useForm } from '@inertiajs/vue3'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,6 +64,12 @@ const publish = (proof) => {
     { preserveScroll: true },
   )
 }
+onMounted(() => {
+  const anchor = window.location.hash.slice(1)
+  if (props.proofs.some((proof) => anchor === `proof-` + proof.uuid)) {
+    document.getElementById(anchor)?.focus()
+  }
+})
 let timer
 watch(
   () => props.proofs.some((p) => p.status === `pending`),
@@ -101,7 +107,13 @@ onBeforeUnmount(() => clearInterval(timer))
       Load a shipment to save both views for customer review.
     </p>
     <ul v-else class="divide-y">
-      <li v-for="proof in proofs" :key="proof.uuid" class="grid gap-2 py-3">
+      <li
+        v-for="proof in proofs"
+        :id="'proof-' + proof.uuid"
+        :key="proof.uuid"
+        tabindex="-1"
+        class="grid scroll-mt-4 gap-2 py-3 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-ring"
+      >
         <div class="flex flex-wrap items-center gap-3 text-sm">
           <strong>{{ proof.shipment_reference }}</strong>
           <span class="font-mono text-xs"

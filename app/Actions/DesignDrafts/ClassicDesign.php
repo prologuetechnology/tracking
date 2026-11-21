@@ -30,6 +30,10 @@ class ClassicDesign
 
     public function snapshot(Company $company, array $input, ?DesignDraftRevision $previous): array
     {
+        if ($previous === null && isset($input['source_publication_id'])) {
+            $previous = $company->publications()->findOrFail($input['source_publication_id'])->effectiveRevision();
+        }
+
         $previousTheme = $previous?->design['theme'] ?? null;
         $themeId = $input['theme_id'];
         $theme = null;
@@ -42,7 +46,17 @@ class ClassicDesign
             }
         }
 
+        $palette = $input['palette'] ?? $previous?->design['palette'] ?? 'company';
+        $paletteTheme = DesignCatalog::preset($palette);
+        if ($palette === ($previous?->design['palette'] ?? null)) {
+            $paletteTheme = $previous->design['palette_theme'] ?? $paletteTheme;
+        }
+
         $design = [
+            'palette' => $palette,
+            'palette_theme' => $paletteTheme,
+            'headline_style' => $input['headline_style'] ?? $previous?->design['headline_style'] ?? 'layout',
+            'section_orders' => array_replace(DesignCatalog::orders(), $previous?->design['section_orders'] ?? [], $input['section_orders'] ?? []),
             'layout' => $input['layout'] ?? $previous?->design['layout'] ?? self::LAYOUT,
             'emphasis' => $input['emphasis'] ?? $previous?->design['emphasis'] ?? 'delivery',
             'theme' => $theme,

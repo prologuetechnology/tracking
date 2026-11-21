@@ -82,9 +82,7 @@ class ResolveTrackingPayload
             }
 
             $publication = $usePublishedDesign ? $company?->publications()->latest('id')->first() : null;
-            $revision = $publication?->design_proof_id
-                ? $publication->proof()->select('id', 'design_draft_revision_id')->firstOrFail()->revision
-                : $publication?->baselineRevision;
+            $revision = $publication?->effectiveRevision();
             if ($revision) {
                 $visibleSections = $revision->design['sections'];
             }

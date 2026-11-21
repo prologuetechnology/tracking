@@ -8,6 +8,7 @@ use App\Http\Controllers\Pages\Admin\DashboardController;
 use App\Http\Controllers\Pages\Admin\DesignDraftController;
 use App\Http\Controllers\Pages\Admin\DesignDraftPreviewController;
 use App\Http\Controllers\Pages\Admin\DesignProofController;
+use App\Http\Controllers\Pages\Admin\DesignStudioPreviewController;
 use App\Http\Controllers\Pages\Admin\ImagePageController;
 use App\Http\Controllers\Pages\Admin\PermissionPageController;
 use App\Http\Controllers\Pages\Admin\RolePageController;
@@ -56,6 +57,7 @@ Route::prefix('admin')
             ->scopeBindings()->group(function () {
                 Route::get('/', [DesignDraftController::class, 'index'])->name('index');
                 Route::post('publication/rollback', [TrackingPublicationController::class, 'rollback'])->name('rollback');
+                Route::post('studio-preview', DesignStudioPreviewController::class)->middleware('throttle:30,1')->name('studio-preview');
                 Route::get('create', [DesignDraftController::class, 'create'])->name('create');
                 Route::post('/', [DesignDraftController::class, 'store'])->name('store');
                 Route::get('{draft:uuid}', [DesignDraftController::class, 'show'])->name('show');

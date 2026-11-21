@@ -296,7 +296,7 @@ const numberOfPieces = computed(() => {
         <CardTitle>Tracking Map</CardTitle>
       </CardHeader>
 
-      <CardContent>
+      <CardContent data-proof-map>
         <TrackingMap :shipment-coordinates="shipmentCoordinates[0]" />
       </CardContent>
     </Card>

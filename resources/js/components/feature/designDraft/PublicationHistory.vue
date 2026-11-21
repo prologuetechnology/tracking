@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3'
+import { Link, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,14 @@ const title = (entry) =>
   entry?.version
     ? entry.name + ` · Revision ` + entry.version
     : `Original Classic branding`
+const proofUrl = (entry) =>
+  route(`admin.drafts.preview`, [
+    props.company.uuid,
+    entry.draft_uuid,
+    entry.version,
+  ]) +
+  `#proof-` +
+  entry.proof_uuid
 const restore = (entry) => {
   if (
     !window.confirm(
@@ -37,7 +45,15 @@ const restore = (entry) => {
     <h2 class="text-sm font-semibold text-muted-foreground">
       Live tracking design
     </h2>
-    <p class="font-semibold">{{ title(current) }}</p>
+    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <p class="font-semibold">{{ title(current) }}</p>
+      <Link
+        v-if="current?.proof_uuid"
+        :href="proofUrl(current)"
+        class="text-sm font-medium underline underline-offset-4"
+        >View approved proof</Link
+      >
+    </div>
     <details v-if="current" class="mt-2">
       <summary class="cursor-pointer text-sm underline">
         Publication history
@@ -53,6 +69,14 @@ const restore = (entry) => {
             >{{ entry.action === 'rollback' ? 'Restored' : 'Published' }}
             {{ new Date(entry.at).toLocaleString() }}</span
           >
+          <Link
+            v-if="entry.proof_uuid"
+            :href="proofUrl(entry)"
+            class="font-medium underline underline-offset-4"
+          >
+            View proof
+            <span class="font-mono">{{ entry.proof_uuid.slice(-8) }}</span>
+          </Link>
           <Button
             v-if="entry.id !== current.id"
             size="sm"
