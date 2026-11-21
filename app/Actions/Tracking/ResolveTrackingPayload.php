@@ -2,6 +2,7 @@
 
 namespace App\Actions\Tracking;
 
+use App\Actions\DesignDrafts\ClassicDesign;
 use App\Models\Company;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Log;
@@ -84,7 +85,7 @@ class ResolveTrackingPayload
             $publication = $usePublishedDesign ? $company?->publications()->latest('id')->first() : null;
             $revision = $publication?->effectiveRevision();
             if ($revision) {
-                $visibleSections = $revision->design['sections'];
+                $visibleSections = ClassicDesign::visibleSections($company, $revision->design);
             }
 
             return [

@@ -15,22 +15,30 @@ class DesignBrandImages
             $paths[] = self::DEFAULT_LOGO;
         }
 
-        $bucket = config('filesystems.disks.spaces.bucket');
-        $region = config('filesystems.disks.spaces.region');
         $urls = [];
         foreach (array_unique($paths) as $path) {
-            if (! self::validPath($path)) {
-                continue;
-            }
-            if (config('filesystems.image_library_disk') === 'public' && Storage::disk('public')->exists($path)) {
-                $urls[$path] = Storage::disk('public')->url($path);
-            } elseif ($bucket && $region) {
-                $encoded = implode('/', array_map('rawurlencode', explode('/', $path)));
-                $urls[$path] = "https://{$bucket}.{$region}.cdn.digitaloceanspaces.com/{$encoded}";
+            $url = self::urlForPath($path);
+            if ($url !== null) {
+                $urls[$path] = $url;
             }
         }
 
         return $urls;
+    }
+
+    public static function urlForPath(string $path): ?string
+    {
+        if (! self::validPath($path)) {
+            return null;
+        }
+        if (config('filesystems.image_library_disk') === 'public' && Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path);
+        }
+        $bucket = config('filesystems.disks.spaces.bucket');
+        $region = config('filesystems.disks.spaces.region');
+        $encoded = implode('/', array_map('rawurlencode', explode('/', $path)));
+
+        return $bucket && $region ? "https://{$bucket}.{$region}.cdn.digitaloceanspaces.com/{$encoded}" : null;
     }
 
     public static function validPath(string $path): bool

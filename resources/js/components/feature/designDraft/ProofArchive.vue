@@ -2,10 +2,12 @@
 import { router, useForm } from '@inertiajs/vue3'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import ArchivedProofViewer from '@/components/feature/designDraft/ArchivedProofViewer.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+const emit = defineEmits([`snapshot-expired`])
 const props = defineProps({
   company: { type: Object, required: true },
   draft: { type: Object, required: true },
@@ -30,12 +32,23 @@ const startApproval = (proof) => {
   approval.reset()
   approval.clearErrors()
 }
-const exporting = () =>
+watch(
+  () => props.lookup?.snapshot_token,
+  () => capture.clearErrors(),
+)
+const exporting = () => {
+  const lookup = props.lookup
+  if (!lookup?.snapshot_token) return
   capture
-    .transform(() => props.lookup)
+    .transform(() => lookup)
     .post(route(`admin.drafts.proofs.store`, params.value), {
       preserveScroll: true,
+      onError: (errors) => {
+        if (errors.snapshot_token)
+          emit(`snapshot-expired`, lookup.snapshot_token, errors.snapshot_token)
+      },
     })
+}
 const approve = (proof) =>
   approval.post(
     route(`admin.drafts.proofs.approve`, [...params.value, proof.uuid]),
@@ -123,6 +136,7 @@ onBeforeUnmount(() => clearInterval(timer))
             new Date(proof.created_at).toLocaleString()
           }}</time>
           <template v-if="proof.status === 'ready'">
+            <ArchivedProofViewer :params="params" :proof="proof" />
             <a
               v-for="view in ['desktop', 'mobile']"
               :key="view"

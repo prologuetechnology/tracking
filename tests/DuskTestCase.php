@@ -164,6 +164,7 @@ abstract class DuskTestCase extends BaseTestCase
             'ASSET_URL' => '',
             'DB_CONNECTION' => 'sqlite',
             'DB_DATABASE' => static::$duskDatabasePath,
+            'CACHE_STORE' => 'database',
             'XDEBUG_MODE' => 'off',
         ];
     }

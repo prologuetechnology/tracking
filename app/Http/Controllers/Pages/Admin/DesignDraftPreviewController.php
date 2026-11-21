@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Pages\Admin;
 
+use App\Actions\DesignDrafts\StudioShipmentSnapshot;
 use App\Actions\DesignDrafts\TrackingDesignPage;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\DesignDraft;
 use App\Models\DesignDraftRevision;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,13 +33,33 @@ class DesignDraftPreviewController extends Controller
         ]);
     }
 
-    public function render(Company $company, DesignDraft $draft, DesignDraftRevision $revision, Request $request, TrackingDesignPage $pages): Response
+    public function render(Company $company, DesignDraft $draft, DesignDraftRevision $revision, Request $request, TrackingDesignPage $pages, StudioShipmentSnapshot $snapshots): Response|RedirectResponse
     {
         $lookup = validator($request->query(), [
             'trackingNumber' => ['required', 'string', 'max:128'],
             'searchOption' => ['required', Rule::in(['bol', 'carrierPro'])],
         ]);
-        $page = $lookup->passes() ? $pages->preview($company, $revision, $lookup->validated()) : null;
+        if ($lookup->fails()) {
+            return Inertia::render('admin/designDrafts/Unavailable');
+        }
+        $input = $lookup->validated();
+        if ($request->boolean('capture') || $request->has('snapshot_token')) {
+            try {
+                $token = $request->validate(['snapshot_token' => ['sometimes', 'required', 'uuid']])['snapshot_token'] ?? null;
+                $capture = $snapshots->savedRevision($company, $revision, $request->user()->id, $input, $token);
+            } catch (ValidationException $exception) {
+                return Inertia::render('admin/designDrafts/Unavailable', ['previewError' => collect($exception->errors())->flatten()->first()]);
+            }
+            if ($token === null) {
+                return to_route('admin.drafts.render', [$company->uuid, $draft->uuid, $revision->version, ...$input, 'snapshot_token' => $capture['token']]);
+            }
+
+            return Inertia::render($capture['page']['component'], [
+                ...$capture['page']['props'], 'isDraftPreview' => true, 'isStudioPreview' => true,
+                'proofCapture' => ['token' => $token, 'at' => $capture['captured_at'], 'expiresAt' => $capture['expires_at']],
+            ]);
+        }
+        $page = $pages->preview($company, $revision, $input);
 
         return $page
             ? Inertia::render($page['component'], [...$page['props'], 'isDraftPreview' => true])

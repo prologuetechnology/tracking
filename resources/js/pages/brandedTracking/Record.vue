@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
+import { Head, usePage } from '@inertiajs/vue3'
 import {
   ChevronDown,
   CircleCheck,
@@ -10,13 +10,17 @@ import {
 } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import TrackingModuleV1 from '@/components/feature/tracking/curated/legacy/TrackingModuleV1.vue'
 import TrackingBrandHeader from '@/components/feature/tracking/curated/TrackingBrandHeader.vue'
 import TrackingModule from '@/components/feature/tracking/curated/TrackingModule.vue'
+import TrackingSectionList from '@/components/feature/tracking/curated/TrackingSectionList.vue'
 import ScanRegister from '@/components/feature/tracking/record/ScanRegister.vue'
 import Footer from '@/components/layout/footer/Footer.vue'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useTrackingDesign } from '@/composables/hooks/tracking/useTrackingDesign'
 
+const page = usePage()
+const refined = computed(() => page.props.presentationVersion === 2)
 const {
   company,
   shipment,
@@ -67,7 +71,10 @@ const footer = computed(
       >
         <ScanBarcode aria-hidden="true" class="size-5" />Carrier tracking record
       </div>
-      <div class="my-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div
+        class="my-4 flex flex-wrap items-center gap-x-4 gap-y-2"
+        data-design-field="palette"
+      >
         <h1
           class="text-3xl font-semibold tracking-tight sm:text-5xl"
           :class="headlineClass"
@@ -79,7 +86,9 @@ const footer = computed(
           :class="
             latest?.exception
               ? 'border-amber-300 bg-amber-50 text-amber-950'
-              : 'border-primary/25 bg-card text-card-foreground'
+              : refined && statusIcon === CircleCheck
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                : 'border-primary/25 bg-card text-card-foreground'
           "
         >
           <component
@@ -98,6 +107,7 @@ const footer = computed(
         >
           <div
             class="col-span-2 min-w-0 border-b px-4 py-3 sm:col-span-1 sm:border-b-0 sm:px-5 sm:py-4"
+            :class="{ 'relative pr-20 sm:pr-5': refined && banner }"
           >
             <dt class="record-caption">
               {{
@@ -111,6 +121,13 @@ const footer = computed(
             <dd
               class="mt-1 break-all font-mono text-sm font-semibold sm:text-base"
             >
+              <img
+                v-if="refined && banner"
+                :src="banner"
+                data-design-field="banner"
+                alt=""
+                class="absolute inset-y-0 right-0 h-full w-16 rounded-tr object-cover sm:hidden"
+              />
               {{ carrierPro || shipment.bolNum || 'Unavailable' }}
             </dd>
           </div>
@@ -127,9 +144,11 @@ const footer = computed(
         </dl>
         <img
           v-if="banner"
+          data-design-field="banner"
           :src="banner"
           alt=""
-          class="hidden max-h-24 w-32 object-cover lg:block"
+          class="hidden max-h-24 w-32 object-cover"
+          :class="refined ? 'sm:block' : 'lg:block'"
         />
       </div>
 
@@ -141,6 +160,7 @@ const footer = computed(
       >
         <aside
           v-if="modules.length"
+          :class="{ 'record-file': refined }"
           aria-labelledby="shipment-file"
           class="min-w-0 rounded-md border bg-card text-card-foreground"
         >
@@ -149,7 +169,11 @@ const footer = computed(
             <h2 id="shipment-file" class="font-semibold">Shipment file</h2>
           </div>
           <div class="p-4">
-            <TrackingModule :section="modules[0]" featured />
+            <component
+              :is="refined ? TrackingModule : TrackingModuleV1"
+              :section="modules[0]"
+              featured
+            />
           </div>
           <details v-if="modules.length > 1" class="group border-t">
             <summary
@@ -161,19 +185,25 @@ const footer = computed(
                 class="size-4 shrink-0 group-open:rotate-180"
               />
             </summary>
-            <div class="divide-y border-t">
+            <TrackingSectionList
+              v-if="refined"
+              :sections="modules.slice(1)"
+              class="border-t px-4"
+            />
+            <div v-else class="divide-y border-t">
               <div
                 v-for="section in modules.slice(1)"
                 :key="section"
                 class="min-w-0 p-4"
               >
-                <TrackingModule :section="section" />
+                <TrackingModuleV1 :section="section" />
               </div>
             </div>
           </details>
         </aside>
 
         <ScanRegister
+          :heading-class="refined ? headlineClass : ''"
           :events="events"
           :carrier="shipment.carrierName"
           :format-event-time="formatEventTime"
@@ -181,6 +211,7 @@ const footer = computed(
       </div>
       <img
         v-if="footer"
+        data-design-field="footer"
         :src="footer"
         alt=""
         class="mx-auto mt-8 max-w-full rounded"
@@ -193,5 +224,9 @@ const footer = computed(
 <style scoped>
 .record-caption {
   @apply font-mono text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground;
+}
+
+.record-file :deep(.module-references) {
+  @apply grid-cols-2 md:grid-cols-1;
 }
 </style>

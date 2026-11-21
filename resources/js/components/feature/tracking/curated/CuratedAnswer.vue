@@ -1,14 +1,31 @@
 <script setup>
 import { Head, usePage } from '@inertiajs/vue3'
-import { Check, CircleDot, MapPin, TriangleAlert } from 'lucide-vue-next'
+import {
+  ChevronRight,
+  FileText,
+  MapPin,
+  Route,
+  TriangleAlert,
+} from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import Footer from '@/components/layout/footer/Footer.vue'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useTrackingDesign } from '@/composables/hooks/tracking/useTrackingDesign'
 
+import AnswerHistory from './AnswerHistory.vue'
 import TrackingBrandHeader from './TrackingBrandHeader.vue'
 import TrackingModule from './TrackingModule.vue'
+import TrackingSectionList from './TrackingSectionList.vue'
 
 const page = usePage()
 const {
@@ -26,16 +43,6 @@ const {
   place,
 } = useTrackingDesign()
 const eventFirst = computed(() => page.props.emphasis === `event`)
-const highlights = computed(() => {
-  const scan = {
-    label: `Latest carrier event`,
-    value: latest.value ? formatEventTime(latest.value) : `Not available`,
-    location: latest.value?.location,
-  }
-  return eventFirst.value
-    ? [scan, delivery.value, pickup.value]
-    : [delivery.value, pickup.value, scan]
-})
 const itinerary = computed(() =>
   [
     place(shipment.value.originLocation),
@@ -52,140 +59,141 @@ const itinerary = computed(() =>
   >
     <Head :title="[company.name, reference].filter(Boolean).join(' · ')" />
     <TrackingBrandHeader />
-    <main class="mx-auto w-full max-w-6xl px-4 pb-12 pt-5 sm:px-8 sm:pt-8">
+    <main class="mx-auto w-full max-w-6xl px-4 pb-10 pt-4 sm:px-8 sm:pt-6">
       <p
-        class="mb-4 flex flex-wrap items-baseline gap-2 text-xs text-muted-foreground"
+        class="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
       >
-        Shipment <span aria-hidden="true">/</span
-        ><strong class="break-all font-mono text-foreground">{{
-          reference || 'Tracking'
-        }}</strong>
+        Shipment <ChevronRight class="size-3" aria-hidden="true" /><strong
+          class="break-all font-mono font-medium text-foreground"
+          >{{ reference || 'Tracking' }}</strong
+        >
       </p>
       <section
         aria-labelledby="answer-status"
-        class="overflow-hidden rounded-xl border bg-card text-card-foreground"
-        :class="company.banner ? 'grid md:grid-cols-[1.15fr,1fr]' : ''"
+        class="overflow-hidden rounded-xl bg-brand text-brand-foreground"
+        :class="{ 'grid md:grid-cols-[1.15fr,1fr]': company.banner }"
       >
-        <div class="min-w-0 p-6 sm:p-9">
+        <div
+          data-design-field="palette"
+          class="min-w-0 px-5 py-6 sm:px-9 sm:py-8"
+        >
           <p
-            class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+            class="mb-3 flex items-center gap-2 font-mono text-[0.69rem] font-semibold uppercase tracking-[0.15em]"
           >
-            <span class="size-2 rounded-full bg-primary"></span>Shipment status
+            <TriangleAlert
+              v-if="latest?.exception"
+              aria-hidden="true"
+              class="size-4"
+            />
+            <span
+              v-else
+              aria-hidden="true"
+              class="ring-current/10 size-2 rounded-full bg-current ring-4"
+            ></span
+            >Shipment status
           </p>
           <h1
             id="answer-status"
             :class="headlineClass"
-            class="break-words text-4xl font-bold leading-tight tracking-tight sm:text-6xl"
+            class="break-words text-[clamp(2.5rem,6vw,5.5rem)] font-bold leading-[1.02] tracking-[-0.055em] [overflow-wrap:anywhere]"
           >
             {{ status }}
           </h1>
           <p
-            v-if="latest?.exception"
-            class="mt-3 inline-flex items-center gap-2 rounded border border-amber-700/30 bg-amber-50 px-2 py-1 text-sm font-medium text-amber-950"
+            v-if="latest"
+            class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1"
+            :class="eventFirst ? 'text-lg font-semibold' : 'text-sm'"
           >
-            <TriangleAlert class="size-4" />Carrier reported an exception
-          </p>
-          <dl class="mt-6 grid gap-4 border-t pt-4 sm:grid-cols-2">
-            <div
-              v-for="(item, index) in highlights"
-              :key="item.label"
-              :class="index === 2 ? 'sm:col-span-2' : ''"
+            <template v-if="latest.location"
+              ><MapPin class="size-4 shrink-0" aria-hidden="true" /><span
+                class="min-w-0 [overflow-wrap:anywhere]"
+                >{{ latest.location }}</span
+              ><span aria-hidden="true">·</span></template
             >
-              <dt class="text-xs text-muted-foreground">{{ item.label }}</dt>
-              <dd class="font-semibold" :class="index === 0 ? 'text-xl' : ''">
-                {{ item.value }}
-              </dd>
+            <span class="sr-only">Latest carrier event</span
+            >{{ formatEventTime(latest) }}
+          </p>
+          <dl
+            class="border-current/25 mt-5 grid max-w-xl grid-cols-2 gap-x-3 border-t pt-3.5"
+          >
+            <div v-for="item in [pickup, delivery]" :key="item.label">
+              <dt class="text-xs font-medium">{{ item.label }}</dt>
               <dd
-                v-if="item.location"
-                class="flex items-center gap-1 text-xs text-muted-foreground"
+                class="mt-0.5 font-semibold tabular-nums"
+                :class="
+                  item === delivery && !eventFirst ? 'text-lg' : 'text-base'
+                "
               >
-                <MapPin class="size-3" />{{ item.location }}
+                {{ item.value }}
               </dd>
             </div>
           </dl>
         </div>
-        <figure v-if="company.banner" class="relative min-h-0">
+        <figure
+          v-if="company.banner"
+          data-design-field="banner"
+          class="relative h-24 sm:h-32 md:h-auto"
+        >
           <img
             :src="imageAssetUrl({ filePath: company.banner.file_path })"
             alt=""
-            class="h-40 w-full object-cover md:absolute md:inset-0 md:h-full"
+            class="absolute inset-0 h-full w-full object-cover"
           />
           <figcaption
             v-if="itinerary"
-            class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-5 pb-3 pt-8 text-sm text-white"
+            class="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-black/85 to-transparent px-4 pb-2 pt-7 text-xs font-medium text-white"
           >
-            {{ itinerary }}
+            <Route class="size-3.5" aria-hidden="true" />{{ itinerary }}
           </figcaption>
         </figure>
       </section>
-      <div
+      <section
         v-if="modules.length"
-        class="my-5 grid gap-4 rounded-xl border bg-card p-5 sm:p-6"
+        aria-label="Shipment information"
+        class="mt-3 flex flex-col items-start gap-3 rounded-xl border bg-card px-4 py-3.5 text-card-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-6"
       >
-        <TrackingModule :section="modules[0]" featured />
-        <details v-if="modules.length > 1" class="border-t pt-3">
-          <summary class="cursor-pointer text-sm font-semibold text-primary">
-            <span class="ml-1">More shipment details</span>
-          </summary>
-          <div class="mt-5 grid gap-6 sm:grid-cols-2">
-            <TrackingModule
-              v-for="section in modules.slice(1)"
-              :key="section"
-              :section="section"
-            />
-          </div>
-        </details>
-      </div>
-      <section class="mt-7" aria-labelledby="answer-history">
-        <header
-          class="mb-3 flex flex-wrap items-baseline justify-between gap-2"
-        >
-          <h2 id="answer-history" class="text-2xl font-semibold tracking-tight">
-            Carrier updates
-          </h2>
-          <span
-            v-if="shipment.carrierName"
-            class="text-sm text-muted-foreground"
-            >{{ shipment.carrierName }}</span
+        <TrackingModule
+          :section="modules[0]"
+          class="w-full sm:flex-1"
+          featured
+          brief
+        />
+        <Dialog>
+          <DialogTrigger as-child>
+            <Button variant="outline" size="sm" class="shrink-0">
+              <FileText class="mr-2 size-4" aria-hidden="true" />
+              <span>Shipment details</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent
+            class="max-h-[85dvh] max-w-[min(36rem,calc(100vw-2rem))] overflow-y-auto rounded-xl"
           >
-        </header>
-        <ol
-          v-if="events.length"
-          class="divide-y rounded-xl border bg-card px-4 sm:px-6"
-        >
-          <li
-            v-for="(event, index) in events"
-            :key="event.id"
-            class="grid grid-cols-[auto,1fr] items-start gap-x-3 py-4 sm:grid-cols-[auto,1fr,12rem,15rem]"
-          >
-            <component
-              :is="
-                event.exception
-                  ? TriangleAlert
-                  : index === 0
-                    ? Check
-                    : CircleDot
-              "
-              aria-hidden="true"
-              class="mt-1 size-4"
-              :class="event.exception ? 'text-amber-700' : 'text-primary'"
+            <DialogHeader>
+              <DialogTitle>Shipment details</DialogTitle>
+              <DialogDescription
+                class="break-all font-mono"
+                :class="{ 'sr-only': !reference }"
+              >
+                {{ reference || 'Shipment information' }}
+              </DialogDescription>
+            </DialogHeader>
+            <TrackingModule :section="modules[0]" featured />
+            <TrackingSectionList
+              v-if="modules.length > 1"
+              :sections="modules.slice(1)"
+              class="border-t"
             />
-            <strong class="break-words text-sm">{{ event.status }}</strong
-            ><span
-              class="col-start-2 text-sm text-muted-foreground sm:col-start-auto"
-              >{{ event.location }}</span
-            ><span
-              class="col-start-2 text-sm text-muted-foreground sm:col-start-auto"
-              >{{ formatEventTime(event) }}</span
-            >
-          </li>
-        </ol>
-        <p v-else class="border-y py-5 text-sm">
-          The carrier has not reported a tracking event yet.
-        </p>
+          </DialogContent>
+        </Dialog>
       </section>
+      <AnswerHistory
+        :events="events"
+        :format-event-time="formatEventTime"
+        :heading-class="headlineClass"
+      />
       <img
         v-if="company.footer"
+        data-design-field="footer"
         :src="imageAssetUrl({ filePath: company.footer.file_path })"
         alt=""
         class="mx-auto mt-8 max-w-full rounded"

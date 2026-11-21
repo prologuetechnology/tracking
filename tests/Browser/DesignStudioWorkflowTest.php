@@ -8,6 +8,36 @@ use Tests\DuskTestCase;
 
 class DesignStudioWorkflowTest extends DuskTestCase
 {
+    public function test_custom_brand_colors_and_a_selected_library_image_stay_private_to_the_draft(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeCompanyAdmin();
+        $company = $this->makeCompany(['pipeline_company_id' => 1001]);
+        $banner = $this->makeImage('banner', ['name' => 'Riverside depot']);
+        $this->browse(function (Browser $browser) use ($staff, $company, $banner) {
+            $frame = 'iframe[title="Unsaved shipment preview"]';
+            $browser->resize(1440, 1000)->loginAs($staff)
+                ->visit(route('admin.drafts.create', $company->uuid, false))
+                ->waitFor('#draft-name')->type('#draft-name', 'Riverside comparison')
+                ->type('#tracking-number', 'BOL123')->click('@draft-layout-option-answer.v1')
+                ->click('@inspector-appearance')->click('@palette-custom')
+                ->type('#draft-color-brand', '#00FFFF')
+                ->click('#draft-image-library > summary')
+                ->click('#draft-banner')->waitFor('[role="dialog"]')
+                ->click('@draft-banner-option-'.$banner->id)->assertSeeIn('#draft-banner', 'Riverside depot')
+                ->press('Load shipment')->waitFor($frame)
+                ->withinFrame($frame, fn (Browser $preview) => $preview->waitFor('#answer-status')
+                    ->assertScript('document.documentElement.style.getPropertyValue("--tracking-brand")', '180 100% 50%'))
+                ->press('Save draft')->waitForLink('Preview saved revision 1')
+                ->click('@inspector-appearance')->assertRadioSelected('palette', 'custom')
+                ->assertInputValue('#draft-color-brand', '#00FFFF');
+        });
+        $revision = $company->drafts()->sole()->revisions()->sole();
+        $this->assertSame($banner->id, $revision->banner_image_id);
+        $this->assertNotSame($banner->id, $company->fresh()->banner_image_id);
+        $this->assertSame(0, $company->publications()->count());
+    }
+
     public function test_staff_can_preview_unsaved_changes_and_reopen_their_layout_settings(): void
     {
         $this->seedCoreFixtures();
@@ -22,16 +52,16 @@ class DesignStudioWorkflowTest extends DuskTestCase
                 ->assertSee('Classic keeps its original section order.')
                 ->type('#draft-name', 'Receiving proposal')->type('#tracking-number', 'BOL123')
                 ->click('@draft-layout-option-answer.v1')->waitFor('#draft-emphasis')
-                ->click('button[aria-label="Move Shipment references up"]')
+                ->click('@inspector-sections')->click('button[aria-label="Move Shipment references up"]')
                 ->assertSeeIn('li[data-order-key]:first-child', 'Shipment references')
-                ->click('@draft-layout-option-record.v1')->assertRadioSelected('draft-layout', 'record.v1')
+                ->click('@inspector-layout')->click('@draft-layout-option-record.v1')->assertRadioSelected('draft-layout', 'record.v1')->click('@inspector-sections')
                 ->assertSeeIn('li[data-order-key]:first-child', 'Shipment references')
-                ->click('@draft-layout-option-journey.v1')
+                ->click('@inspector-layout')->click('@draft-layout-option-journey.v1')->click('@inspector-sections')
                 ->assertSeeIn('li[data-order-key]:first-child', 'Tracking map')
                 ->click('button[aria-label="Move Receiving address up"]')
-                ->click('#feature-enable_map')->assertSeeIn('li[data-order-key="map"]', 'Hidden')
-                ->click('@palette-pine')->click('#draft-headline')->click('@draft-headline-option-serif')
-                ->press('Update preview')->waitFor($frame)
+                ->click('@inspector-features')->click('#feature-enable_map')->click('@inspector-sections')->assertSeeIn('li[data-order-key="map"]', 'Hidden')
+                ->click('@inspector-appearance')->click('@palette-pine')->click('#draft-headline')->click('@draft-headline-option-serif')
+                ->press('Load shipment')->waitFor($frame)
                 ->withinFrame($frame, function (Browser $preview) {
                     $preview->waitFor('[data-tracking-layout="journey"]')
                         ->assertSeeIn('#journey-title', 'Chicago')
@@ -53,10 +83,10 @@ class DesignStudioWorkflowTest extends DuskTestCase
                 ->click('[aria-label="Studio view"] button:last-child')->waitFor('#studio-preview-title')
                 ->assertMissing('#design-editor')->click('[aria-label="Studio view"] button:first-child')
                 ->waitFor('#draft-name')->assertRadioSelected('draft-layout', 'journey.v1')
-                ->assertRadioSelected('palette', 'pine')->assertSeeIn('#draft-headline', 'Editorial serif')
-                ->assertSeeIn('li[data-order-key]:first-child', 'Receiving address')
+                ->click('@inspector-appearance')->assertRadioSelected('palette', 'pine')->assertSeeIn('#draft-headline', 'Editorial serif')
+                ->click('@inspector-sections')->assertSeeIn('li[data-order-key]:first-child', 'Receiving address')
                 ->assertSeeIn('li[data-order-key="map"]', 'Hidden')
-                ->click('@draft-layout-option-answer.v1')
+                ->click('@inspector-layout')->click('@draft-layout-option-answer.v1')->click('@inspector-sections')
                 ->assertSeeIn('li[data-order-key]:first-child', 'Shipment references');
 
             $this->assertSame(1, $company->drafts()->sole()->revisions()->count());

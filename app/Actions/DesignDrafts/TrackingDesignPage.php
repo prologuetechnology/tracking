@@ -18,7 +18,7 @@ class TrackingDesignPage
             companyId: (string) $company->pipeline_company_id,
             brand: $company->brand,
             expectedCompany: $company,
-            visibleSections: $revision->design['sections'],
+            visibleSections: ClassicDesign::visibleSections($company, $revision->design),
         );
 
         return $payload['found'] ? self::fromPayload($revision, $payload) : null;
@@ -28,7 +28,9 @@ class TrackingDesignPage
     {
         $design = $revision->design;
         $company = $payload['company'];
-        $visible = array_intersect($design['sections'], ClassicDesign::availableSections($company));
+        $visible = ClassicDesign::visibleSections($company, $design);
+        $order = $design['section_orders'][$design['layout']] ?? null;
+        $hidden = $design['hidden_modules'][$design['layout']] ?? [];
         $tracking = $payload['trackingData'];
         foreach (['special_instructions' => 'specialInstructions', 'customer_pos' => 'poNumbers'] as $slug => $field) {
             if (! in_array($slug, $visible, true)) {
@@ -39,7 +41,8 @@ class TrackingDesignPage
         return [
             'component' => DesignCatalog::LAYOUTS[$design['layout']]['component'],
             'props' => [
-                'sectionOrder' => $design['section_orders'][$design['layout']] ?? null,
+                'presentationVersion' => $design['presentation_version'] ?? 1,
+                'sectionOrder' => $order === null ? null : array_values(array_diff($order, $hidden)),
                 'headlineStyle' => $design['headline_style'] ?? 'layout',
                 'brandImageUrls' => DesignBrandImages::urls($design),
                 'emphasis' => $design['emphasis'] ?? 'delivery',
@@ -52,8 +55,8 @@ class TrackingDesignPage
                     'features' => array_values(array_map(fn ($slug) => ['slug' => $slug], $visible)),
                 ],
                 'initialTrackingData' => $tracking,
-                'initialShipmentCoordinates' => $payload['shipmentCoordinates'],
-                'initialShipmentDocuments' => $payload['shipmentDocuments'],
+                'initialShipmentCoordinates' => in_array('enable_map', $visible, true) ? $payload['shipmentCoordinates'] : null,
+                'initialShipmentDocuments' => in_array('enable_documents', $visible, true) ? $payload['shipmentDocuments'] : [],
             ],
         ];
     }

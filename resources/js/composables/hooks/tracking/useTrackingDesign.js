@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/vue3'
 import dayjs from 'dayjs'
-import { computed, inject, provide } from 'vue'
+import { computed, inject, onMounted, provide } from 'vue'
 
 import { useCompanyTheme } from '@/composables/hooks/theme'
 
@@ -73,7 +73,9 @@ export function useTrackingDesign() {
     dateField(
       shipment.value.actualPickupDate,
       shipment.value.estimatedPickupDate,
-      `Shipped`,
+      page.props.presentationVersion === 2
+        ? `Shipped · actual pickup`
+        : `Shipped`,
       `Estimated pickup`,
     ),
   )
@@ -81,7 +83,7 @@ export function useTrackingDesign() {
     dateField(
       shipment.value.actualDeliveryDate,
       shipment.value.estimatedDeliveryDate,
-      `Delivered on`,
+      page.props.presentationVersion === 2 ? `Actual delivery` : `Delivered on`,
       `Estimated delivery`,
     ),
   )
@@ -146,6 +148,18 @@ export function useTrackingDesign() {
     }
     return (page.props.sectionOrder ?? []).filter((name) => available[name])
   })
+  if (page.props.isStudioPreview) {
+    onMounted(() => {
+      window.parent.postMessage(
+        {
+          type: `tracking-studio-modules`,
+          renderId: page.props.studioRenderId,
+          modules: [...modules.value],
+        },
+        window.origin,
+      )
+    })
+  }
   const headlineClass = computed(
     () =>
       ({ serif: `font-serif`, sans: `font-sans` })[page.props.headlineStyle] ??

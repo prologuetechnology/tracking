@@ -7,6 +7,7 @@ const props = defineProps({
   events: { type: Array, required: true },
   carrier: { type: String, default: null },
   formatEventTime: { type: Function, required: true },
+  headingClass: { type: String, default: `` },
 })
 const expanded = ref(null)
 const scans = computed(() =>
@@ -39,6 +40,7 @@ const toggle = (id) => {
     <header class="flex items-baseline justify-between gap-4 p-4 sm:px-5">
       <h2
         id="scan-register"
+        :class="headingClass"
         class="text-xl font-semibold tracking-tight sm:text-2xl"
       >
         Scan register

@@ -57,7 +57,7 @@ class DesignDraftTest extends TestCase
         $this->assertSame($user->id, $draft->revisions()->sole()->created_by);
         $editor = route('admin.drafts.show', [$company->uuid, $draft->uuid]);
         $this->get(route('admin.drafts.index', $company->uuid))->assertInertia(fn (Assert $p) => $p
-            ->where('drafts.data.0.name', 'Autumn review')->where('drafts.data.0.revisions_count', 1));
+            ->where('drafts.data.0.name', 'Autumn review')->where('drafts.data.0.revisions_count', 1)->where('drafts.data.0.layout', 'Classic'));
         $this->get($editor)->assertInertia(fn (Assert $p) => $p->where('initialValues.banner_image_id', $banner->id)
             ->where('initialValues.tracking_number', 'BOL123')->where('initialValues.base_version', 1));
         $theme->update(['colors' => $this->makeTheme()->colors]);
