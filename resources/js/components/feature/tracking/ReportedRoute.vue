@@ -42,7 +42,7 @@ const points = computed(() => {
 </script>
 <template>
   <figure
-    class="grid h-full place-content-center rounded bg-muted p-4 text-primary"
+    class="grid h-full grid-cols-1 content-center justify-items-center rounded bg-muted p-4 text-primary"
   >
     <svg
       v-if="points.length"

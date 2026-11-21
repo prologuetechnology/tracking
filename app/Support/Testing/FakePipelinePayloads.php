@@ -4,9 +4,11 @@ namespace App\Support\Testing;
 
 class FakePipelinePayloads
 {
+    public const MULTIDAY_REFERENCE = 'CURATED-MULTIDAY';
+
     public static function shipmentSearch(string $trackingNumber, int $companyId = 1001): array
     {
-        return [
+        $payload = [
             'data' => [
                 [
                     'id' => 1,
@@ -48,6 +50,18 @@ class FakePipelinePayloads
                 ],
             ],
         ];
+
+        if ($trackingNumber === self::MULTIDAY_REFERENCE) {
+            $payload['data'][0]['estimatedDeliveryDate'] = null;
+            $payload['data'][0]['allStatuses'] = [
+                ['id' => 15, 'current_status' => 'At terminal', 'status_date_time' => '2026-03-04T16:00:00Z', 'current_location' => 'Dallas, TX'],
+                ['id' => 22, 'current_status' => 'Arrived at hub', 'status_date_time' => '2026-03-05T15:00:00Z', 'current_location' => 'Memphis, TN'],
+                ['id' => 22, 'current_status' => 'Delivery exception', 'status_date_time' => '2026-03-05T17:00:00Z', 'current_location' => 'Memphis, TN'],
+                ['id' => 35, 'current_status' => 'In transit', 'status_date_time' => null, 'timestamp' => '2026-03-06T16:00:00Z', 'current_location' => 'Chicago, IL', 'pro_number' => 'PRO-CARRIER-SCAN'],
+            ];
+        }
+
+        return $payload;
     }
 
     public static function shipmentCoordinates(): array

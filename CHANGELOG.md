@@ -4,18 +4,22 @@
 
 ### Added
 
-- Staff can export full-page desktop and mobile PNGs from one captured shipment
-  and retrieve the archived pair from its saved design revision. Approval,
-  publication and rollback are recorded separately for each company.
-- Get the answer adds a status-first tracking layout with customer branding,
-  optional shipment sections and a choice of delivery or latest-event emphasis.
-
-- Staff with company management access can save named Classic design drafts,
-  reopen saved revisions, and preview them with current company shipment data
-  at desktop and mobile widths. Public tracking uses the published settings.
-
-- Classic is the default layout for public shipment links. It uses each
-  company's assigned branding, existing feature settings, and fixed section order.
+- Tracking studio lets staff create a named proposal from the company's live
+  design, preview unsaved settings with a company shipment at desktop or mobile
+  width, and reopen any saved revision.
+- Staff can choose Classic, Get the answer, Follow the journey, or Inspect the
+  record. Classic keeps its fixed structure. The curated layouts offer five
+  preset palettes or a library theme, headline styles, optional shipment
+  details and a separately saved section order for each layout.
+- Follow the journey groups carrier events by day and can jump to an earlier
+  exception. Inspect the record pairs a shipment file with expandable carrier
+  scans. Get the answer prioritizes delivery timing or the latest carrier event.
+- Each proof archives both PNGs from one shipment snapshot. Staff can record
+  customer approval, publish that revision to existing links, and open the
+  exact proof from publication history. Restore an earlier publication or the
+  original Classic branding from the same history.
+- Existing companies start with Classic on their current tracking links.
+  Previously saved Get the answer revisions keep their original presentation.
 - Local onboarding and architecture baseline docs for the transfer-kit
   alignment.
 - A dedicated Herd-first fresh-machine setup guide in `docs/local-setup.md`.

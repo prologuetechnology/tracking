@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/vue3'
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onMounted, watchEffect } from 'vue'
 
 const colorProperties = {
   background: `--background`,
@@ -24,26 +24,30 @@ const colorProperties = {
 }
 
 const useCompanyTheme = () => {
-  const colors = usePage().props.initialCompany?.theme?.colors?.root
-  if (!colors) return
-
-  const previous = new Map()
-
+  const page = usePage()
   onMounted(() => {
     const style = document.documentElement.style
+    watchEffect((onCleanup) => {
+      const colors = page.props.initialCompany?.theme?.colors?.root
+      if (!colors) return
 
-    for (const [token, property] of Object.entries(colorProperties)) {
-      if (colors[token]) {
-        previous.set(property, style.getPropertyValue(property))
-        style.setProperty(property, colors[token])
+      const previous = new Map()
+      for (const [token, property] of Object.entries(colorProperties)) {
+        if (colors[token]) {
+          previous.set(property, [
+            style.getPropertyValue(property),
+            style.getPropertyPriority(property),
+          ])
+          style.setProperty(property, colors[token])
+        }
       }
-    }
-  })
-
-  onBeforeUnmount(() => {
-    for (const [property, value] of previous) {
-      document.documentElement.style.setProperty(property, value)
-    }
+      onCleanup(() => {
+        for (const [property, [value, priority]] of previous) {
+          if (value) style.setProperty(property, value, priority)
+          else style.removeProperty(property)
+        }
+      })
+    })
   })
 }
 

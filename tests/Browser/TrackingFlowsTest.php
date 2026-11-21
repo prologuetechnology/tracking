@@ -57,7 +57,7 @@ class TrackingFlowsTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/trackShipment?trackingNumber=BOL123&searchOption=bol')
                 ->waitForText('Shipment Details')
-                ->waitForText('Shipment Documents')
+                ->waitForText('Shipment Documents')->assertSee('BOL123')
                 ->visit('/trackShipment?trackingNumber=BOL404&searchOption=bol')
                 ->waitForText('Shipment not found.');
         });
@@ -82,7 +82,7 @@ class TrackingFlowsTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) {
             $browser->visit('/trackShipment?trackingNumber=BOL123&searchOption=bol')
-                ->waitForText('Shipment not found.');
+                ->waitForText('Shipment not found.')->assertDontSee('Shipment Details');
         });
     }
 }

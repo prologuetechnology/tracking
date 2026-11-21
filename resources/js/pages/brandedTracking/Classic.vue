@@ -20,6 +20,13 @@ const proNumber = computed(() => {
 })
 
 const refresh = () => {
+  if (page.props.isStudioPreview) {
+    window.parent.postMessage(
+      { type: `tracking-studio-refresh` },
+      window.origin,
+    )
+    return
+  }
   router.visit(window.location.href, {
     replace: true,
     preserveScroll: true,

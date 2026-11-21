@@ -2,14 +2,16 @@
 
 ## Active
 
-- [x] Archive desktop and mobile PNGs from one shipment snapshot per proof.
-- [x] Record customer approval, publish the selected revision and restore a previous publication or the original Classic branding.
-- [x] Add Get the answer with saved themes, optional sections and selectable emphasis.
-
-- [x] Save private named Classic drafts with revision history and live shipment previews
-
-- [x] Serve existing public shipment links with the Classic layout and cover
-      desktop and mobile branding, feature visibility, and guest refresh
+- [x] Keep existing companies on Classic with the same links, branding, fixed
+      section order, and guest refresh on desktop and mobile.
+- [x] Offer Get the answer, Follow the journey, and Inspect the record with
+      preset palettes, library themes, headline styles, feature switches and
+      per-layout section order.
+- [x] Give staff a private studio for named drafts and live company shipment
+      previews at desktop and mobile widths. Save and reopen design revisions.
+- [x] Archive both PNGs from a single shipment snapshot. Record customer
+      approval on the selected proof, publish its revision, reopen the exact
+      pair from history, and restore an earlier publication or Classic.
 - [x] Transfer-kit alignment baseline docs completed and kept current
 - [x] Herd-first onboarding docs and env contract refreshed for fresh-machine
       setup
@@ -35,8 +37,11 @@
 
 ## Next
 
-- [ ] Demo the staff proof-to-publication workflow and obtain business acceptance before opening the integration PR to `develop`.
-- [ ] Extend the layout catalog with the journey and record concepts.
+- [ ] Demo all four layouts and the draft, export, approval, publication, and
+      rollback workflow from `feature/tracking-layouts-and-branding`. Open the
+      integration PR to `develop` after business acceptance.
+- [ ] After release, invite customers with existing branding to review
+      proposals for their own tracking pages.
 - [x] Add deterministic Dusk environment wiring for repeatable browser smoke
       runs
 - [ ] Add stronger error and observability guidance around Pipeline failures
