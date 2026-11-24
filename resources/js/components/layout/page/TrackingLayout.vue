@@ -32,11 +32,6 @@ defineProps({
     required: false,
     default: null,
   },
-  footerFilePath: {
-    type: String,
-    required: false,
-    default: null,
-  },
 })
 
 const bolNumber = computed(() => {
@@ -70,11 +65,7 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
 
 <template>
   <div
-    class="relative grid min-h-screen grid-cols-1 items-start bg-background/0"
-    :class="{
-      'grid-rows-[auto,1fr,auto]': bannerFilePath,
-      'grid-rows-[1fr,auto]': !bannerFilePath,
-    }"
+    class="relative grid min-h-dvh grid-cols-1 grid-rows-[auto,1fr,auto] items-start bg-background"
   >
     <!-- <Navbar /> -->
     <div class="group relative mx-auto mb-16 h-[40vh] w-full max-w-4xl">
@@ -181,17 +172,6 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
       <main class="w-full">
         <slot />
       </main>
-
-      <div
-        v-if="footerFilePath"
-        class="mx-auto mt-8 w-full max-w-3xl overflow-hidden rounded-lg shadow-xl"
-      >
-        <img
-          :src="imageAssetUrl({ filePath: footerFilePath })"
-          class="w-full object-cover"
-          alt=""
-        />
-      </div>
     </div>
 
     <Footer />

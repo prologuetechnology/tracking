@@ -53,7 +53,6 @@ const refresh = () => {
 
   <TrackingLayout
     :banner-file-path="page.props.initialCompany?.banner?.file_path"
-    :footer-file-path="page.props.initialCompany?.footer?.file_path"
   >
     <ShipmentDetailsAndTracking
       :tracking-data="page.props.initialTrackingData"

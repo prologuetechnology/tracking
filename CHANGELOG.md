@@ -4,6 +4,9 @@
 
 ### Added
 
+- Staff can review the proposed shipment-first portal locally with the Jayco sample, versioned styles, desktop and mobile proofs, and a browser-local approval history.
+- Tracking pages now place their themed footer and optional artwork after the shipment content. Staff screens use a separate, full-width Prologue footer.
+
 - The studio compares draft and live designs on the same captured shipment. Its Layout, Appearance, Sections and Features tabs update the draft preview as staff edit. Staff can select a preview element to open its settings.
 - Curated designs support draft-specific colors, a visual brand image picker and independent section visibility. Saved revisions can be copied into separately named proposals, and both archived proof images can be inspected before approval.
 - New proposals use the refined delivery summary, route itinerary and scan register. Reopening or renaming a historical draft preserves its presentation. Staff can opt into the updated layout or change its visual settings in a new revision.

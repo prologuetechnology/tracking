@@ -45,16 +45,11 @@ const banner = computed(
     company.value.banner?.file_path &&
     imageAssetUrl({ filePath: company.value.banner.file_path }),
 )
-const footer = computed(
-  () =>
-    company.value.footer?.file_path &&
-    imageAssetUrl({ filePath: company.value.footer.file_path }),
-)
 </script>
 
 <template>
   <div
-    class="min-h-screen border-t-4 border-primary bg-muted/40 text-foreground"
+    class="flex min-h-dvh flex-col border-t-4 border-primary bg-muted/40 text-foreground"
     data-tracking-layout="record"
   >
     <Head
@@ -209,15 +204,8 @@ const footer = computed(
           :format-event-time="formatEventTime"
         />
       </div>
-      <img
-        v-if="footer"
-        data-design-field="footer"
-        :src="footer"
-        alt=""
-        class="mx-auto mt-8 max-w-full rounded"
-      />
     </main>
-    <Footer :sticky="false" />
+    <Footer />
   </div>
 </template>
 

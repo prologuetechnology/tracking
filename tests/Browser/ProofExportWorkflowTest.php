@@ -69,6 +69,7 @@ class ProofExportWorkflowTest extends DuskTestCase
                     ->assertDontSeeIn('aside nav', 'Access')
                     ->resize(390, 844)->click('[aria-label="Open staff navigation"]')
                     ->waitFor('[role="dialog"] nav')->assertSeeIn('[role="dialog"] nav', 'Shipment lookup')
+                    ->waitUntil('document.querySelector("[role=dialog]").getAnimations().every(animation => animation.playState !== "running")')
                     ->click('[role="dialog"] nav a[aria-current="location"]')
                     ->waitForLink('Alternative receiving desk')->assertSee('Saved drafts')
                     ->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth');

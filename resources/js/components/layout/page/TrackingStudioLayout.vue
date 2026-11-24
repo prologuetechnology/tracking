@@ -3,6 +3,7 @@ import { Link, router, usePage } from '@inertiajs/vue3'
 import { ChevronRight, PanelLeft } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import StaffFooter from '@/components/layout/footer/StaffFooter.vue'
 import TrackingStudioNavigation from '@/components/layout/navigation/TrackingStudioNavigation.vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,16 +32,18 @@ const { mutate: stopImpersonating } = useImpersonateUserStopMutation({
 </script>
 
 <template>
-  <div class="studio-shell min-h-screen bg-background text-foreground">
+  <div
+    class="studio-shell flex min-h-dvh flex-col bg-background text-foreground"
+  >
     <Toaster />
     <a
       href="#studio-workspace"
       class="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:p-3"
       >Skip to workspace</a
     >
-    <div class="min-h-screen lg:grid lg:grid-cols-[11.125rem_minmax(0,1fr)]">
+    <div class="flex-1 lg:grid lg:grid-cols-[11.125rem_minmax(0,1fr)]">
       <aside
-        class="sticky top-0 hidden h-dvh min-h-0 flex-col overflow-y-auto bg-[#25252e] lg:col-start-1 lg:row-start-1 lg:flex"
+        class="sticky top-0 hidden h-[calc(100dvh-3rem)] min-h-0 flex-col overflow-y-auto bg-[#25252e] lg:col-start-1 lg:row-start-1 lg:flex"
       >
         <TrackingStudioNavigation :company="company" />
       </aside>
@@ -123,6 +126,7 @@ const { mutate: stopImpersonating } = useImpersonateUserStopMutation({
         </main>
       </div>
     </div>
+    <StaffFooter />
   </div>
 </template>
 

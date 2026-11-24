@@ -1,4 +1,5 @@
 <script setup>
+import Footer from '../footer/Footer.vue'
 import Navbar from '../navigation/Navbar.vue'
 
 defineProps({
@@ -12,7 +13,7 @@ defineProps({
 
 <template>
   <div
-    class="grid min-h-screen items-start"
+    class="grid min-h-dvh grid-cols-1 items-start"
     :class="{
       'grid-rows-[auto,1fr,auto]': hasNavbar,
       'grid-rows-[1fr,auto]': !hasNavbar,
@@ -33,5 +34,6 @@ defineProps({
     >
       <slot />
     </main>
+    <slot name="footer"><Footer /></slot>
   </div>
 </template>

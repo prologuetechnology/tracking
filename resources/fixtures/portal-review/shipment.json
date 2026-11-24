@@ -1,0 +1,75 @@
+{
+  "id": 1,
+  "companyId": 1001,
+  "bolNum": "DEMO-7018",
+  "carrierPro": "PRO-DEMO-7018",
+  "carrierName": "Example Parcel",
+  "allStatuses": [
+    {
+      "id": 1,
+      "current_status": "Picked up",
+      "status_date_time": "2026-11-13T10:30:00-05:00",
+      "current_location": "Middlebury, IN",
+      "pro_number": "PRO-DEMO-7018"
+    },
+    {
+      "id": 2,
+      "current_status": "Arrived at facility",
+      "status_date_time": "2026-11-14T09:22:00-06:00",
+      "current_location": "Hodgkins, IL",
+      "pro_number": "PRO-DEMO-7018"
+    },
+    {
+      "id": 3,
+      "current_status": "Delivery exception",
+      "status_date_time": "2026-11-16T09:12:00-05:00",
+      "current_location": "Doraville, GA",
+      "pro_number": "PRO-DEMO-7018"
+    },
+    {
+      "id": 4,
+      "current_status": "Departed facility",
+      "status_date_time": "2026-11-17T07:41:00-05:00",
+      "current_location": "Doraville, GA",
+      "pro_number": "PRO-DEMO-7018"
+    },
+    {
+      "id": 5,
+      "current_status": "Out for delivery",
+      "status_date_time": "2026-11-18T08:15:00-05:00",
+      "current_location": "Macon, GA",
+      "pro_number": "PRO-DEMO-7018"
+    },
+    {
+      "id": 6,
+      "current_status": "Delivered",
+      "status_date_time": "2026-11-18T11:33:00-05:00",
+      "current_location": "Byron, GA",
+      "pro_number": "PRO-DEMO-7018"
+    }
+  ],
+  "lineItems": [
+    {
+      "pieces": 2
+    }
+  ],
+  "totalWeight": 24,
+  "originLocation": {
+    "name": "Example distribution center",
+    "address": "101 Demo Trail",
+    "city": "Middlebury",
+    "state": "IN",
+    "zipCode": "46540"
+  },
+  "destinationLocation": {
+    "name": "Example receiving dock",
+    "address": "25 Demo Road",
+    "city": "Byron",
+    "state": "GA",
+    "zipCode": "31008"
+  },
+  "estimatedDeliveryDate": "2026-11-19",
+  "estimatedPickupDate": "2026-03-01",
+  "actualPickupDate": "2026-11-13",
+  "actualDeliveryDate": "2026-11-18"
+}

@@ -55,7 +55,7 @@ class ClassicTrackingLayoutTest extends DuskTestCase
                 ->assertTitleContains('Target Freight')
                 ->assertPresent('img[src$="/images/target-banner.png"]')
                 ->assertPresent('img[src$="/images/target-logo.png"]')
-                ->assertPresent('img[src$="/images/target-footer.png"]')
+                ->assertPresent('[data-tracking-footer] img[src$="/images/target-footer.png"]')
                 ->assertScript('document.documentElement.style.getPropertyValue("--primary")', $theme->colors['root']['primary'])
                 ->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth')
                 ->assertSee('Shipment Documents')
