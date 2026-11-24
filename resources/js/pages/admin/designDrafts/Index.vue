@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 defineProps({
   company: { type: Object, required: true },
   publications: { type: Array, required: true },
+  shipmentLookup: { type: Object, default: null },
   drafts: { type: Object, required: true },
 })
 </script>
@@ -16,11 +17,26 @@ defineProps({
   <TrackingStudioLayout :company="company">
     <Head :title="`Design drafts · ${company.name}`" />
     <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
-      <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Design drafts
-      </h1>
+      <div>
+        <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+          Design drafts
+        </h1>
+        <p
+          v-if="shipmentLookup"
+          class="mt-1 break-all font-mono text-sm text-muted-foreground"
+        >
+          {{ shipmentLookup.searchOption === 'bol' ? 'BOL' : 'Carrier PRO' }} ·
+          {{ shipmentLookup.trackingNumber }}
+        </p>
+      </div>
       <Button as-child>
-        <Link :href="route('admin.drafts.create', company.uuid)"
+        <Link
+          :href="
+            route('admin.drafts.create', {
+              company: company.uuid,
+              _query: shipmentLookup ?? {},
+            })
+          "
           >Create design draft</Link
         >
       </Button>

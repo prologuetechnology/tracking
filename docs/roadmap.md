@@ -2,6 +2,8 @@
 
 ## Active
 
+- [x] Extend Signal to company workspaces, the two-pane studio, the shared asset inspector, and access administration.
+
 - [x] Keep existing companies on Classic with the same links, branding, fixed
       section order, and guest refresh on desktop and mobile.
 - [x] Offer Get the answer, Follow the journey, and Inspect the record with

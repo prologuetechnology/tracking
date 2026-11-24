@@ -4,6 +4,8 @@
 
 ### Added
 
+- Staff can search companies and shared assets, open a company’s draft and approval history from its workspace, and edit a shipment design beside its preview.
+
 - Signal gives staff a live shipment console and an account-wide System, Light, or Dark appearance, including mobile navigation and sign-in.
 
 - Staff can compare Manifest, Fieldbook, and Signal across shipment lookup, company files, design review, themes, assets, and access in the local portal review.

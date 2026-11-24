@@ -5,6 +5,7 @@ import { ref } from 'vue'
 
 import UserDropdown from '@/components/feature/user/navigation/UserDropdown.vue'
 import StaffFooter from '@/components/layout/footer/StaffFooter.vue'
+import SignalAccessNavigation from '@/components/layout/navigation/SignalAccessNavigation.vue'
 import SignalNavigation from '@/components/layout/navigation/SignalNavigation.vue'
 import StaffAppearanceSelect from '@/components/layout/navigation/StaffAppearanceSelect.vue'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Toaster } from '@/components/ui/toast'
+import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { useImpersonateUserStopMutation } from '@/composables/mutations/user'
 
 defineProps({
@@ -24,6 +26,7 @@ defineProps({
 })
 const page = usePage()
 const open = ref(false)
+const { userIs } = useRolesAndPermissions()
 const { mutate: stop } = useImpersonateUserStopMutation({
   config: {
     onSuccess: () => router.visit(route(`home`), { preserveState: false }),
@@ -83,7 +86,16 @@ const { mutate: stop } = useImpersonateUserStopMutation({
         >Stop impersonation</Button
       >
     </div>
-    <main :id="contentId" class="signal-main" tabindex="-1"><slot /></main>
+    <main :id="contentId" class="signal-main" tabindex="-1">
+      <SignalAccessNavigation
+        v-if="
+          userIs(`Super Admin`) &&
+          /^admin\/(users|role|permissions|allowedDomains)\//.test(
+            page.component,
+          )
+        "
+      /><slot />
+    </main>
     <StaffFooter />
   </div>
 </template>

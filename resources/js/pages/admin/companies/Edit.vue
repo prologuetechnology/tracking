@@ -1,9 +1,10 @@
 <script setup>
 import { faImageSlash, faTrashAlt } from '@fortawesome/pro-duotone-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { Head, Link } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 
 import CompanyClearImageAssetDialog from '@/components/feature/company/CompanyClearImageAssetDialog.vue'
+import CompanyDesignWorkspace from '@/components/feature/company/CompanyDesignWorkspace.vue'
 import CompanyForm from '@/components/feature/company/CompanyForm.vue'
 import CompanySetImageAsset from '@/components/feature/company/CompanySetImageAsset.vue'
 import ToggleCompanyIsActive from '@/components/feature/company/ToggleCompanyIsActive.vue'
@@ -13,15 +14,13 @@ import CompanyApiTokenForm from '@/components/feature/companyApiToken/CompanyApi
 import CompanyFeatures from '@/components/feature/companyFeature/CompanyFeatures.vue'
 import SelectThemeDialog from '@/components/feature/theme/SelectThemeDialog.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import useAuthorization from '@/composables/hooks/auth/useAuthorization'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompanyQuery } from '@/composables/queries/company'
 
-const { can } = useAuthorization()
-
 const props = defineProps({
+  designWorkspace: { type: Object, required: true },
+  shipmentLookup: { type: Object, default: null },
   companyInitialValues: {
     type: Object,
     required: true,
@@ -46,13 +45,11 @@ const { data: company, isError } = useCompanyQuery({
 
   <AuthenticatedLayout :title="company?.name">
     <div v-if="company && !isError" class="mb-6">
-      <div v-if="can('company:update')" class="mb-4 flex justify-end">
-        <Button variant="outline" as-child>
-          <Link :href="route('admin.drafts.index', company.uuid)"
-            >Design drafts</Link
-          >
-        </Button>
-      </div>
+      <CompanyDesignWorkspace
+        :company="company"
+        :lookup="shipmentLookup"
+        :overview="designWorkspace"
+      />
 
       <!-- Banner -->
       <div class="group relative h-64 overflow-hidden rounded-lg">
