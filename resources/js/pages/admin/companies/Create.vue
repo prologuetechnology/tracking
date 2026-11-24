@@ -6,9 +6,8 @@ import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vu
 </script>
 
 <template>
-  <Head title="Create Company`" />
-
   <AuthenticatedLayout title="Create Company">
+    <Head title="Create Company" />
     <CompanyForm />
   </AuthenticatedLayout>
 </template>

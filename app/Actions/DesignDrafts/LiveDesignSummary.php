@@ -15,7 +15,7 @@ final class LiveDesignSummary
         $theme = $revision ? ThemeUsage::effectiveTheme($revision->design) : $company->baselineTheme()?->snapshot();
 
         return [
-            'label' => $publication?->design_proof_id ? $revision->draft->name.' · Revision '.$revision->version : 'Original Classic',
+            'label' => $publication?->published_revision_id ? $revision->draft->name.' · Revision '.$revision->version : 'Original Classic',
             'layout' => $revision?->design['layout'] ?? ClassicDesign::LAYOUT, 'publicationId' => $publication?->id,
             'themeId' => $theme['id'] ?? null, 'themeName' => $theme['name'] ?? null, 'themeVersion' => $theme['version'] ?? null, 'themeVersionId' => $theme['theme_version_id'] ?? null,
             'latestThemeVersion' => isset($theme['id']) ? ThemeVersion::where('theme_id', $theme['id'])->max('version') : null,

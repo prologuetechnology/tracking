@@ -101,6 +101,8 @@ abstract class DuskTestCase extends BaseTestCase
             static::duskServerEnvironment(),
         );
 
+        // The asset server can fill its output pipe during long browser workflows.
+        static::$server->disableOutput();
         static::$server->setTimeout(null);
         static::$server->start();
 

@@ -1,22 +1,17 @@
 <script setup>
 import { router, useForm } from '@inertiajs/vue3'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { Download } from 'lucide-vue-next'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 
 import ArchivedProofViewer from '@/components/feature/designDraft/ArchivedProofViewer.vue'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
-import ConfirmPublication from './ConfirmPublication.vue'
 const emit = defineEmits([`snapshot-expired`])
 const props = defineProps({
   company: { type: Object, required: true },
   draft: { type: Object, required: true },
   revision: { type: Object, required: true },
   proofs: { type: Array, required: true },
-  publication: { type: Number, required: true },
-  activeProof: { type: String, default: null },
   lookup: { type: Object, default: null },
 })
 const params = computed(() => [
@@ -26,14 +21,6 @@ const params = computed(() => [
 ])
 const capture = useForm({})
 const retry = useForm({})
-const approval = useForm({ customer_approver: `` })
-const release = useForm({ publication: 0 })
-const selected = ref(null)
-const startApproval = (proof) => {
-  selected.value = proof.uuid
-  approval.reset()
-  approval.clearErrors()
-}
 watch(
   () => props.lookup?.snapshot_token,
   () => capture.clearErrors(),
@@ -51,24 +38,6 @@ const exporting = () => {
       },
     })
 }
-const approve = (proof) =>
-  approval.post(
-    route(`admin.drafts.proofs.approve`, [...params.value, proof.uuid]),
-    {
-      preserveScroll: true,
-      onSuccess: () => {
-        selected.value = null
-        approval.reset()
-      },
-    },
-  )
-const publish = (proof) => {
-  release.publication = props.publication
-  release.post(
-    route(`admin.drafts.proofs.publish`, [...params.value, proof.uuid]),
-    { preserveScroll: true },
-  )
-}
 onMounted(() => {
   const anchor = window.location.hash.slice(1)
   if (props.proofs.some((proof) => anchor === `proof-` + proof.uuid)) {
@@ -82,7 +51,10 @@ watch(
     clearInterval(timer)
     if (pending)
       timer = setInterval(
-        () => router.reload({ only: [`proofs`, `publication`, `activeProof`] }),
+        () =>
+          router.reload({
+            only: [`proofs`, `publication`, `revision`, `isLive`],
+          }),
         5000,
       )
   },
@@ -91,7 +63,7 @@ watch(
 onBeforeUnmount(() => clearInterval(timer))
 </script>
 <template>
-  <section aria-labelledby="saved-proofs" class="grid gap-3 border-t pt-4">
+  <section aria-labelledby="saved-proofs" class="grid gap-3 pt-5">
     <div class="flex flex-wrap items-center gap-3">
       <h2 id="saved-proofs" class="mr-auto font-semibold">Revision proofs</h2>
       <Button
@@ -102,12 +74,8 @@ onBeforeUnmount(() => clearInterval(timer))
         Export desktop and mobile PNGs
       </Button>
     </div>
-    <p
-      v-if="capture.hasErrors || release.hasErrors"
-      role="alert"
-      class="text-sm text-destructive"
-    >
-      {{ Object.values(capture.errors)[0] || Object.values(release.errors)[0] }}
+    <p v-if="capture.hasErrors" role="alert" class="text-sm text-destructive">
+      {{ Object.values(capture.errors)[0] }}
     </p>
     <p v-if="!proofs.length" class="text-sm text-muted-foreground">
       Load a shipment to save both views for customer review.
@@ -118,7 +86,7 @@ onBeforeUnmount(() => clearInterval(timer))
         :id="'proof-' + proof.uuid"
         :key="proof.uuid"
         tabindex="-1"
-        class="grid scroll-mt-4 gap-2 py-3 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-ring"
+        class="grid scroll-mt-4 gap-2 py-3 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <div class="flex flex-wrap items-center gap-3 text-sm">
           <strong>{{ proof.shipment_reference }}</strong>
@@ -130,28 +98,43 @@ onBeforeUnmount(() => clearInterval(timer))
           }}</time>
           <template v-if="proof.status === 'ready'">
             <ArchivedProofViewer :params="params" :proof="proof" />
-            <a
-              v-for="view in ['desktop', 'mobile']"
-              :key="view"
-              class="font-medium underline"
-              :href="
-                route('admin.drafts.proofs.download', [
-                  ...params,
-                  proof.uuid,
-                  view,
-                ])
-              "
-              >{{ view === 'desktop' ? 'Desktop PNG' : 'Mobile PNG' }}</a
+            <div
+              role="group"
+              aria-label="Download proof images"
+              class="flex flex-wrap gap-2"
             >
-            <Badge v-if="proof.uuid === activeProof" variant="secondary">
-              Live design
-            </Badge>
+              <Button
+                v-for="view in ['desktop', 'mobile']"
+                :key="view"
+                variant="secondary"
+                size="sm"
+                as-child
+              >
+                <a
+                  :href="
+                    route('admin.drafts.proofs.download', [
+                      ...params,
+                      proof.uuid,
+                      view,
+                    ])
+                  "
+                  class="gap-2"
+                >
+                  <Download class="size-4" aria-hidden="true" />
+                  {{ view === 'desktop' ? 'Desktop PNG' : 'Mobile PNG' }}
+                </a>
+              </Button>
+            </div>
           </template>
-          <span v-else role="status">{{
-            proof.status === 'failed'
-              ? 'Export failed.'
-              : 'Preparing both images…'
-          }}</span>
+          <span v-else role="status" class="text-muted-foreground">
+            <template v-if="proof.status === 'failed'">Export failed.</template>
+            <template v-else-if="proof.can_retry"
+              >Export delayed. You can retry this shipment snapshot.</template
+            >
+            <template v-else
+              >Preparing both images. Download links will appear here.</template
+            >
+          </span>
         </div>
         <Button
           v-if="proof.can_retry"
@@ -167,81 +150,6 @@ onBeforeUnmount(() => clearInterval(timer))
         >
           Retry this snapshot
         </Button>
-
-        <div
-          v-if="proof.status === 'ready'"
-          class="flex flex-wrap items-center gap-3 text-sm"
-        >
-          <template v-if="proof.approved_at">
-            <span
-              >Approved by {{ proof.customer_approver }} ·
-              {{ new Date(proof.approved_at).toLocaleDateString() }}</span
-            >
-            <ConfirmPublication
-              v-if="proof.uuid !== activeProof"
-              title="Publish this approved revision?"
-              :description="
-                'Revision ' +
-                revision.version +
-                ' will appear on the existing tracking links for ' +
-                company.name +
-                '.'
-              "
-              action="Publish revision"
-              :busy="release.processing"
-              @confirm="publish(proof)"
-            >
-              <Button size="sm" :disabled="release.processing">
-                Publish approved revision
-              </Button>
-            </ConfirmPublication>
-          </template>
-          <form
-            v-else-if="selected === proof.uuid"
-            class="flex flex-wrap items-end gap-2"
-            @submit.prevent="approve(proof)"
-          >
-            <div class="grid gap-1">
-              <Label :for="'approver-' + proof.uuid"
-                >Who approved this proof?</Label
-              ><Input
-                :id="'approver-' + proof.uuid"
-                v-model="approval.customer_approver"
-                maxlength="120"
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              variant="default"
-              size="sm"
-              :disabled="approval.processing"
-            >
-              Save customer approval
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              @click="selected = null"
-            >
-              Cancel
-            </Button>
-
-            <p v-if="approval.hasErrors" role="alert">
-              {{ approval.errors.customer_approver }}
-            </p>
-          </form>
-          <Button
-            v-else
-            size="sm"
-            variant="outline"
-            @click="startApproval(proof)"
-          >
-            Record customer approval
-          </Button>
-        </div>
       </li>
     </ul>
   </section>

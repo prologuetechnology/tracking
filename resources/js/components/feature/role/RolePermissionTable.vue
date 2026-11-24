@@ -167,7 +167,9 @@ const companiesTable = useVueTable(tableOptions)
         </template>
       </TableBody>
     </Table>
-    <footer class="flex flex-wrap items-center justify-end gap-2 border-t p-4">
+    <footer
+      class="flex flex-wrap items-center justify-end gap-2 bg-muted/35 p-4"
+    >
       <Button
         variant="secondary"
         size="sm"

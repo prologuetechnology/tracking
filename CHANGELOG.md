@@ -4,12 +4,16 @@
 
 ### Added
 
-- Design Studio now owns the shared style library. Existing theme bookmarks open the corresponding Studio view. Classic drafts can reuse the company’s original versioned colors.
+- Staff open each company’s Design Studio from its directory card or profile. The profile shows the live design, and the studio holds saved drafts, approved revisions and publication history. Shared Assets brings images and reusable styles together, and Application Settings groups staff access management.
+- Signal uses spacing and surface color to group staff navigation, forms and studio sections in light and dark appearances.
+- Shipment Lookup keeps brand help and optional entry in place alongside the shipment reference, with a separate action footer.
+
+- Existing theme bookmarks open the corresponding style library view. Classic drafts can reuse the company’s original versioned colors.
 
 - Staff choose System, Light, or Dark from the Appearance submenu in their account menu on desktop and mobile.
 - Signal staff screens share shadcn controls for navigation, appearance, filtering, design inspection and publication confirmations. Keyboard users can select layouts and manage role permissions with visible focus.
 
-- Customer themes now retain immutable versions. Staff can compare versions, author a style in the studio, and apply it through a saved draft and approved proof. Existing company branding stays pinned to its current colors and corners.
+- Customer themes now retain immutable versions. Staff can compare versions, author a style in the studio, and apply it through an approved revision. Existing company branding stays pinned to its current colors and corners.
 
 - Staff can search companies and shared assets, open a company’s draft and approval history from its workspace, and edit a shipment design beside its preview.
 
@@ -34,9 +38,7 @@
 - Follow the journey groups carrier events by day and can jump to an earlier
   exception. Inspect the record pairs a shipment file with expandable carrier
   scans. Get the answer prioritizes delivery timing or the latest carrier event.
-- Each proof archives both PNGs from one shipment snapshot. Staff can record
-  customer approval, publish that revision to existing links, and open the
-  exact proof from publication history. Restore an earlier publication or the
+- Each proof archives both PNGs from one shipment snapshot. Staff can approve a saved revision and publish it to existing links independently of any image export. Restore an earlier publication or the
   original Classic branding from the same history.
 - Existing companies start with Classic on their current tracking links.
   Previously saved Get the answer revisions keep their original presentation.

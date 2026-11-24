@@ -35,10 +35,9 @@ it('starts a separate proposal from the published revision and preserves its sou
     $save = app(SaveDesignDraft::class);
     $source = $save->execute($this->company, $settings, $this->staff->id);
     $revision = $source->revisions()->sole();
-    $proof = $revision->proofs()->create(['snapshot' => [], 'created_by' => $this->staff->id, 'shipment_reference' => 'BOL123']);
-    $proof->forceFill(['status' => 'ready', 'approved_at' => now()])->save();
+    $revision->approve($this->staff->id);
     $publish = app(ChangeTrackingPublication::class);
-    $publish->execute($this->company, $proof, 0, $this->staff->id);
+    $publish->execute($this->company, $revision, 0, $this->staff->id);
     $publication = $this->company->publications()->sole();
 
     $save->execute($this->company, [...$settings, 'base_version' => 1, 'layout' => 'record.v1'], $this->staff->id, $source);

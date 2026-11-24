@@ -143,13 +143,17 @@ class CuratedLayoutScenariosTest extends DuskTestCase
         $second = $first->replicate(['uuid']);
         $second->shipment_reference = 'REPLACEMENT-PROOF';
         $second->save();
-        app(ChangeTrackingPublication::class)->execute($brand, $second, $brand->publications()->sole()->id, $staff->id);
+        $historical = $brand->publications()->sole();
+        $historical->update(['design_proof_id' => $first->id]);
+        $next = $historical->replicate();
+        $next->design_proof_id = $second->id;
+        $next->save();
         $list = route('admin.drafts.index', $brand->uuid, false);
         $archive = route('admin.drafts.preview', [$brand->uuid, $first->revision->draft->uuid, 1], false);
 
         $this->browse(function (Browser $browser) use ($staff, $first, $second, $list, $archive) {
             $browser->resize(1440, 900)->loginAs($staff)->visit($list)
-                ->waitForLink('View approved proof')->clickLink('View approved proof')
+                ->waitForLink('View archived proof')->clickLink('View archived proof')
                 ->waitFor('#proof-'.$second->uuid)
                 ->assertPathIs($archive)
                 ->assertFragmentIs('proof-'.$second->uuid)
@@ -211,7 +215,8 @@ class CuratedLayoutScenariosTest extends DuskTestCase
         ]);
         $proof->forceFill(['status' => 'ready', 'approved_at' => now(), 'approved_by' => $staffId])->save();
 
-        app(ChangeTrackingPublication::class)->execute($company, $proof, 0, $staffId);
+        $revision->approve($staffId);
+        app(ChangeTrackingPublication::class)->execute($company, $revision, 0, $staffId);
 
         return $proof;
     }

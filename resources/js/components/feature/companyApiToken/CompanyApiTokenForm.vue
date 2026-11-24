@@ -6,13 +6,6 @@ import * as yup from 'yup'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   FormControl,
   FormDescription,
   FormField,
@@ -119,12 +112,11 @@ const submitForm = () => {
 </script>
 
 <template>
-  <Card class="mt-8 w-full">
-    <CardHeader>
-      <CardTitle>Pipeline Authentication</CardTitle>
-    </CardHeader>
-
-    <CardContent v-if="company?.api_token?.api_token">
+  <section class="max-w-3xl">
+    <header class="mb-4">
+      <h2 class="text-xl font-semibold">Pipeline Authentication</h2>
+    </header>
+    <div v-if="company?.api_token?.api_token">
       <div
         class="relative flex w-full flex-row items-center justify-start space-x-2"
       >
@@ -133,14 +125,12 @@ const submitForm = () => {
             {{ company?.api_token?.api_token }}
           </span>
         </p>
-
-        <Badge :variant="tokenIsValid ? 'secondary' : 'destructive'">{{
-          tokenIsValid ? 'Valid' : 'Invalid'
-        }}</Badge>
+        <Badge :variant="tokenIsValid ? 'secondary' : 'destructive'">
+          {{ tokenIsValid ? 'Valid' : 'Invalid' }}
+        </Badge>
       </div>
-    </CardContent>
-
-    <CardContent v-else>
+    </div>
+    <div v-else>
       <form
         id="companyApiTokenForm"
         class="mt-4 flex w-full flex-col space-y-4"
@@ -152,8 +142,7 @@ const submitForm = () => {
           :validate-on-blur="!isFieldDirty"
         >
           <FormItem>
-            <FormLabel>API Token</FormLabel>
-
+            <FormLabel> API Token </FormLabel>
             <FormControl>
               <Input
                 type="text"
@@ -162,7 +151,6 @@ const submitForm = () => {
                 :disabled="companyApiTokenIsPending"
               />
             </FormControl>
-
             <FormDescription>
               API token associated with
               <strong> {{ company.name }} </strong>.
@@ -174,15 +162,13 @@ const submitForm = () => {
             </FormDescription>
           </FormItem>
         </FormField>
-
         <FormField
           v-slot="{ componentField }"
           name="trackingNumber"
           :validate-on-blur="!isFieldDirty"
         >
           <FormItem>
-            <FormLabel>Bill of Lading</FormLabel>
-
+            <FormLabel> Bill of Lading </FormLabel>
             <FormControl>
               <Input
                 type="text"
@@ -191,7 +177,6 @@ const submitForm = () => {
                 :disabled="companyApiTokenIsPending"
               />
             </FormControl>
-
             <FormDescription>
               Bill of Lading associated with
               <strong> {{ company.name }} </strong>.
@@ -199,15 +184,13 @@ const submitForm = () => {
           </FormItem>
         </FormField>
       </form>
-    </CardContent>
-
-    <CardFooter>
+    </div>
+    <div class="mt-8">
       <div class="flex w-full justify-end space-x-2 pt-4">
         <CompanyApiTokenDeleteDialog
           v-if="company?.api_token?.api_token"
           :company="company"
         />
-
         <Button
           v-else
           variant="default"
@@ -219,6 +202,6 @@ const submitForm = () => {
           Save API Token
         </Button>
       </div>
-    </CardFooter>
-  </Card>
+    </div>
+  </section>
 </template>

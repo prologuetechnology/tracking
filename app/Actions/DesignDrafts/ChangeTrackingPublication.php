@@ -3,7 +3,7 @@
 namespace App\Actions\DesignDrafts;
 
 use App\Models\Company;
-use App\Models\DesignProof;
+use App\Models\DesignDraftRevision;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -11,23 +11,23 @@ class ChangeTrackingPublication
 {
     public function __construct(private readonly SaveDesignDraft $saveDraft) {}
 
-    public function execute(Company $company, ?DesignProof $proof, int $expected, int $staff, bool $rollback = false): void
+    public function execute(Company $company, ?DesignDraftRevision $revision, int $expected, int $staff, bool $rollback = false): void
     {
-        DB::transaction(function () use ($company, $proof, $expected, $staff, $rollback) {
+        DB::transaction(function () use ($company, $revision, $expected, $staff, $rollback) {
             $company = Company::whereKey($company->id)->lockForUpdate()->firstOrFail();
             $current = $company->publications()->latest('id')->first();
             if ((int) $current?->id !== $expected) {
                 throw ValidationException::withMessages(['publication' => 'The live design changed. Reload before continuing.']);
             }
-            if ($proof) {
-                abort_unless($proof->approved_at && $proof->status === 'ready' && $proof->revision->draft->company_id === $company->id, 409);
+            if ($revision) {
+                abort_unless($revision->fresh()?->approved_at && $revision->draft->company_id === $company->id, 409);
             }
-            if ($proof?->id === $current?->design_proof_id) {
+            if ($revision?->id === $current?->published_revision_id) {
                 return;
             }
             $company->publications()->create([
                 'baseline_revision_id' => $current?->baseline_revision_id ?? $this->captureBaseline($company, $staff),
-                'design_proof_id' => $proof?->id,
+                'published_revision_id' => $revision?->id,
                 'action' => $rollback ? 'rollback' : 'publish',
                 'created_by' => $staff,
             ]);

@@ -44,9 +44,8 @@ it('retains the original presentation on reopen, fresh proposals and rename-only
         unset($design['section_orders'], $design['headline_style'], $design['palette']);
     }
     $this->old->update(['design' => $design]);
-    $proof = $this->old->proofs()->create(['snapshot' => [], 'created_by' => $this->staff->id, 'shipment_reference' => 'BOL123']);
-    $proof->forceFill(['status' => 'ready', 'approved_at' => now()])->save();
-    app(ChangeTrackingPublication::class)->execute($this->company, $proof, 0, $this->staff->id);
+    $this->old->approve($this->staff->id);
+    app(ChangeTrackingPublication::class)->execute($this->company, $this->old, 0, $this->staff->id);
     $this->company->update(['enable_map' => false]);
 
     $live = $this->postJson($this->preview, ['preview_mode' => 'live', 'search_option' => 'bol', 'tracking_number' => 'BOL123'])->assertOk();

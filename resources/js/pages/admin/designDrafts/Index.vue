@@ -1,7 +1,9 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 
+import ApprovedDesignRevisions from '@/components/feature/designDraft/ApprovedDesignRevisions.vue'
 import PublicationHistory from '@/components/feature/designDraft/PublicationHistory.vue'
+import RevisionReleaseControls from '@/components/feature/designDraft/RevisionReleaseControls.vue'
 import TrackingStudioLayout from '@/components/layout/page/TrackingStudioLayout.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,6 +11,7 @@ import { Card } from '@/components/ui/card'
 
 defineProps({
   company: { type: Object, required: true },
+  approvedRevisions: { type: Object, required: true },
   publications: { type: Array, required: true },
   shipmentLookup: { type: Object, default: null },
   drafts: { type: Object, required: true },
@@ -17,11 +20,11 @@ defineProps({
 
 <template>
   <TrackingStudioLayout :company="company">
-    <Head :title="`Design drafts · ${company.name}`" />
+    <Head :title="`Design Studio · ${company.name}`" />
     <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Design drafts
+          Design Studio
         </h1>
         <p
           v-if="shipmentLookup"
@@ -39,13 +42,14 @@ defineProps({
               _query: shipmentLookup ?? {},
             })
           "
-          >Create design draft</Link
         >
+          Create design draft
+        </Link>
       </Button>
     </header>
     <PublicationHistory :company="company" :publications="publications" />
     <Card as="section" class="overflow-hidden" aria-labelledby="named-drafts">
-      <h2 id="named-drafts" class="border-b px-4 py-3 font-semibold sm:px-5">
+      <h2 id="named-drafts" class="px-4 pb-1 pt-5 font-semibold sm:px-5">
         Saved drafts
       </h2>
       <p v-if="!drafts.data.length" class="p-5 text-sm text-muted-foreground">
@@ -65,21 +69,37 @@ defineProps({
               {{ item.name }}
             </Link>
             <p class="mt-1 text-sm text-muted-foreground">
-              {{ item.layout }} · Revision {{ item.revisions_count }}
+              {{ item.layout }} · Revision {{ item.version }}
             </p>
           </div>
           <div
             class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
           >
             <Badge
-              v-if="publications[0]?.draft_uuid === item.uuid"
+              v-if="
+                publications[0]?.draft_uuid === item.uuid &&
+                publications[0].version !== item.version
+              "
               variant="secondary"
-              >Revision {{ publications[0].version }} live</Badge
             >
-            <time :datetime="item.updated_at"
-              >Updated
-              {{ new Date(item.updated_at).toLocaleDateString() }}</time
-            >
+              Revision {{ publications[0].version }} live
+            </Badge>
+            <time :datetime="item.updated_at">
+              Updated
+              {{ new Date(item.updated_at).toLocaleDateString() }}
+            </time>
+            <RevisionReleaseControls
+              v-if="item.version"
+              :company="company"
+              :draft="item"
+              :version="item.version"
+              :approved="Boolean(item.approved_at)"
+              :live="
+                publications[0]?.draft_uuid === item.uuid &&
+                publications[0].version === item.version
+              "
+              :publication="publications[0]?.id ?? 0"
+            />
           </div>
         </li>
       </ul>
@@ -93,14 +113,20 @@ defineProps({
         v-if="drafts.prev_page_url"
         :href="drafts.prev_page_url"
         class="underline"
-        >Previous page</Link
       >
+        Previous page
+      </Link>
       <Link
         v-if="drafts.next_page_url"
         :href="drafts.next_page_url"
         class="ml-auto underline"
-        >Next page</Link
       >
+        Next page
+      </Link>
     </nav>
+    <ApprovedDesignRevisions
+      :company="company"
+      :revisions="approvedRevisions"
+    />
   </TrackingStudioLayout>
 </template>

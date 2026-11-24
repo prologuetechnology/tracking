@@ -9,21 +9,19 @@ const { userCan } = useRolesAndPermissions()
 </script>
 
 <template>
-  <nav
-    aria-label="Design studio"
-    class="mb-5 flex flex-wrap gap-1 border-b pb-2"
-  >
+  <nav aria-label="Shared Assets" class="mb-5 flex flex-wrap gap-1 pb-2">
     <Button
-      v-if="userCan('company:show') && userCan('company:update')"
+      v-if="userCan('image:show')"
       as-child
       size="sm"
       :variant="library ? 'ghost' : 'secondary'"
     >
       <Link
-        :href="route('admin.companies.index', { workspace: 'studio' })"
+        :href="route('admin.image.index')"
         :aria-current="library ? undefined : 'location'"
-        >Company drafts</Link
       >
+        Images
+      </Link>
     </Button>
     <Button
       v-if="userCan('theme:show') || userCan('theme:store')"
@@ -40,8 +38,9 @@ const { userCan } = useRolesAndPermissions()
           )
         "
         :aria-current="library ? 'location' : undefined"
-        >Style library</Link
       >
+        Style Library
+      </Link>
     </Button>
   </nav>
 </template>

@@ -78,7 +78,7 @@ const domainsTable = useVueTable(tableOptions)
 </script>
 
 <template>
-  <div class="rounded border border-border">
+  <div class="overflow-hidden rounded-md">
     <Table v-if="data && !isError">
       <TableHeader>
         <TableRow

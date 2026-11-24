@@ -168,7 +168,7 @@ const reset = () => {
         {{ layout.placement.toLowerCase() }}. Visibility here applies to the
         supporting section. The layout keeps its shipment summary.
       </p>
-      <ol ref="rows" class="divide-y rounded-md border">
+      <ol ref="rows" class="divide-y rounded-md bg-card">
         <li
           v-for="key in eligible"
           :key="key"

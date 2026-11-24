@@ -7,7 +7,6 @@ import * as yup from 'yup'
 
 import CompanyDestroyDialog from '@/components/feature/company/CompanyDestroyDialog.vue'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   FormControl,
   FormDescription,
@@ -292,137 +291,116 @@ watch(
 </script>
 
 <template>
-  <!-- <h2 class="mt-8 text-lg font-semibold text-foreground">
-    {{ heading }}
-  </h2> -->
-
-  <Card class="mt-8 w-full">
-    <CardHeader>
-      <CardTitle>Company Details</CardTitle>
-    </CardHeader>
-
-    <CardContent>
-      <form
-        id="companyForm"
-        dusk="company-form"
-        class="grid w-full gap-x-6 gap-y-5 md:grid-cols-2"
-        @submit="submitForm"
+  <section aria-label="Company details" class="max-w-4xl">
+    <h2 class="mb-5 text-xl font-semibold">Company Details</h2>
+    <form
+      id="companyForm"
+      dusk="company-form"
+      class="grid w-full gap-x-6 gap-y-5 md:grid-cols-2"
+      @submit="submitForm"
+    >
+      <FormField
+        v-slot="{ componentField }"
+        name="name"
+        :validate-on-blur="!isFieldDirty"
       >
-        <FormField
-          v-slot="{ componentField }"
-          name="name"
-          :validate-on-blur="!isFieldDirty"
-        >
-          <FormItem>
-            <FormLabel>Name</FormLabel>
-
-            <FormControl>
-              <Input
-                dusk="company-name"
-                type="text"
-                placeholder="ACME Inc."
-                v-bind="componentField"
-              />
-            </FormControl>
-          </FormItem>
-        </FormField>
-
-        <FormField
-          v-slot="{ componentField }"
-          name="pipeline_company_id"
-          :validate-on-blur="!isFieldDirty"
-        >
-          <FormItem>
-            <FormLabel>Pipeline Company ID</FormLabel>
-
-            <FormControl>
-              <Input
-                dusk="company-pipeline-id"
-                type="number"
-                placeholder="123"
-                v-bind="componentField"
-                :disabled="createCompanyIsPending || updateCompanyIsPending"
-              />
-            </FormControl>
-
-            <FormDescription>
-              The ID of the company in Pipeline.
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        </FormField>
-
-        <FormField
-          v-slot="{ componentField }"
-          name="website"
-          :validate-on-blur="!isFieldDirty"
-        >
-          <FormItem>
-            <FormLabel>Website</FormLabel>
-
-            <FormControl>
-              <Input
-                dusk="company-website"
-                type="text"
-                placeholder="https://acme.com"
-                v-bind="componentField"
-                :disabled="createCompanyIsPending || updateCompanyIsPending"
-              />
-            </FormControl>
-
-            <FormDescription> The company's website URL. </FormDescription>
-          </FormItem>
-        </FormField>
-
-        <FormField
-          v-slot="{ componentField }"
-          name="phone"
-          :validate-on-blur="!isFieldDirty"
-        >
-          <FormItem>
-            <FormLabel>Phone Number</FormLabel>
-
-            <FormControl>
-              <Input
-                dusk="company-phone"
-                type="tel"
-                placeholder="(123) 456-7890"
-                v-bind="componentField"
-                :disabled="createCompanyIsPending || updateCompanyIsPending"
-              />
-            </FormControl>
-
-            <FormDescription> The company's phone number. </FormDescription>
-          </FormItem>
-        </FormField>
-
-        <FormField
-          v-slot="{ componentField }"
-          name="email"
-          :validate-on-blur="!isFieldDirty"
-        >
-          <FormItem>
-            <FormLabel>E-mail</FormLabel>
-
-            <FormControl>
-              <Input
-                dusk="company-email"
-                type="email"
-                placeholder="info@acme.com"
-                v-bind="componentField"
-                :disabled="createCompanyIsPending || updateCompanyIsPending"
-              />
-            </FormControl>
-          </FormItem>
-        </FormField>
-
+        <FormItem>
+          <FormLabel> Name </FormLabel>
+          <FormControl>
+            <Input
+              dusk="company-name"
+              type="text"
+              placeholder="ACME Inc."
+              v-bind="componentField"
+            />
+          </FormControl>
+        </FormItem>
+      </FormField>
+      <FormField
+        v-slot="{ componentField }"
+        name="pipeline_company_id"
+        :validate-on-blur="!isFieldDirty"
+      >
+        <FormItem>
+          <FormLabel> Pipeline Company ID </FormLabel>
+          <FormControl>
+            <Input
+              dusk="company-pipeline-id"
+              type="number"
+              placeholder="123"
+              v-bind="componentField"
+              :disabled="createCompanyIsPending || updateCompanyIsPending"
+            />
+          </FormControl>
+          <FormDescription>
+            The ID of the company in Pipeline.
+          </FormDescription>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+      <FormField
+        v-slot="{ componentField }"
+        name="website"
+        :validate-on-blur="!isFieldDirty"
+      >
+        <FormItem>
+          <FormLabel> Website </FormLabel>
+          <FormControl>
+            <Input
+              dusk="company-website"
+              type="text"
+              placeholder="https://acme.com"
+              v-bind="componentField"
+              :disabled="createCompanyIsPending || updateCompanyIsPending"
+            />
+          </FormControl>
+        </FormItem>
+      </FormField>
+      <FormField
+        v-slot="{ componentField }"
+        name="phone"
+        :validate-on-blur="!isFieldDirty"
+      >
+        <FormItem>
+          <FormLabel> Phone Number </FormLabel>
+          <FormControl>
+            <Input
+              dusk="company-phone"
+              type="tel"
+              placeholder="(123) 456-7890"
+              v-bind="componentField"
+              :disabled="createCompanyIsPending || updateCompanyIsPending"
+            />
+          </FormControl>
+        </FormItem>
+      </FormField>
+      <FormField
+        v-slot="{ componentField }"
+        name="email"
+        :validate-on-blur="!isFieldDirty"
+      >
+        <FormItem>
+          <FormLabel> E-mail </FormLabel>
+          <FormControl>
+            <Input
+              dusk="company-email"
+              type="email"
+              placeholder="info@acme.com"
+              v-bind="componentField"
+              :disabled="createCompanyIsPending || updateCompanyIsPending"
+            />
+          </FormControl>
+        </FormItem>
+      </FormField>
+      <fieldset
+        dusk="company-brand-settings"
+        class="grid gap-4 rounded-lg bg-muted/50 p-5 md:col-span-2"
+      >
+        <legend class="sr-only">Tracking link branding</legend>
         <FormField v-slot="{ value, handleChange }" name="requires_brand">
-          <FormItem
-            class="flex items-center justify-between gap-4 rounded-lg border p-4 md:col-span-2"
-          >
+          <FormItem class="flex items-center justify-between gap-4">
             <div class="space-y-0.5">
-              <FormLabel class="text-base">Requires Brand</FormLabel>
-
+              <FormLabel class="text-base"> Requires Brand </FormLabel>
               <FormDescription>
                 Require that the tracking URL contain a brand query parameter.
               </FormDescription>
@@ -434,9 +412,9 @@ watch(
                 this Pipeline Company ID.
               </p>
             </div>
-
             <FormControl>
               <Switch
+                dusk="company-requires-brand"
                 :checked="value || isSharedPipelineCompanyId"
                 :disabled="isSharedPipelineCompanyId"
                 @update:checked="handleChange"
@@ -444,7 +422,6 @@ watch(
             </FormControl>
           </FormItem>
         </FormField>
-
         <FormField
           v-if="values.requires_brand || isSharedPipelineCompanyId"
           v-slot="{ componentField }"
@@ -452,8 +429,7 @@ watch(
           :validate-on-blur="!isFieldDirty"
         >
           <FormItem>
-            <FormLabel>Brand</FormLabel>
-
+            <FormLabel> Brand </FormLabel>
             <FormControl>
               <Input
                 dusk="company-brand"
@@ -463,35 +439,29 @@ watch(
                 :disabled="createCompanyIsPending || updateCompanyIsPending"
               />
             </FormControl>
-
-            <FormDescription> The company's brand string. </FormDescription>
             <FormMessage />
           </FormItem>
         </FormField>
-
-        <div
-          v-if="isSharedPipelineCompanyId"
-          class="rounded-lg border border-input bg-muted p-4 text-foreground md:col-span-2"
-        >
+        <div v-if="isSharedPipelineCompanyId" class="pt-2">
           <h3 class="text-base font-semibold">Shared Pipeline Company ID</h3>
-
           <p class="mt-1 text-sm">
             This Pipeline Company ID is already used by another active company.
             All active companies in this group will require unique brand query
             parameters before tracking can resolve them.
           </p>
-
           <div class="mt-4 space-y-4">
             <div
               v-for="sibling in activePipelineSiblings"
               :key="sibling.id"
-              class="rounded-md border border-border bg-card p-3"
+              class="pl-4"
             >
               <div
                 class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p class="font-medium">{{ sibling.name }}</p>
+                  <p class="font-medium">
+                    {{ sibling.name }}
+                  </p>
                   <p class="text-xs text-muted-foreground">
                     Current brand:
                     <span class="font-semibold">
@@ -500,12 +470,10 @@ watch(
                   </p>
                 </div>
               </div>
-
               <div v-if="!sibling.brand" class="mt-3">
                 <Label :for="`sibling-brand-${sibling.id}`">
                   Brand for {{ sibling.name }}
                 </Label>
-
                 <Input
                   :id="`sibling-brand-${sibling.id}`"
                   v-model="siblingBrandAssignments[sibling.id]"
@@ -514,7 +482,6 @@ watch(
                   placeholder="ACME"
                   :disabled="formIsPending"
                 />
-
                 <p class="mt-1 text-xs text-muted-foreground">
                   Required to convert this shared Pipeline Company ID group.
                 </p>
@@ -522,37 +489,33 @@ watch(
             </div>
           </div>
         </div>
-
-        <!-- <hr class="" /> -->
-
-        <div
-          class="mx-auto flex w-full max-w-3xl flex-row items-center justify-end space-x-2 py-2"
-        >
-          <div v-if="company?.id" class="mr-auto">
-            <CompanyDestroyDialog :company="company" />
-          </div>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            :disabled="createCompanyIsPending || updateCompanyIsPending"
-          >
-            <Link :href="route(`admin.companies.index`)">Cancel</Link>
-          </Button>
-
-          <Button
-            variant="default"
-            size="sm"
-            type="button"
-            class=""
-            dusk="company-form-save"
-            :disabled="saveIsDisabled"
-            @click="submitForm"
-          >
-            Save
-          </Button>
+      </fieldset>
+      <div
+        class="flex w-full flex-wrap items-center justify-end gap-2 py-2 md:col-span-2"
+      >
+        <div v-if="company?.id" class="mr-auto">
+          <CompanyDestroyDialog :company="company" />
         </div>
-      </form>
-    </CardContent>
-  </Card>
+        <Button
+          as-child
+          variant="secondary"
+          size="sm"
+          :disabled="createCompanyIsPending || updateCompanyIsPending"
+        >
+          <Link :href="route(`admin.companies.index`)"> Cancel </Link>
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          type="button"
+          class=""
+          dusk="company-form-save"
+          :disabled="saveIsDisabled"
+          @click="submitForm"
+        >
+          Save
+        </Button>
+      </div>
+    </form>
+  </section>
 </template>

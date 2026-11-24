@@ -111,10 +111,9 @@ it('keeps the Classic baseline and drafts pinned through publication, fork, and 
     $fork = $save->fork($company, $revision, 'Alternate', $this->staff->id);
     expect($fork->revisions()->sole()->design)->toBe($revision->design)
         ->and($company->fresh()->theme_version_id)->toBe($first->id);
-    $proof = $revision->proofs()->create(['snapshot' => [], 'created_by' => $this->staff->id, 'shipment_reference' => 'DEMO-1']);
-    $proof->forceFill(['status' => 'ready', 'approved_at' => now()])->save();
+    $revision->approve($this->staff->id);
     $publish = app(ChangeTrackingPublication::class);
-    $publish->execute($company, $proof, 0, $this->staff->id);
+    $publish->execute($company, $revision, 0, $this->staff->id);
     $active = $company->publications()->latest('id')->first();
     expect($active->effectiveRevision()->design['theme']['version'])->toBe(2);
     $usage = $this->getJson(route('api.themes.show', $theme))->assertOk()->json('usage');

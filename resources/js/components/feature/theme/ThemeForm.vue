@@ -251,7 +251,7 @@ function reload() {
             Retry
           </Button>
         </p>
-        <section v-if="theme" class="space-y-2 border-t pt-4">
+        <section v-if="theme" class="space-y-2 pt-6">
           <h2 class="font-semibold">Where this style is used</h2>
           <p v-if="!theme.usage?.length" class="text-sm text-muted-foreground">
             No visible assignments.

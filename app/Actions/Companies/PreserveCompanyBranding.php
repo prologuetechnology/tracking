@@ -20,7 +20,7 @@ class PreserveCompanyBranding
 
         foreach (Arr::only($attributes, self::FIELDS) as $field => $value) {
             if ((string) $value !== (string) $company->getAttribute($field)) {
-                $errors[$field] = 'Change branding in a design draft and publish its approved proof.';
+                $errors[$field] = 'Change branding in a design draft and publish the approved revision.';
             }
         }
 

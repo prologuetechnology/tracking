@@ -100,7 +100,7 @@ function pairing(key, other) {
       ]"
       @update:model-value="patch({ corners: $event })"
     />
-    <Collapsible class="mt-5 border-t pt-3">
+    <Collapsible class="mt-6 pt-2">
       <CollapsibleTrigger as-child>
         <Button type="button" variant="outline" size="sm">
           Advanced colors

@@ -26,9 +26,7 @@ const proofUrl = (entry) =>
     props.company.uuid,
     entry.draft_uuid,
     entry.version,
-  ]) +
-  `#proof-` +
-  entry.proof_uuid
+  ]) + (entry.proof_uuid ? `#proof-` + entry.proof_uuid : ``)
 const restore = (entry) => {
   form.publication = current.value.id
   form.restore = entry?.id ?? 0
@@ -45,10 +43,12 @@ const restore = (entry) => {
     <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
       <p class="font-semibold">{{ title(current) }}</p>
       <Link
-        v-if="current?.proof_uuid"
+        v-if="current?.draft_uuid"
         :href="proofUrl(current)"
         class="text-sm font-medium underline underline-offset-4"
-        >View approved proof</Link
+        >{{
+          current.proof_uuid ? 'View archived proof' : 'View live revision'
+        }}</Link
       >
     </div>
     <Collapsible v-if="current" class="mt-2">
@@ -70,12 +70,11 @@ const restore = (entry) => {
               {{ new Date(entry.at).toLocaleString() }}</span
             >
             <Link
-              v-if="entry.proof_uuid"
+              v-if="entry.draft_uuid"
               :href="proofUrl(entry)"
               class="font-medium underline underline-offset-4"
             >
-              View proof
-              <span class="font-mono">{{ entry.proof_uuid.slice(-8) }}</span>
+              {{ entry.proof_uuid ? 'View archived proof' : 'View revision' }}
             </Link>
             <ConfirmPublication
               v-if="entry.id !== current.id"

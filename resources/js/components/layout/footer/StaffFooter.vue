@@ -25,8 +25,8 @@ const page = usePage()
         "
         >{{
           page.component === 'admin/portalReview/Workbench'
-            ? 'Return to staff workspace'
-            : 'Design prototypes'
+            ? 'Return to Staff Workspace'
+            : 'Design Prototypes'
         }}</Link
       >
       <span>

@@ -20,7 +20,6 @@ import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { useImpersonateUserStopMutation } from '@/composables/mutations/user'
 
 defineProps({
-  company: { type: Object, default: null },
   contentId: { type: String, default: `signal-workspace` },
 })
 const page = usePage()
@@ -38,38 +37,47 @@ const { mutate: stop } = useImpersonateUserStopMutation({
     <a
       :href="'#' + contentId"
       class="sr-only rounded bg-card px-4 py-2 text-foreground focus:not-sr-only"
-      >Skip to workspace</a
     >
+      Skip to workspace
+    </a>
     <header class="signal-mast">
       <Link
         :href="route('admin.tracking.index')"
         class="signal-wordmark"
         aria-label="Prologue shipment lookup"
-        ><span class="signal-mark" aria-hidden="true"><i /><i /><i /></span
-        ><span>Prologue<small>Control room</small></span></Link
       >
-      <div class="signal-desktop"><SignalNavigation :company="company" /></div>
+        <span class="signal-mark" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+        <span> Prologue<small> Control room </small> </span>
+      </Link>
+      <div class="signal-desktop">
+        <SignalNavigation />
+      </div>
       <div class="signal-account">
-        <Dialog v-model:open="open"
-          ><DialogTrigger as-child
-            ><Button
+        <Dialog v-model:open="open">
+          <DialogTrigger as-child>
+            <Button
               size="sm"
               variant="outline"
-              class="signal-mobile"
+              class="signal-mobile gap-2"
               aria-label="Open staff navigation"
-              ><Menu :size="16" /> Sections</Button
-            ></DialogTrigger
-          >
+            >
+              <Menu :size="16" /> Sections
+            </Button>
+          </DialogTrigger>
           <DialogContent
             class="max-h-[90dvh] max-w-sm overflow-y-auto data-[state=closed]:animate-none data-[state=open]:animate-none"
-            ><DialogTitle>Staff navigation</DialogTitle
-            ><DialogDescription class="sr-only"
-              >Choose a workspace.</DialogDescription
-            ><SignalNavigation
-              mobile
-              :company="company"
-              @navigate="open = false" /></DialogContent
-        ></Dialog>
+          >
+            <DialogTitle> Staff navigation </DialogTitle>
+            <DialogDescription class="sr-only">
+              Choose a workspace.
+            </DialogDescription>
+            <SignalNavigation mobile @navigate="open = false" />
+          </DialogContent>
+        </Dialog>
         <UserDropdown />
       </div>
     </header>
@@ -81,8 +89,9 @@ const { mutate: stop } = useImpersonateUserStopMutation({
         size="sm"
         aria-label="Stop staff impersonation"
         @click="stop()"
-        >Stop impersonation</Button
       >
+        Stop impersonation
+      </Button>
     </div>
     <main :id="contentId" class="signal-main" tabindex="-1">
       <SignalAccessNavigation
@@ -92,7 +101,8 @@ const { mutate: stop } = useImpersonateUserStopMutation({
             page.component,
           )
         "
-      /><slot />
+      />
+      <slot />
     </main>
     <StaffFooter />
   </div>

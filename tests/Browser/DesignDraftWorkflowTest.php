@@ -24,10 +24,10 @@ class DesignDraftWorkflowTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user, $company, $theme, $original) {
             $browser->loginAs($user)->visit('/admin/companies?workspace=studio')
                 ->waitFor('#find-company')->type('#find-company', 'absent fixture')->waitForText('No matching companies.')
-                ->type('#find-company', '1001')->waitForLink('Test Freight', 5)
-                ->click('a.signal-company-row')->waitForLink('Create design draft')
+                ->type('#find-company', '1001')->waitForText('Test Freight', 5)
+                ->with('@company-tile-'.$company->uuid, fn (Browser $tile) => $tile->clickLink('Design Studio'))->waitForLink('Create design draft')
                 ->visit('/admin/companies/'.$company->uuid.'?trackingNumber=BOL123&searchOption=bol')
-                ->waitForLink('Design drafts')->clickLink('Design drafts')
+                ->waitForLink('Design Studio')->clickLink('Design Studio')
                 ->waitForLink('Create design draft')->clickLink('Create design draft')
                 ->waitFor('#draft-name')->assertInputValue('#tracking-number', 'BOL123')->type('#draft-name', 'Autumn proposal')
                 ->click('@inspector-appearance')->click('#draft-theme')->waitForText('Review palette')->click('@draft-theme-option-'.$theme->id)

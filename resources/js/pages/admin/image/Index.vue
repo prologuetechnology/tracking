@@ -4,6 +4,7 @@ import { h } from 'vue'
 
 import ImagesDataTable from '@/components/feature/image/ImagesDataTable.vue'
 import ImageUploadButton from '@/components/feature/image/ImageUploadButton.vue'
+import SharedAssetsNavigation from '@/components/layout/navigation/SharedAssetsNavigation.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 
@@ -26,12 +27,12 @@ const imageUploadAction = () =>
 </script>
 
 <template>
-  <Head title="Manage Images" />
-
   <AuthenticatedLayout
-    title="Manage Images"
+    title="Shared Assets"
     :action="userCan('image:store') ? imageUploadAction : null"
   >
+    <Head title="Shared Assets" />
+    <SharedAssetsNavigation />
     <ImagesDataTable
       :initial-images="initialImages"
       :initial-image-types="initialImageTypes"

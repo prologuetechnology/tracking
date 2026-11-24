@@ -11,7 +11,7 @@ class AdminSmokeTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('/testing/oauth-login')
-                ->waitForText('Shipment console')
+                ->waitForText('Shipment Lookup')
                 ->assertPathIs('/admin/tracking')
                 ->assertPresent('@tracking-number-input');
         });
@@ -23,7 +23,7 @@ class AdminSmokeTest extends DuskTestCase
             $browser->visit('/testing/oauth-login')
                 ->visit('/admin/permissions/create')
                 ->waitForText('Create Permission')
-                ->assertPathIs('/admin/permissions/create');
+                ->assertPathIs('/admin/settings/access/permissions/create');
         });
     }
 }

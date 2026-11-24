@@ -65,6 +65,22 @@ class ThemeAndAllowedDomainSurfaceCoverageTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_application_settings_protects_its_access_pages_and_preserves_existing_bookmarks(): void
+    {
+        $this->seedCoreFixtures();
+        $routes = ['users' => 'users.index', 'role' => 'role.index', 'permissions' => 'permissions.index', 'allowed-domains' => 'allowed-domains.index'];
+        $this->actingAs($this->makeStandardUser())->get(route('admin.settings.index'))->assertForbidden();
+        foreach ($routes as $route) {
+            $this->get(route('admin.'.$route))->assertForbidden();
+        }
+        $this->actingAs($this->makeSuperAdmin())->get(route('admin.settings.index'))->assertInertia(fn (Assert $page) => $page->component('admin/settings/Index'));
+        foreach ($routes as $legacy => $route) {
+            $this->get('/admin/'.$legacy)->assertRedirectToRoute('admin.'.$route);
+            $this->get(route('admin.'.$route))->assertOk();
+        }
+        $this->get(route('admin.companies.index', ['workspace' => 'studio']))->assertRedirectToRoute('admin.companies.index');
+    }
+
     public function test_allowed_domain_pages_and_api_cover_crud_toggle_and_super_admin_boundaries(): void
     {
         $this->seedCoreFixtures();

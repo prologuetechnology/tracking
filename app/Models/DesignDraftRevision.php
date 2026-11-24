@@ -13,6 +13,11 @@ class DesignDraftRevision extends Model
         'logo_image_id', 'banner_image_id', 'footer_image_id', 'theme_version_id',
     ];
 
+    public function approve(int $staffId): void
+    {
+        self::whereKey($this->id)->whereNull('approved_at')->update(['approved_at' => now(), 'approved_by' => $staffId]);
+    }
+
     public function proofs(): HasMany
     {
         return $this->hasMany(DesignProof::class);
@@ -25,6 +30,6 @@ class DesignDraftRevision extends Model
 
     protected function casts(): array
     {
-        return ['design' => 'array', 'version' => 'integer'];
+        return ['design' => 'array', 'version' => 'integer', 'approved_at' => 'datetime'];
     }
 }

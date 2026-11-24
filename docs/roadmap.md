@@ -2,11 +2,13 @@
 
 ## Active
 
+- [x] Consolidate company and studio entry, align the shipment form, refine shared assets, and group access pages under Application Settings.
+
 - [x] Retire the standalone Themes screens and make each company’s original Classic palette available in Design Studio.
 
 - [x] Refine the Signal portal with shared shadcn surfaces, controls and keyboard interactions in both staff appearances.
 
-- [x] Pin existing customer themes to version 1, author reusable style versions from the library or studio, and publish visual changes through an approved proof.
+- [x] Pin existing customer themes to version 1, author reusable style versions from the library or studio, and publish visual changes from an approved revision.
 
 - [x] Extend Signal to company workspaces, the two-pane studio, the shared asset inspector, and access administration.
 
@@ -19,9 +21,8 @@
       previews at desktop and mobile widths. Save and reopen design revisions.
 - [x] Compare draft and live layouts on one shipment capture, inspect elements, choose private custom colors and images, and reorder or hide sections per layout.
 - [x] Start separate proposals from old revisions and review their archived approval images in the studio.
-- [x] Archive both PNGs from a single shipment snapshot. Record customer
-      approval on the selected proof, publish its revision, reopen the exact
-      pair from history, and restore an earlier publication or Classic.
+- [x] Archive both PNGs from a single shipment snapshot. Approve saved revisions independently, publish them to existing links,
+      reopen exported images, and restore an earlier publication or Classic.
 - [x] Transfer-kit alignment baseline docs completed and kept current
 - [x] Herd-first onboarding docs and env contract refreshed for fresh-machine
       setup

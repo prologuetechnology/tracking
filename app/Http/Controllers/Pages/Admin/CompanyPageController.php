@@ -13,6 +13,7 @@ use App\Http\Resources\CompanyResource;
 use App\Http\Resources\ImageTypeResource;
 use App\Models\Company;
 use App\Models\CompanyFeature;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,8 +26,12 @@ class CompanyPageController extends Controller
         private readonly ShowCompany $showCompany,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response|RedirectResponse
     {
+        if ($request->query('workspace') === 'studio') {
+            return to_route('admin.companies.index', $request->except('workspace'));
+        }
+
         return Inertia::render('admin/companies/Index', [
             'initialCompanies' => CompanyResource::collection(
                 $this->listCompanies->execute(),
@@ -45,7 +50,7 @@ class CompanyPageController extends Controller
 
         return Inertia::render('admin/companies/Edit', [
             'shipmentLookup' => $lookup ?: null,
-            'designWorkspace' => $workspace->execute($company, $request->user()->can('company:update'), $lookup),
+            'designWorkspace' => $workspace->execute($company, $request->user()->can('company:update')),
             'companyInitialValues' => CompanyResource::make(
                 $this->showCompany->execute($company),
             )->resolve(),

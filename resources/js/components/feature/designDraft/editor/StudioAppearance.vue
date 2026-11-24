@@ -156,13 +156,9 @@ function apply() {
     />
     <section
       v-if="classic || palette === 'company'"
-      class="grid gap-3 rounded-md border p-3"
+      class="grid gap-3 rounded-md bg-muted/35 p-3"
     >
-      <div
-        v-if="classic"
-        class="grid gap-2 border-b pb-3"
-        dusk="classic-colors"
-      >
+      <div v-if="classic" class="grid gap-2 pb-3" dusk="classic-colors">
         <h4 class="text-sm font-semibold">Original Classic colors</h4>
         <p class="text-xs text-muted-foreground">
           {{

@@ -25,9 +25,19 @@ class TrackingFlowsTest extends DuskTestCase
         $user = $this->makeStandardUser(['email' => 'tracking-browser@example.com']);
 
         $this->browse(function (Browser $browser) use ($user) {
-            $browser->loginAs($user)
-                ->visit('/admin/tracking')
-                ->waitForText('Shipment console')
+            $browser->resize(1440, 900)->loginAs($user)->visit('/admin/tracking')
+                ->waitForText('Shipment Lookup')->assertVisible('#shipment-brand');
+            $bounds = fn () => $browser->script('return ["searchOption","tracking-number-input","shipment-brand"].map(id => { const r = document.getElementById(id).getBoundingClientRect(); return [r.top + scrollY, r.bottom + scrollY] })')[0];
+            foreach ([1440, 820] as $width) {
+                $browser->resize($width, 900);
+                $edges = $bounds();
+                $this->assertEquals($edges[0], $edges[1]);
+                $this->assertEquals($edges[0], $edges[2]);
+            }
+            $browser->click('[aria-label="About brand identifiers"]')->waitFor('[role="dialog"]')
+                ->assertSeeIn('[role="dialog"]', 'Pipeline company ID');
+            $this->assertSame($edges, $bounds());
+            $browser->keys('[role="dialog"]', '{escape}')->waitUntilMissing('[role="dialog"]')
                 ->type('@tracking-number-input', 'BOL123')
                 ->click('@tracking-search-option-trigger')
                 ->waitFor('@tracking-search-option-bol')
@@ -39,7 +49,13 @@ class TrackingFlowsTest extends DuskTestCase
                 ->assertSeeIn('.scan-inspector', 'Delivered')
                 ->assertSeeLink('Customer tracking page')
                 ->assertDontSeeLink('Company workspace')
-                ->press('Clear')->waitUntilMissing('.scan-console');
+                ->assertVisible('#shipment-brand');
+            $this->assertSame($edges, $bounds());
+            $browser->press('Clear')->waitUntilMissing('.scan-console')->resize(390, 844);
+            $mobile = $bounds();
+            $this->assertGreaterThan($mobile[0][1], $mobile[1][0]);
+            $this->assertGreaterThan($mobile[1][1], $mobile[2][0]);
+            $browser->assertScript('document.documentElement.scrollWidth === innerWidth')->resize(1440, 900);
         });
     }
 

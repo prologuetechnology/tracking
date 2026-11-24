@@ -21,7 +21,8 @@ class AdminManagementFlowsTest extends DuskTestCase
             $browser->loginAs($staff)->visit(route('admin.companies.show', $company->uuid))
                 ->waitForText('Northline Supply')->assertSeeIn('[aria-label="Company details"]', 'Pipeline ID')
                 ->assertSee('Live design')->assertMissing('@company-form-save')->assertMissing('#is_active')
-                ->assertDontSeeLink('Design drafts');
+                ->assertDontSeeLink('Design Studio')->assertDontSee('Recent drafts')->assertDontSee('Approved proofs')
+                ->assertScript('getComputedStyle(document.querySelector("section[aria-label*=Live]")).borderTopWidth', '0px');
         });
     }
 
@@ -53,6 +54,8 @@ class AdminManagementFlowsTest extends DuskTestCase
             $browser->loginAs($user)
                 ->visit('/admin/companies/create')
                 ->waitForText('Create Company')
+                ->assertMissing('@company-brand')->click('@company-requires-brand')
+                ->with('@company-brand-settings', fn (Browser $fields) => $fields->waitFor('@company-brand')->type('@company-brand', 'dusk-logistics'))
                 ->type('@company-name', 'Dusk Logistics')
                 ->type('@company-pipeline-id', '6543')
                 ->type('@company-website', 'https://dusk-logistics.test')
@@ -61,7 +64,8 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->click('@company-form-save')
                 ->waitForText('Dusk Logistics')
                 ->assertPathBeginsWith('/admin/companies/')
-                ->assertSee('Company Details');
+                ->assertSee('Company Details')->press('Company Details')->waitFor('@company-brand')->assertInputValue('@company-brand', 'DUSK-LOGISTICS')
+                ->press('Tracking Controls')->waitFor('#is_active')->press('Pipeline Authentication')->waitFor('#companyApiTokenForm');
         });
     }
 
@@ -161,7 +165,7 @@ class AdminManagementFlowsTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user, $targetUser, $uploadPath) {
             $browser->loginAs($user)
                 ->visit('/admin/images')
-                ->waitForText('Manage Images')
+                ->waitForText('Shared Assets')
                 ->click('@image-upload-open')
                 ->waitForText('Upload Image')
                 ->type('@image-upload-name', 'Browser Logo')
@@ -173,14 +177,17 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->waitForText('Browser Logo')
                 ->type('#asset-search', 'Browser Logo')
                 ->assertSeeIn('aside[aria-label="Asset inspector"]', 'Browser Logo')
+                ->resize(390, 844)->click('[aria-label="Inspect Browser Logo"]')->waitFor('[role="dialog"]')
+                ->assertSeeIn('[role="dialog"]', 'Company assignments')->keys('[role="dialog"]', '{escape}')->waitUntilMissing('[role="dialog"]')
+                ->resize(1440, 900)
                 ->visit('/admin/permissions/create')
                 ->waitForText('Create Permission')
-                ->assertSeeIn('nav[aria-label="Access administration"]', 'Allowed domains')
+                ->assertSeeIn('nav[aria-label="Access administration"]', 'Allowed Domains')
                 ->type('@permission-name', 'reports:dusk')
                 ->type('@permission-guard', 'web')
                 ->click('@permission-save')
                 ->pause(500)
-                ->assertPathIs('/admin/permissions')
+                ->assertPathIs('/admin/settings/access/permissions')
                 ->assertSee('reports:dusk')
                 ->visit('/admin/users')
                 ->waitForText('Users')
@@ -197,7 +204,7 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->click('@stop-impersonation')
                 ->pause(500)
                 ->assertPathIs('/admin/tracking')
-                ->assertSee('Shipment console');
+                ->assertSee('Shipment Lookup');
         });
 
         $this->assertDatabaseHas('images', ['name' => 'Browser Logo']);
@@ -232,7 +239,7 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->waitForText('Shared First Company')
                 ->assertMissing('@company-image-clear-logo')
                 ->visit('/admin/images')
-                ->waitForText('Manage Images')
+                ->waitForText('Shared Assets')
                 ->click("@image-delete-open-{$sharedLogo->id}")
                 ->waitForText('currently assigned to 1 company')
                 ->assertDisabled("@image-delete-confirm-{$sharedLogo->id}");

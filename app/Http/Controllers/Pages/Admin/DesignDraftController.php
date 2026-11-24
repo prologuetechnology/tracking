@@ -6,6 +6,7 @@ use App\Actions\DesignDrafts\ClassicDesign;
 use App\Actions\DesignDrafts\DesignBrandImages;
 use App\Actions\DesignDrafts\DesignCatalog;
 use App\Actions\DesignDrafts\DraftShipmentLookup;
+use App\Actions\DesignDrafts\ListApprovedDesignRevisions;
 use App\Actions\DesignDrafts\LiveDesignSummary;
 use App\Actions\DesignDrafts\SaveDesignDraft;
 use App\Http\Controllers\Controller;
@@ -22,26 +23,34 @@ use Inertia\Response;
 
 class DesignDraftController extends Controller
 {
-    public function index(Company $company, Request $request): Response
+    public function index(Company $company, Request $request, ListApprovedDesignRevisions $approvals): Response
     {
         $lookup = DraftShipmentLookup::fromQuery($request);
+
+        $publications = $company->publications()->latest('id')->with(['proof:id,uuid', 'publishedRevision:id,design_draft_id,version', 'publishedRevision.draft:id,uuid,name'])
+            ->get();
 
         return Inertia::render('admin/designDrafts/Index', [
             'shipmentLookup' => $lookup ?: null,
             'company' => $company->only(['uuid', 'name']),
-            'publications' => $company->publications()->latest('id')->with(['proof:id,uuid,design_draft_revision_id', 'proof.revision:id,design_draft_id,version', 'proof.revision.draft:id,uuid,name'])
-                ->get()->map(fn ($entry) => [
-                    'id' => $entry->id, 'action' => $entry->action, 'at' => $entry->created_at,
-                    'name' => $entry->proof?->revision->draft->name,
-                    'draft_uuid' => $entry->proof?->revision->draft->uuid,
-                    'proof_uuid' => $entry->proof?->uuid,
-                    'version' => $entry->proof?->revision->version,
-                ]),
+            'approvedRevisions' => $approvals->execute($company, $lookup + $request->only('page')),
+            'publications' => $publications->map(fn ($entry) => [
+                'id' => $entry->id, 'action' => $entry->action, 'at' => $entry->created_at,
+                'name' => $entry->publishedRevision?->draft->name,
+                'draft_uuid' => $entry->publishedRevision?->draft->uuid,
+                'proof_uuid' => $entry->proof?->uuid,
+                'version' => $entry->publishedRevision?->version,
+            ]),
             'drafts' => $company->drafts()->select(['id', 'uuid', 'name', 'updated_at'])->withCount('revisions')
-                ->addSelect(['layout' => DesignDraftRevision::select('design->layout')->whereColumn('design_draft_id', 'design_drafts.id')->latest('version')->limit(1)])
-                ->latest('updated_at')->orderByDesc('id')->paginate(20)->appends($lookup)->through(fn ($draft) => [
+                ->with(['latestRevision' => fn ($revisions) => $revisions->select([
+                    'design_draft_revisions.id', 'design_draft_revisions.design_draft_id', 'design_draft_revisions.version',
+                    'approved_at', 'design->layout as layout',
+                ])])
+                ->latest('updated_at')->orderByDesc('id')->paginate(20)->appends($lookup + $request->only('approvals_page'))->through(fn ($draft) => [
                     ...$draft->only(['uuid', 'name', 'revisions_count', 'updated_at']),
-                    'layout' => DesignCatalog::LAYOUTS[$draft->layout]['name'] ?? null,
+                    'version' => $draft->latestRevision?->version,
+                    'approved_at' => $draft->latestRevision?->approved_at,
+                    'layout' => DesignCatalog::LAYOUTS[$draft->latestRevision?->layout]['name'] ?? null,
                 ]),
         ]);
     }

@@ -245,11 +245,11 @@ const toggleInspect = async () => {
 <template>
   <section
     ref="panel"
-    class="fullscreen:overflow-auto min-w-0 overflow-hidden rounded-xl border bg-muted text-foreground"
+    class="fullscreen:overflow-auto min-w-0 overflow-hidden rounded-xl bg-muted text-foreground"
     aria-labelledby="studio-preview-title"
   >
     <header
-      class="flex flex-wrap items-center justify-between gap-3 border-b bg-card px-4 py-3"
+      class="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-3"
     >
       <div>
         <h2 id="studio-preview-title" class="font-semibold">
@@ -299,7 +299,7 @@ const toggleInspect = async () => {
         /></Button>
       </div>
     </header>
-    <div class="grid gap-2 border-b bg-background px-4 py-3">
+    <div class="grid gap-2 bg-background px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <ToggleGroup
           aria-label="Preview design"

@@ -87,15 +87,4 @@ class DesignProofController extends Controller
             }
         }, "revision-{$revision->version}-{$proof->uuid}-{$view}.png", ['Content-Type' => 'image/png', 'Cache-Control' => 'private, no-store'], $request->boolean('inline') ? 'inline' : 'attachment');
     }
-
-    public function approve(Company $company, DesignDraft $draft, DesignDraftRevision $revision, DesignProof $proof, Request $request): RedirectResponse
-    {
-        $input = $request->validate(['customer_approver' => ['required', 'string', 'max:120']]);
-        abort_unless($proof->status === 'ready', 409);
-        DesignProof::whereKey($proof->id)->whereNull('approved_at')->update([
-            'approved_by' => $request->user()->id, 'customer_approver' => $input['customer_approver'], 'approved_at' => now(),
-        ]);
-
-        return to_route('admin.drafts.preview', [$company->uuid, $draft->uuid, $revision->version]);
-    }
 }

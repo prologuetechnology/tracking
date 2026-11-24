@@ -4,7 +4,7 @@ import { computed, ref } from 'vue'
 
 import ThemeCreateButton from '@/components/feature/theme/ThemeCreateButton.vue'
 import ThemeForm from '@/components/feature/theme/ThemeForm.vue'
-import StudioNavigation from '@/components/layout/navigation/StudioNavigation.vue'
+import SharedAssetsNavigation from '@/components/layout/navigation/SharedAssetsNavigation.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -34,7 +34,7 @@ const matches = computed(() =>
     :action="mode === 'browse' ? ThemeCreateButton : null"
   >
     <Head :title="title" />
-    <StudioNavigation library />
+    <SharedAssetsNavigation library />
     <ThemeForm
       v-if="mode !== 'browse'"
       :key="initialTheme?.uuid ?? mode"
@@ -42,7 +42,7 @@ const matches = computed(() =>
     />
     <div v-else class="space-y-5">
       <div class="grid max-w-md gap-1.5">
-        <Label for="find-theme">Find a style</Label>
+        <Label for="find-theme"> Find a style </Label>
         <Input
           id="find-theme"
           v-model="query"
@@ -60,8 +60,8 @@ const matches = computed(() =>
             :href="route('admin.studio.styles.show', t.uuid)"
             class="flex items-center justify-between gap-4 p-4 hover:bg-muted focus-visible:outline-ring"
           >
-            <span class="flex min-w-0 items-center gap-3"
-              ><span
+            <span class="flex min-w-0 items-center gap-3">
+              <span
                 class="flex shrink-0 overflow-hidden rounded-sm border"
                 aria-hidden="true"
               >
@@ -72,10 +72,15 @@ const matches = computed(() =>
                   :key="key"
                   class="h-6 w-3"
                   :style="{ background: 'hsl(' + t.colors.root[key] + ')' }"
-                /> </span
-              ><strong class="break-words">{{ t.name }}</strong></span
-            >
-            <Badge variant="outline" class="font-mono">v{{ t.version }}</Badge>
+                />
+              </span>
+              <strong class="break-words">
+                {{ t.name }}
+              </strong>
+            </span>
+            <Badge variant="outline" class="font-mono">
+              v{{ t.version }}
+            </Badge>
           </Link>
         </li>
       </Card>

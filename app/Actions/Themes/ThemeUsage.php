@@ -15,13 +15,13 @@ final class ThemeUsage
         $usage = collect();
         $companies = Company::query()
             ->where('theme_id', $theme->id)
-            ->orWhereHas('latestPublication.proof.revision', fn ($q) => $q->where('design->theme->id', $theme->id))
+            ->orWhereHas('latestPublication.publishedRevision', fn ($q) => $q->where('design->theme->id', $theme->id))
             ->orWhereHas('latestPublication.baselineRevision', fn ($q) => $q->where('design->theme->id', $theme->id))
-            ->with(['theme:id', 'themeVersion', 'latestPublication.proof.revision', 'latestPublication.baselineRevision'])
+            ->with(['theme:id', 'themeVersion', 'latestPublication.publishedRevision', 'latestPublication.baselineRevision'])
             ->orderBy('name')->get();
         foreach ($companies as $company) {
             $publication = $company->latestPublication;
-            $design = $publication?->proof?->revision?->design ?? $publication?->baselineRevision?->design;
+            $design = $publication?->publishedRevision?->design ?? $publication?->baselineRevision?->design;
             $snapshot = $design ? self::effectiveTheme($design) : $company->baselineTheme()?->snapshot();
             if (($snapshot['id'] ?? null) == $theme->id) {
                 $usage->push(['kind' => 'live', 'version' => $snapshot['version'] ?? null, 'company_uuid' => $company->uuid,

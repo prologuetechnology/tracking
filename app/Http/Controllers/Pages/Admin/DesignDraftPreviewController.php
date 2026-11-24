@@ -19,17 +19,17 @@ class DesignDraftPreviewController extends Controller
 {
     public function show(Company $company, DesignDraft $draft, DesignDraftRevision $revision): Response
     {
-        $live = $company->publications()->latest('id')->with('proof:id,uuid')->first();
+        $live = $company->publications()->latest('id')->first();
 
         return Inertia::render('admin/designDrafts/Preview', [
             'company' => $company->only(['uuid', 'name']),
             'draft' => $draft->only(['uuid', 'name']),
-            'proofs' => $revision->proofs()->latest('id')->get(['uuid', 'shipment_reference', 'status', 'created_at', 'customer_approver', 'approved_at', 'updated_at'])->map(fn ($proof) => [
+            'proofs' => $revision->proofs()->latest('id')->get(['uuid', 'shipment_reference', 'status', 'created_at', 'updated_at'])->map(fn ($proof) => [
                 ...$proof->toArray(), 'can_retry' => $proof->status === 'failed' || ($proof->status === 'pending' && $proof->updated_at->lt(now()->subMinutes(10))),
             ]),
             'publication' => (int) $live?->id,
-            'activeProof' => $live?->proof?->uuid,
-            'revision' => $revision->only(['version', 'search_option', 'tracking_number']),
+            'isLive' => $live?->published_revision_id === $revision->id,
+            'revision' => $revision->only(['version', 'search_option', 'tracking_number', 'approved_at']),
         ]);
     }
 

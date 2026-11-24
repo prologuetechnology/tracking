@@ -41,12 +41,11 @@ it('captures one private snapshot, retains both bytes, publishes only the approv
     $this->post(route('admin.drafts.proofs.store', $this->params), $this->lookup)->assertSessionHasNoErrors();
     $proof = $this->revision->proofs()->sole();
     $args = [...$this->params, $proof->uuid];
-    $approve = route('admin.drafts.proofs.approve', $args);
-    $publish = route('admin.drafts.proofs.publish', $args);
+    $approve = route('admin.drafts.approve', $this->params);
+    $publish = route('admin.drafts.publish', $this->params);
     $download = fn ($view) => route('admin.drafts.proofs.download', [...$args, $view]);
     Queue::assertPushed(RenderDesignProof::class, 1);
     $this->get($download('mobile'))->assertNotFound();
-    $this->post($approve, ['customer_approver' => 'Receiving manager'])->assertConflict();
     expect($proof->getRawOriginal('snapshot'))->not->toContain('Acme Carrier');
     $images = ['desktop' => 'original desktop bytes', 'mobile' => 'original mobile bytes'];
     $renderer = Mockery::mock(RenderProofImages::class);
@@ -64,16 +63,15 @@ it('captures one private snapshot, retains both bytes, publishes only the approv
     $job->handle($renderer);
     Http::assertSentCount(1);
     $this->post($publish, ['publication' => 0])->assertConflict();
-    $this->post($approve, ['customer_approver' => 'Receiving manager'])->assertRedirect();
-    $this->post($approve, ['customer_approver' => 'Another person'])->assertRedirect();
-    expect($proof->fresh()->customer_approver)->toBe('Receiving manager');
+    $this->post($approve)->assertRedirect();
+    expect($this->revision->fresh()->approved_at)->not->toBeNull();
     $this->get($public)->assertInertia(fn (Assert $p) => $p->component('brandedTracking/Classic'));
     app(SaveDesignDraft::class)->execute($this->company, [...$this->settings, 'layout' => 'classic.v1', 'base_version' => 1], $this->staff->id, $this->draft);
     $this->post($publish, ['publication' => 0])->assertRedirect();
     $this->get($public)->assertInertia(fn (Assert $p) => $p->component('brandedTracking/Answer')
         ->where('initialTrackingData.carrierName', 'Updated carrier')->missing('frozenAt')->missing('proofs')->missing('initialTrackingData.poNumbers'));
     $this->get(route('admin.drafts.preview', $this->params))->assertInertia(fn (Assert $p) => $p
-        ->where('activeProof', $proof->uuid)->where('proofs.0.uuid', $proof->uuid)->missing('proofs.0.snapshot'));
+        ->where('isLive', true)->where('proofs.0.uuid', $proof->uuid)->missing('proofs.0.snapshot'));
     foreach ($images as $view => $bytes) {
         $response = $this->get($download($view))->assertOk()->assertHeader('Content-Type', 'image/png');
         expect($response->headers->get('Content-Disposition'))->toStartWith('attachment;');
@@ -98,6 +96,46 @@ it('captures one private snapshot, retains both bytes, publishes only the approv
     $this->company->delete();
     expect(DesignProof::count())->toBe(0);
     Storage::disk('local')->assertMissing(DesignProof::companyDirectory($this->company->id));
+});
+
+it('carries legacy proof approvals and publication targets into revision history', function () {
+    $proof = $this->revision->proofs()->create(['snapshot' => [], 'shipment_reference' => 'historic', 'created_by' => $this->staff->id]);
+    $when = now()->subDay()->startOfSecond();
+    $proof->forceFill(['status' => 'ready', 'approved_at' => $when, 'approved_by' => $this->staff->id, 'customer_approver' => 'Legacy contact'])->save();
+    $publication = $this->company->publications()->create([
+        'baseline_revision_id' => $this->revision->id, 'design_proof_id' => $proof->id, 'action' => 'publish', 'created_by' => $this->staff->id,
+    ]);
+    $migration = require database_path('migrations/2026_11_24_231306_add_revision_approvals_and_publication_targets.php');
+    $migration->down();
+    $migration->up();
+    $restored = $this->revision->fresh();
+    expect($restored->approved_at->equalTo($when))->toBeTrue()
+        ->and($restored->approved_by)->toEqual($this->staff->id)
+        ->and($publication->fresh()->effectiveRevision()->id)->toBe($restored->id)
+        ->and($publication->fresh()->proof->uuid)->toBe($proof->uuid)
+        ->and($proof->fresh()->customer_approver)->toBe('Legacy contact');
+});
+
+it('approves an exact saved revision without a shipment, export, or change to the live page', function () {
+    $approve = route('admin.drafts.approve', $this->params);
+    $publish = route('admin.drafts.publish', $this->params);
+    $this->post($publish, ['publication' => 0])->assertConflict();
+    $this->post($approve)->assertRedirect();
+    $original = $this->revision->fresh();
+    $this->travel(2)->minutes();
+    $this->actingAs($this->makeCompanyAdmin())->post($approve)->assertRedirect();
+    expect($this->revision->fresh()->approved_by)->toEqual($this->staff->id)
+        ->and($this->revision->fresh()->approved_at->equalTo($original->approved_at))->toBeTrue()
+        ->and($this->company->publications()->count())->toBe(0);
+    app(SaveDesignDraft::class)->execute($this->company, [...$this->settings, 'base_version' => 1], $this->staff->id, $this->draft);
+    $second = $this->draft->latestRevision;
+    expect($second->approved_at)->toBeNull();
+    $this->post(route('admin.drafts.publish', [$this->company->uuid, $this->draft->uuid, 2]), ['publication' => 0])->assertConflict();
+    $this->post($publish, ['publication' => 0])->assertRedirect();
+    expect($this->company->publications()->sole()->effectiveRevision()->id)->toBe($original->id);
+    $this->assertDatabaseCount('design_proofs', 0);
+    Queue::assertNothingPushed();
+    Http::assertNothingSent();
 });
 
 it('exports the exact reviewed shipment and timestamp when the carrier changes before export', function () {
@@ -169,13 +207,16 @@ it('enforces staff access and company, revision and shipment ownership at every 
     foreach ([[$other->uuid, $this->draft->uuid, 1], [$this->company->uuid, $this->draft->uuid, 2]] as $params) {
         $args = [...$params, $proof->uuid];
         $this->get(route('admin.drafts.proofs.download', [...$args, 'desktop']))->assertNotFound();
-        $this->post(route('admin.drafts.proofs.approve', $args))->assertNotFound();
-        $this->post(route('admin.drafts.proofs.publish', $args))->assertNotFound();
+
+    }
+    foreach ([[$other->uuid, $this->draft->uuid, 1], [$this->company->uuid, $this->draft->uuid, 99]] as $wrong) {
+        $this->post(route('admin.drafts.approve', $wrong))->assertNotFound();
+        $this->post(route('admin.drafts.publish', $wrong))->assertNotFound();
     }
     $args = [...$this->params, $proof->uuid];
     $routes = [
         ['post', $capture], ['post', route('admin.drafts.proofs.retry', $args)], ['get', route('admin.drafts.proofs.download', [...$args, 'desktop'])],
-        ['post', route('admin.drafts.proofs.approve', $args)], ['post', route('admin.drafts.proofs.publish', $args)],
+        ['post', route('admin.drafts.approve', $this->params)], ['post', route('admin.drafts.publish', $this->params)],
         ['post', route('admin.drafts.rollback', $this->company->uuid)],
     ];
     $this->app['auth']->guard()->logout();

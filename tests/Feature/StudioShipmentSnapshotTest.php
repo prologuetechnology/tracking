@@ -46,9 +46,9 @@ it('compares draft and current live design on a single shipment even after staff
     expect(studioSnapshotFrame($live->json('html'))['component'])->toBe('brandedTracking/Classic');
 
     $saved = app(SaveDesignDraft::class)->execute($this->company, [...$this->draft, 'layout' => 'record.v1'], $this->staff->id);
-    $proof = $saved->revisions()->sole()->proofs()->create(['snapshot' => [], 'shipment_reference' => 'BOL123', 'created_by' => $this->staff->id]);
-    $proof->forceFill(['status' => 'ready', 'approved_at' => now()])->save();
-    app(ChangeTrackingPublication::class)->execute($this->company, $proof, 0, $this->staff->id);
+    $revision = $saved->revisions()->sole();
+    $revision->approve($this->staff->id);
+    app(ChangeTrackingPublication::class)->execute($this->company, $revision, 0, $this->staff->id);
     $newLive = $this->postJson($this->url, $compare)->assertOk()->assertJsonPath('live_design.layout', 'record.v1');
     expect(studioSnapshotFrame($newLive->json('html'))['component'])->toBe('brandedTracking/Record');
 

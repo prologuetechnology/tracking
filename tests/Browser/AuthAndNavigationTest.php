@@ -18,10 +18,11 @@ class AuthAndNavigationTest extends DuskTestCase
                 ->assertSee('Login with Microsoft')
                 ->visit('/testing/oauth-login')
                 ->waitForText('Companies')
-                ->click('@user-menu-trigger')
-                ->waitForText('Allowed Domains')
-                ->assertSee('Users')
-                ->assertSee('Roles')
+                ->clickLink('Application Settings')->waitForText('Access')
+                ->click('a[href$="/settings/access/users"]')->waitForLocation('/admin/settings/access/users')
+                ->assertSeeIn('nav[aria-label="Access administration"]', 'Allowed Domains')
+                ->click('@user-menu-trigger')->waitFor('@staff-appearance-menu')
+                ->assertDontSeeIn('[role="menu"]', 'Allowed Domains')
                 ->click('@sign-out')
                 ->pause(500)
                 ->assertPathIs('/login')
@@ -61,9 +62,9 @@ class AuthAndNavigationTest extends DuskTestCase
         $staff = $this->makeUserWithPermission('theme:show');
         $this->browse(function (Browser $browser) use ($staff) {
             $browser->resize(1440, 900)->loginAs($staff)->visit('/admin/tracking')
-                ->waitForLink('Design studio')->assertDontSeeLink('Themes')->clickLink('Design studio')
+                ->waitForLink('Shared Assets')->assertDontSeeLink('Design Studio')->clickLink('Shared Assets')
                 ->waitForLocation('/admin/design-studio/styles')->waitFor('#find-theme')
-                ->assertDontSeeLink('Company drafts')->assertDontSeeLink('Create style')
+                ->assertDontSeeLink('Companies')->assertDontSeeLink('Create style')
                 ->assertMissing('@theme-form-save');
         });
     }
@@ -86,7 +87,7 @@ class AuthAndNavigationTest extends DuskTestCase
                 ->assertDontSee('Allowed Domains')
                 ->assertDontSee('Users')
                 ->assertDontSee('Roles')
-                ->assertSee('Sign out');
+                ->assertSee('Sign Out');
         });
     }
 }

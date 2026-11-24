@@ -7,13 +7,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TrackingPublication extends Model
 {
-    protected $fillable = ['design_proof_id', 'baseline_revision_id', 'action', 'created_by'];
+    protected $fillable = ['published_revision_id', 'design_proof_id', 'baseline_revision_id', 'action', 'created_by'];
 
     public function effectiveRevision(): DesignDraftRevision
     {
-        return $this->design_proof_id
-            ? $this->proof()->select('id', 'design_draft_revision_id')->firstOrFail()->revision
-            : $this->baselineRevision;
+        return $this->publishedRevision ?? $this->baselineRevision;
+    }
+
+    public function publishedRevision(): BelongsTo
+    {
+        return $this->belongsTo(DesignDraftRevision::class, 'published_revision_id');
     }
 
     public function baselineRevision(): BelongsTo

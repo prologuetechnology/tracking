@@ -4,6 +4,7 @@ import { CopyPlus } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import ProofArchive from '@/components/feature/designDraft/ProofArchive.vue'
+import RevisionReleaseControls from '@/components/feature/designDraft/RevisionReleaseControls.vue'
 import TrackingStudioLayout from '@/components/layout/page/TrackingStudioLayout.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -22,7 +23,7 @@ import { Label } from '@/components/ui/label'
 const props = defineProps({
   proofs: { type: Array, required: true },
   publication: { type: Number, required: true },
-  activeProof: { type: String, default: null },
+  isLive: Boolean,
   company: { type: Object, required: true },
   draft: { type: Object, required: true },
   revision: { type: Object, required: true },
@@ -214,6 +215,14 @@ load()
           </Button>
         </div>
       </div>
+      <RevisionReleaseControls
+        :company="company"
+        :draft="draft"
+        :version="revision.version"
+        :approved="Boolean(revision.approved_at)"
+        :live="isLive"
+        :publication="publication"
+      />
       <form class="flex flex-wrap items-end gap-3" @submit.prevent="load">
         <SelectField
           id="preview-by"
@@ -248,8 +257,6 @@ load()
         :draft="draft"
         :revision="revision"
         :proofs="proofs"
-        :publication="publication"
-        :active-proof="activeProof"
         :lookup="
           capture
             ? {
@@ -267,7 +274,7 @@ load()
       class="mt-5 overflow-hidden"
       aria-labelledby="saved-shipment-preview"
     >
-      <h2 id="saved-shipment-preview" class="border-b px-4 py-3 font-semibold">
+      <h2 id="saved-shipment-preview" class="px-4 py-3 font-semibold">
         Live shipment preview
       </h2>
       <div

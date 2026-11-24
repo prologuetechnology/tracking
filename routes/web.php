@@ -78,6 +78,8 @@ Route::prefix('admin')
                 Route::post('/', [DesignDraftController::class, 'store'])->name('store');
                 Route::get('{draft:uuid}', [DesignDraftController::class, 'show'])->name('show');
                 Route::put('{draft:uuid}', [DesignDraftController::class, 'update'])->name('update');
+                Route::post('{draft:uuid}/revisions/{revision:version}/approve', [TrackingPublicationController::class, 'approve'])->name('approve');
+                Route::post('{draft:uuid}/revisions/{revision:version}/publish', [TrackingPublicationController::class, 'publish'])->name('publish');
                 Route::post('{draft:uuid}/revisions/{revision:version}/fork', [DesignDraftController::class, 'fork'])->name('fork');
                 Route::get('{draft:uuid}/revisions/{revision:version}/preview', [DesignDraftPreviewController::class, 'show'])->name('preview');
                 Route::get('{draft:uuid}/revisions/{revision:version}/render', [DesignDraftPreviewController::class, 'render'])->name('render');
@@ -85,8 +87,6 @@ Route::prefix('admin')
                     Route::post('/', [DesignProofController::class, 'store'])->middleware('throttle:12,1')->name('store');
                     Route::get('{proof:uuid}/{view}.png', [DesignProofController::class, 'download'])->whereIn('view', ['desktop', 'mobile'])->name('download');
                     Route::post('{proof:uuid}/retry', [DesignProofController::class, 'retry'])->middleware('throttle:12,1')->name('retry');
-                    Route::post('{proof:uuid}/approve', [DesignProofController::class, 'approve'])->name('approve');
-                    Route::post('{proof:uuid}/publish', [TrackingPublicationController::class, 'publish'])->name('publish');
                 });
             });
 
@@ -122,20 +122,36 @@ Route::prefix('admin')
 
         Route::middleware(EnsureSuperAdmin::class)
             ->group(function () {
-                Route::get('allowed-domains', [AllowedDomainPageController::class, 'index'])
-                    ->name('allowed-domains.index');
-                Route::get('users', [UserPageController::class, 'index'])
-                    ->name('users.index');
-                Route::get('permissions', [PermissionPageController::class, 'index'])
-                    ->name('permissions.index');
-                Route::get('permissions/create', [PermissionPageController::class, 'create'])
-                    ->name('permissions.create');
-                Route::get('/permissions/{permission}', [PermissionPageController::class, 'show'])
-                    ->name('permissions.show');
-                Route::get('role', [RolePageController::class, 'index'])
-                    ->name('role.index');
-                Route::get('role/show/{role}', [RolePageController::class, 'show'])
-                    ->name('role.show');
+                Route::inertia('settings', 'admin/settings/Index')->name('settings.index');
+                Route::prefix('settings/access')->group(function () {
+                    Route::get('allowed-domains', [AllowedDomainPageController::class, 'index'])
+                        ->name('allowed-domains.index');
+                    Route::get('users', [UserPageController::class, 'index'])
+                        ->name('users.index');
+                    Route::get('permissions', [PermissionPageController::class, 'index'])
+                        ->name('permissions.index');
+                    Route::get('permissions/create', [PermissionPageController::class, 'create'])
+                        ->name('permissions.create');
+                    Route::get('permissions/{permission}', [PermissionPageController::class, 'show'])
+                        ->name('permissions.show');
+                    Route::get('roles', [RolePageController::class, 'index'])
+                        ->name('role.index');
+                    Route::get('roles/{role}', [RolePageController::class, 'show'])
+                        ->name('role.show');
+                });
+
+                // Existing staff bookmarks resolve to the same permission-gated settings pages.
+                foreach ([
+                    'allowed-domains' => 'admin.allowed-domains.index',
+                    'users' => 'admin.users.index',
+                    'permissions' => 'admin.permissions.index',
+                    'permissions/create' => 'admin.permissions.create',
+                    'role' => 'admin.role.index',
+                ] as $path => $destination) {
+                    Route::get($path, fn () => to_route($destination));
+                }
+                Route::get('permissions/{permission}', fn (string $permission) => to_route('admin.permissions.show', $permission));
+                Route::get('role/show/{role}', fn (string $role) => to_route('admin.role.show', $role));
             });
     });
 

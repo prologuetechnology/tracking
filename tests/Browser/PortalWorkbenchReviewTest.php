@@ -14,7 +14,7 @@ class PortalWorkbenchReviewTest extends DuskTestCase
         $this->seedCoreFixtures();
         $staff = $this->makeSuperAdmin();
         $this->browse(function (Browser $browser) use ($staff) {
-            $browser->resize(1440, 950)->loginAs($staff)->visit('/admin/themes')->waitForLink('Design prototypes')->clickLink('Design prototypes')->waitFor('#lookup-input')->screenshot('portal-review-lookup-desktop')
+            $browser->resize(1440, 950)->loginAs($staff)->visit('/admin/themes')->waitForLink('Design Prototypes')->clickLink('Design Prototypes')->waitFor('#lookup-input')->screenshot('portal-review-lookup-desktop')
                 ->type('#lookup-input', 'PRO-DEMO-7018')->press('Find shipment')->waitForText('Latest scan')
                 ->press('Open company workspace')->waitForText('Classic')->assertSee('Shipment PRO-DEMO-7018')->press('Open proposal')
                 ->waitFor('#library-version')->waitFor('iframe[title="Jayco shipment preview"]')->withinFrame('iframe[title="Jayco shipment preview"]', fn (Browser $frame) => $frame->waitFor('#journey-title'))->screenshot('portal-review-editor-desktop')->select('#library-version', '1')->type('#hex-brand', '#336699')->keys('#hex-brand', '{tab}')

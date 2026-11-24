@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
-import { ArrowUpRight, Search, SlidersHorizontal } from 'lucide-vue-next'
+import { ArrowUpRight, Info, Search } from 'lucide-vue-next'
 import { computed, nextTick, ref } from 'vue'
 
 import ShipmentDetailsAndTracking from '@/components/feature/tracking/ShipmentDetailsAndTracking.vue'
@@ -10,6 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -24,7 +29,6 @@ const { userCan } = useRolesAndPermissions()
 const reference = ref(``)
 const method = ref(`carrierPro`)
 const brand = ref(``)
-const showBrand = ref(false)
 const lookup = ref(null)
 const { data, refetch, dataUpdatedAt, isError, isFetching, error } =
   useTrackShipmentQuery({
@@ -58,7 +62,6 @@ const failedTitle = computed(() =>
 function reset() {
   reference.value = ``
   brand.value = ``
-  showBrand.value = false
   lookup.value = null
 }
 async function submit() {
@@ -73,19 +76,34 @@ async function submit() {
 }
 </script>
 <template>
-  <AuthenticatedLayout title="Shipment console" wide>
-    <Head title="Shipment console" />
+  <AuthenticatedLayout title="Shipment Lookup" wide>
+    <Head title="Shipment Lookup" />
     <div class="space-y-5">
-      <Card as="form" class="p-4 sm:p-5" @submit.prevent="submit">
-        <div class="flex flex-wrap items-end gap-3">
-          <div class="w-40 max-w-full space-y-1.5">
-            <Label for="searchOption">Reference type</Label>
+      <Card
+        as="form"
+        aria-label="Shipment Lookup"
+        class="overflow-hidden"
+        @submit.prevent="submit"
+      >
+        <div
+          class="grid gap-5 p-5 sm:p-6 md:grid-cols-[minmax(9rem,.8fr)_minmax(13rem,1.5fr)_minmax(12rem,1fr)] md:gap-y-2"
+        >
+          <div
+            class="grid content-start gap-2 md:row-span-2 md:grid-rows-subgrid"
+          >
+            <Label
+              for="searchOption"
+              class="flex min-h-7 items-center leading-5"
+            >
+              Reference type
+            </Label>
             <Select v-model="method">
               <SelectTrigger
                 id="searchOption"
                 dusk="tracking-search-option-trigger"
-                ><SelectValue
-              /></SelectTrigger>
+              >
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="bol" dusk="tracking-search-option-bol">
                   Bill of lading
@@ -99,9 +117,16 @@ async function submit() {
               </SelectContent>
             </Select>
           </div>
-          <div class="min-w-40 max-w-xl flex-1 space-y-1.5">
-            <Label for="tracking-number-input">Shipment reference</Label
-            ><Input
+          <div
+            class="grid min-w-0 content-start gap-2 md:row-span-2 md:grid-rows-subgrid"
+          >
+            <Label
+              for="tracking-number-input"
+              class="flex min-h-7 items-center leading-5"
+            >
+              Shipment reference
+            </Label>
+            <Input
               id="tracking-number-input"
               v-model="reference"
               dusk="tracking-number-input"
@@ -111,51 +136,63 @@ async function submit() {
               placeholder="Enter shipment reference"
             />
           </div>
-          <Button
-            type="submit"
-            dusk="tracking-search-submit"
-            :disabled="!reference.trim() || isFetching"
-            ><Search class="mr-2 size-4" /> Look up</Button
+          <div
+            class="grid min-w-0 content-start gap-2 md:row-span-2 md:grid-rows-subgrid"
           >
+            <div class="flex min-h-7 items-center gap-2">
+              <Label for="shipment-brand" class="leading-5">
+                Brand identifier
+                <span class="font-normal text-muted-foreground">
+                  (optional)
+                </span>
+              </Label>
+              <Popover>
+                <PopoverTrigger as-child>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    class="size-7"
+                    aria-label="About brand identifiers"
+                  >
+                    <Info class="size-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent aria-label="About brand identifiers">
+                  Add a brand identifier when multiple brands share a Pipeline
+                  company ID. Use the brand from the customer’s tracking link.
+                </PopoverContent>
+              </Popover>
+            </div>
+            <Input
+              id="shipment-brand"
+              v-model="brand"
+              autocomplete="off"
+              maxlength="255"
+              placeholder="e.g. jayco"
+            />
+          </div>
+        </div>
+        <div
+          class="flex items-center justify-end gap-2 bg-muted/40 px-5 py-3 sm:px-6"
+        >
           <Button
-            type="button"
-            variant="outline"
-            aria-controls="lookup-brand"
-            :aria-expanded="showBrand"
-            @click="showBrand = !showBrand"
-            ><SlidersHorizontal class="mr-2 size-4" />Brand</Button
-          >
-          <Button
-            v-if="lookup"
             type="button"
             variant="ghost"
-            :disabled="isFetching"
+            :disabled="isFetching || (!lookup && !reference && !brand)"
             @click="reset"
           >
             Clear
           </Button>
+          <Button
+            type="submit"
+            class="gap-2"
+            dusk="tracking-search-submit"
+            :disabled="!reference.trim() || isFetching"
+          >
+            <Search class="size-4" aria-hidden="true" /> Look up shipment
+          </Button>
         </div>
-        <div
-          v-if="showBrand"
-          id="lookup-brand"
-          class="mt-3 max-w-sm space-y-1.5"
-        >
-          <Label for="shipment-brand">Brand identifier</Label
-          ><Input
-            id="shipment-brand"
-            v-model="brand"
-            autocomplete="off"
-            maxlength="255"
-            placeholder="Brand from the customer’s tracking link"
-          />
-        </div>
-        <p
-          v-if="!lookup && !showBrand"
-          class="mt-3 text-sm text-muted-foreground"
-        >
-          Add a brand identifier when multiple brands share a Pipeline company
-          ID.
-        </p>
       </Card>
       <p
         v-if="lookup && isFetching && !data"
@@ -170,7 +207,9 @@ async function submit() {
         class="space-y-2 border-l-2 border-destructive bg-card p-4"
         role="alert"
       >
-        <h2 class="text-lg font-semibold">{{ failedTitle }}</h2>
+        <h2 class="text-lg font-semibold">
+          {{ failedTitle }}
+        </h2>
         <p v-if="statusCode === 404">
           Check {{ lookup.trackingNumber }}, its reference type, and the brand
           if this company uses branded links.
@@ -184,8 +223,9 @@ async function submit() {
           variant="outline"
           :disabled="isFetching"
           @click="refetch()"
-          >Retry lookup</Button
         >
+          Retry lookup
+        </Button>
       </Card>
       <template v-if="lookup && data?.trackingData">
         <div class="flex flex-wrap items-end justify-between gap-3">
@@ -203,8 +243,9 @@ async function submit() {
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
-              >Customer tracking page <ArrowUpRight class="size-4"
-            /></a>
+            >
+              Customer tracking page <ArrowUpRight class="size-4" />
+            </a>
             <Link
               v-if="company?.uuid && userCan('company:show')"
               :href="
@@ -214,8 +255,9 @@ async function submit() {
                 })
               "
               class="text-primary underline-offset-4 hover:underline"
-              >Company workspace</Link
             >
+              Company workspace
+            </Link>
             <Link
               v-if="
                 company?.uuid &&
@@ -229,8 +271,9 @@ async function submit() {
                 })
               "
               class="text-primary underline-offset-4 hover:underline"
-              >Create design draft</Link
             >
+              Create design draft
+            </Link>
           </div>
         </div>
         <SignalScanInspector
@@ -249,10 +292,6 @@ async function submit() {
           :last-updated="dataUpdatedAt"
         />
       </template>
-      <p v-if="!lookup" class="text-sm text-muted-foreground">
-        Look up a shipment to see its route, carrier scans, and tracking
-        documents.
-      </p>
     </div>
   </AuthenticatedLayout>
 </template>

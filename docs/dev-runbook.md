@@ -93,7 +93,7 @@ terminal. Proof export always reads `public/build/manifest.json`, so rerun
 `npm run build` before exporting changes made with Vite running. The proof
 worker needs Chrome and Node. A database or Redis queue also needs a running
 worker. For the local database queue, run `DB_QUEUE_RETRY_AFTER=150 herd php artisan queue:work --timeout=110`
-in another terminal. Restart existing long-lived workers after code changes with
+in another terminal. Keep it running while testing with Herd and Vite. The revision page displays **Desktop PNG** and **Mobile PNG** download buttons after the job finishes. Restart existing long-lived workers after code changes with
 `herd php artisan queue:restart`.
 
 ### Test the customer and staff workflow
@@ -120,10 +120,10 @@ awaiting its first publication, the link displays Classic.
 
 4. Choose **Save draft** or **Save new revision**. Open the saved revision and choose **Export desktop and mobile PNGs**. Both images use the shipment and capture time displayed on that saved revision. Choose **Refresh shipment** to review newer carrier data. An expired capture requires loading the shipment again before export. Once ready, use **Review images** to check those exact files in the browser or download both PNGs.
 5. Reopen the same revision after saving another and check that its original proofs are still available. Use **Actual size** to inspect a long history at full resolution. When comparing files externally, `shasum -a 256` should produce the same digest for repeated downloads of each individual PNG.
-6. Staff send the images through the usual customer approval channel. On a local demo proof, select **Record customer approval**, enter the approver, then **Save customer approval**. **Publish approved revision** changes the design on the existing guest link. Check that link at both widths. In **Publication history**, open the original proof, **Restore this version**, or **Restore original Classic branding**.
+6. In **Companies → Design Studio → Saved drafts**, choose **Approve revision** on the desired draft. For an older version, open its saved revision and approve it there. Approval applies to that version alone. Choose **Publish revision** and confirm when the existing tracking links should switch. Exporting and downloading images is optional. **Publication history** can restore an earlier design or **Restore original Classic branding**.
 
 Demo the integration branch and obtain business acceptance before opening its
-PR to `develop`. Customer-specific changes follow the proof approval and
+PR to `develop`. Customer-specific changes follow the revision approval and
 publication steps above.
 
 ### Proof storage and troubleshooting

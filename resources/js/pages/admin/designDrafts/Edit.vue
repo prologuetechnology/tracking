@@ -141,9 +141,7 @@ const save = () => {
   <div>
     <Head :title="(draft?.name ?? 'New design draft') + ' · ' + company.name" />
     <TrackingStudioLayout :company="company">
-      <header
-        class="mb-5 flex flex-wrap items-end justify-between gap-4 border-b pb-5"
-      >
+      <header class="mb-5 flex flex-wrap items-end justify-between gap-4 pb-3">
         <div class="min-w-0 space-y-2">
           <Link
             :href="route('admin.drafts.index', company.uuid)"
@@ -204,7 +202,7 @@ const save = () => {
             @submit.prevent="save"
           >
             <div
-              class="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-5 py-3.5"
+              class="flex flex-wrap items-center justify-between gap-2 bg-muted/30 px-5 py-3.5"
             >
               <h2 class="flex items-center gap-2 font-semibold">
                 <PanelsTopLeft class="size-4" aria-hidden="true" />Configuration
@@ -218,7 +216,7 @@ const save = () => {
               }}</span>
             </div>
 
-            <div class="grid gap-3 border-b p-4">
+            <div class="grid gap-3 p-4">
               <div class="grid gap-2">
                 <Label for="draft-name">Draft name</Label>
                 <Input
@@ -245,7 +243,7 @@ const save = () => {
               <Collapsible
                 id="studio-shipment-lookup"
                 v-model:open="lookupOpen"
-                class="rounded-md border bg-muted/20"
+                class="rounded-md bg-muted/35"
               >
                 <CollapsibleTrigger as-child>
                   <Button
@@ -266,7 +264,7 @@ const save = () => {
                   </Button>
                 </CollapsibleTrigger>
 
-                <CollapsibleContent class="grid gap-3 border-t p-3">
+                <CollapsibleContent class="grid gap-3 p-3">
                   <SelectField
                     id="lookup-type"
                     v-model="form.search_option"
@@ -338,7 +336,7 @@ const save = () => {
                       canUpgradePresentation &&
                       form.layout === initialValues.layout
                     "
-                    class="grid gap-1 rounded-md border p-3 text-sm"
+                    class="grid gap-1 rounded-md bg-muted/30 p-3 text-sm"
                   >
                     <label
                       for="upgrade-presentation"
@@ -401,7 +399,7 @@ const save = () => {
                   <Collapsible
                     id="draft-image-library"
                     v-model:open="artworkOpen"
-                    class="rounded-md border"
+                    class="rounded-md bg-muted/30"
                   >
                     <CollapsibleTrigger as-child>
                       <Button
@@ -419,7 +417,7 @@ const save = () => {
                       </Button>
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent class="grid gap-4 border-t p-3">
+                    <CollapsibleContent class="grid gap-4 p-3">
                       <StudioAssetPicker
                         v-for="asset in assets"
                         :id="'draft-' + asset.key"
