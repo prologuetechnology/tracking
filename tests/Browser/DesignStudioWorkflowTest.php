@@ -24,7 +24,7 @@ class DesignStudioWorkflowTest extends DuskTestCase
                 ->type('#draft-color-brand', '#00FFFF')
                 ->click('#draft-image-library > summary')
                 ->click('#draft-banner')->waitFor('[role="dialog"]')
-                ->click('@draft-banner-option-'.$banner->id)->assertSeeIn('#draft-banner', 'Riverside depot')
+                ->click('@draft-banner-option-'.$banner->id)->waitUntilMissing('[role="dialog"]')->assertSeeIn('#draft-banner', 'Riverside depot')
                 ->press('Load shipment')->waitFor($frame)
                 ->withinFrame($frame, fn (Browser $preview) => $preview->waitFor('#answer-status')
                     ->assertScript('document.documentElement.style.getPropertyValue("--tracking-brand")', '180 100% 50%'))

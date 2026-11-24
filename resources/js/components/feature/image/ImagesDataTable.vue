@@ -1,203 +1,112 @@
 <script setup>
-import { faTrashAlt } from '@fortawesome/pro-duotone-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
-import { computed, h, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
+import { useRolesAndPermissions } from '@/composables/hooks/auth'
+import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useImagesQuery } from '@/composables/queries/image'
 
 import ImageDestroyDialog from './ImageDestroyDialog.vue'
-import ImageThumbnailHoverCard from './ImageThumbnailHoverCard.vue'
-
 const props = defineProps({
-  initialImages: {
-    type: Array,
-    required: true,
-  },
-  initialImageTypes: {
-    type: Array,
-    required: true,
-  },
+  initialImages: { type: Array, required: true },
+  initialImageTypes: { type: Array, required: true },
 })
-
-const selectedImageTypeId = ref(`all`)
-const imageTypeId = computed(() =>
-  selectedImageTypeId.value === `all`
-    ? null
-    : Number(selectedImageTypeId.value),
-)
-
+const { userCan } = useRolesAndPermissions()
+const query = ref(``),
+  kind = ref(``),
+  activeId = ref(null)
 const { data, isError } = useImagesQuery({
-  imageTypeId,
-  config: computed(() => ({
-    initialData:
-      selectedImageTypeId.value === `all` ? props.initialImages : undefined,
-  })),
+  config: { initialData: props.initialImages },
 })
-
-const columns = [
-  {
-    accessorKey: `file_path`,
-    header: () => h(`div`, { class: `text-sm font-semibold` }, ``),
-    cell: ({ row }) => {
-      return h(ImageThumbnailHoverCard, {
-        image: row.original,
-        class: `flex items-center justify-center`,
-      })
-    },
-  },
-  {
-    accessorKey: `name`,
-    header: () => h(`div`, { class: `text-sm font-semibold` }, `Name`),
-    cell: ({ row }) => {
-      return h(
-        `div`,
-        {
-          class: `text-sm capitalize`,
-        },
-        row.original.name,
-      )
-    },
-  },
-  {
-    accessorKey: `type`,
-    header: () => h(`div`, { class: `text-sm font-semibold` }, `Type`),
-    cell: ({ row }) => {
-      return h(
-        `div`,
-        {
-          class: `text-sm capitalize`,
-        },
-        row.original.image_type?.name ?? `Unknown`,
-      )
-    },
-  },
-  {
-    accessorKey: `delete`,
-    header: () => h(`div`, { class: `text-sm font-semibold` }, `Actions`),
-    cell: ({ row }) => {
-      return h(
-        ImageDestroyDialog,
-        {
-          image: row.original,
-        },
-        () => {
-          return h(FontAwesomeIcon, {
-            icon: faTrashAlt,
-            fixedWidth: true,
-          })
-        },
-      )
-    },
-  },
-]
-
-const tableOptions = reactive({
-  get data() {
-    return data.value ?? []
-  },
-  get columns() {
-    return columns
-  },
-  getCoreRowModel: getCoreRowModel(),
-})
-
-const imagesTable = useVueTable(tableOptions)
+const images = computed(() =>
+  (data.value || []).filter(
+    (image) =>
+      (!kind.value || image.image_type_id === Number(kind.value)) &&
+      image.name.toLowerCase().includes(query.value.toLowerCase().trim()),
+  ),
+)
+const selected = computed(
+  () => images.value.find((i) => i.id === activeId.value) ?? images.value[0],
+)
 </script>
-
 <template>
-  <div class="space-y-4">
-    <div
-      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div>
-        <p class="text-sm font-medium">Image Library</p>
-        <p class="text-sm text-muted-foreground">
-          Upload shared assets and filter them by image type.
-        </p>
-      </div>
-
-      <div class="w-full sm:w-56">
-        <Select v-model="selectedImageTypeId">
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Filter by image type" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Image Types</SelectLabel>
-              <SelectItem value="all">All image types</SelectItem>
-              <SelectItem
-                v-for="imageType in initialImageTypes"
-                :key="imageType.id"
-                :value="`${imageType.id}`"
-              >
-                {{ imageType.name }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-
-    <div class="overflow-hidden rounded border border-border">
-      <Table v-if="data && !isError">
-        <TableHeader>
-          <TableRow
-            v-for="headerGroup in imagesTable.getHeaderGroups()"
-            :key="headerGroup.id"
+  <section aria-label="Image Library">
+    <div class="mb-5 flex flex-wrap items-end gap-4">
+      <label
+        class="max-w-md grow text-sm font-medium text-foreground"
+        for="asset-search"
+        >Find an asset<Input
+          id="asset-search"
+          v-model="query"
+          class="mt-1 bg-card"
+          type="search"
+          placeholder="Asset name" /></label
+      ><label class="text-sm font-medium"
+        >Image type<select v-model="kind" class="signal-select">
+          <option value="">All image types</option>
+          <option
+            v-for="t in initialImageTypes"
+            :key="t.id"
+            :value="String(t.id)"
           >
-            <TableHead v-for="header in headerGroup.headers" :key="header.id">
-              <FlexRender
-                v-if="!header.isPlaceholder"
-                :render="header.column.columnDef.header"
-                :props="header.getContext()"
-              />
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          <template v-if="imagesTable.getRowModel().rows?.length">
-            <TableRow
-              v-for="row in imagesTable.getRowModel().rows"
-              :key="row.uuid"
-            >
-              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                <FlexRender
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
-              </TableCell>
-            </TableRow>
-          </template>
-
-          <template v-else>
-            <TableRow>
-              <TableCell :colspan="columns.length" class="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          </template>
-        </TableBody>
-      </Table>
+            {{ t.name }}
+          </option>
+        </select></label
+      >
     </div>
-  </div>
+    <p v-if="isError" role="alert">The asset library could not be loaded.</p>
+    <div
+      v-else-if="selected"
+      class="grid items-start gap-5 md:grid-cols-[minmax(0,1fr)_minmax(16rem,.65fr)]"
+    >
+      <div class="divide-y rounded border bg-card">
+        <button
+          v-for="asset in images"
+          :key="asset.id"
+          class="signal-asset-row"
+          :aria-pressed="selected.id === asset.id"
+          @click="activeId = asset.id"
+        >
+          <img
+            :src="imageAssetUrl({ filePath: asset.file_path })"
+            alt=""
+            loading="lazy"
+          /><span
+            ><strong>{{ asset.name }}</strong
+            ><small>{{ asset.image_type?.name }}</small></span
+          >
+        </button>
+      </div>
+      <aside class="rounded border bg-card p-4" aria-label="Asset inspector">
+        <p class="mb-3 font-mono text-xs uppercase text-muted-foreground">
+          Selected asset
+        </p>
+        <img
+          :src="imageAssetUrl({ filePath: selected.file_path })"
+          :alt="selected.name"
+          class="mb-4 max-h-56 w-full rounded bg-muted object-contain"
+        />
+        <h2 class="text-xl font-semibold">{{ selected.name }}</h2>
+        <p class="mb-4 text-sm text-muted-foreground">
+          {{ selected.image_type?.name }} ·
+          {{ selected.company_usage_count }} company assignments
+        </p>
+        <div class="flex flex-wrap items-center gap-4">
+          <a
+            :href="imageAssetUrl({ filePath: selected.file_path })"
+            target="_blank"
+            rel="noopener"
+            class="text-primary underline"
+            >View original</a
+          ><ImageDestroyDialog
+            v-if="userCan('image:destroy')"
+            :key="selected.id"
+            :image="selected"
+            >Delete image</ImageDestroyDialog
+          >
+        </div>
+      </aside>
+    </div>
+    <p v-else class="rounded border bg-card p-6">No matching assets.</p>
+  </section>
 </template>

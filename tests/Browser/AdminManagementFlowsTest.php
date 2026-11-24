@@ -131,8 +131,11 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->attach('@image-upload-file', $uploadPath)
                 ->click('@image-upload-save')
                 ->waitForText('Browser Logo')
+                ->type('#asset-search', 'Browser Logo')
+                ->assertSeeIn('aside[aria-label="Asset inspector"]', 'Browser Logo')
                 ->visit('/admin/permissions/create')
                 ->waitForText('Create Permission')
+                ->assertSeeIn('nav[aria-label="Access administration"]', 'Allowed domains')
                 ->type('@permission-name', 'reports:dusk')
                 ->type('@permission-guard', 'web')
                 ->click('@permission-save')
@@ -147,14 +150,14 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->pause(500)
                 ->assertSee('Company Admin')
                 ->click("@impersonate-user-{$targetUser->id}")
-                ->waitForText('Impersonation Active')
-                ->assertPathIs('/admin/companies')
+                ->waitForText('Acting as')
+                ->assertPathIs('/admin/tracking')
                 ->click('@user-menu-trigger')
                 ->waitForText('Stop Impersonation')
                 ->click('@stop-impersonation')
                 ->pause(500)
-                ->assertPathIs('/admin/companies')
-                ->assertSee('Companies');
+                ->assertPathIs('/admin/tracking')
+                ->assertSee('Shipment console');
         });
 
         $this->assertDatabaseHas('images', ['name' => 'Browser Logo']);

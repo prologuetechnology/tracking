@@ -1,16 +1,27 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
-import { h } from 'vue'
+import { Head, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
 import CompaniesDataTable from '@/components/feature/company/CompaniesDataTable.vue'
 import CompanyCreateButton from '@/components/feature/company/CompanyCreateButton.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
+import { useRolesAndPermissions } from '@/composables/hooks/auth'
+const page = usePage()
+const { userCan } = useRolesAndPermissions()
+const studio = computed(
+  () =>
+    userCan(`company:show`) &&
+    userCan(`company:update`) &&
+    new URL(page.url, location.origin).searchParams.get(`workspace`) ===
+      `studio`,
+)
 </script>
-
 <template>
-  <Head title="Companies" />
-
-  <AuthenticatedLayout title="Companies" :action="() => h(CompanyCreateButton)">
-    <CompaniesDataTable />
+  <AuthenticatedLayout
+    :title="studio ? 'Choose a company for design studio' : 'Companies'"
+    :action="!studio && userCan('company:store') ? CompanyCreateButton : null"
+  >
+    <Head :title="studio ? 'Choose a company' : 'Companies'" />
+    <CompaniesDataTable :studio="studio" />
   </AuthenticatedLayout>
 </template>

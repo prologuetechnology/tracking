@@ -89,6 +89,40 @@ class DesignDraftTest extends TestCase
         $this->assertNull($company->fresh()->banner_image_id);
     }
 
+    public function test_company_workspace_scopes_drafts_and_approved_proofs_and_carries_a_lookup_into_new_drafts(): void
+    {
+        $this->actingAs($staff = $this->makeCompanyAdmin());
+        $company = $this->makeCompany();
+        $draft = $this->save($company);
+        $foreign = $this->save($this->makeCompany(), ['name' => 'Other customer']);
+        foreach ([$draft, $foreign] as $candidate) {
+            $revision = $candidate->revisions()->sole();
+            $revision->proofs()->create(['snapshot' => [], 'shipment_reference' => 'unapproved', 'created_by' => $staff->id]);
+            $revision->proofs()->create(['snapshot' => [], 'shipment_reference' => 'signed off', 'created_by' => $staff->id])
+                ->forceFill(['status' => 'ready', 'approved_at' => now(), 'approved_by' => $staff->id])->save();
+        }
+        $lookup = ['trackingNumber' => 'PRO-1000', 'searchOption' => 'carrierPro'];
+        $params = ['company' => $company->uuid, ...$lookup];
+        $this->get(route('admin.companies.show', $params))->assertInertia(fn (Assert $page) => $page
+            ->where('shipmentLookup', $lookup)->where('designWorkspace.layout', 'Classic')
+            ->where('designWorkspace.live', 'Original Classic')
+            ->has('designWorkspace.recentDrafts', 1)->where('designWorkspace.recentDrafts.0.uuid', $draft->uuid)
+            ->has('designWorkspace.approvedProofs.data', 1)->where('designWorkspace.approvedProofs.data.0.draftUuid', $draft->uuid)
+            ->where('designWorkspace.approvedProofs.data.0.reference', 'signed off')
+            ->missing('designWorkspace.approvedProofs.data.0.snapshot'));
+        $this->get(route('admin.drafts.index', $params))->assertInertia(fn (Assert $page) => $page->where('shipmentLookup', $lookup));
+        $this->get(route('admin.drafts.create', $params))->assertInertia(fn (Assert $page) => $page
+            ->where('initialValues.tracking_number', 'PRO-1000')->where('initialValues.search_option', 'carrierPro'));
+        $this->get(route('admin.drafts.show', [...$params, 'draft' => $draft->uuid]))->assertInertia(fn (Assert $page) => $page
+            ->where('initialValues.tracking_number', 'BOL123')->where('initialValues.search_option', 'bol'));
+        $this->get(route('admin.drafts.create', ['company' => $company->uuid, 'trackingNumber' => 'PRO-1000', 'searchOption' => ['unknown']]))
+            ->assertInertia(fn (Assert $page) => $page->where('initialValues.tracking_number', null)->where('initialValues.search_option', 'bol'));
+        $this->actingAs($this->makeUserWithPermission('company:show'));
+        $this->get(route('admin.companies.show', $params))->assertInertia(fn (Assert $page) => $page
+            ->where('designWorkspace.layout', 'Classic')->missing('designWorkspace.live')
+            ->missing('designWorkspace.recentDrafts')->missing('designWorkspace.approvedProofs'));
+    }
+
     public function test_guest_and_read_only_users_cannot_read_save_or_preview_drafts(): void
     {
         $company = $this->makeCompany();

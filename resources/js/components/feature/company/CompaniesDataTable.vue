@@ -1,149 +1,83 @@
 <script setup>
-import { faEdit } from '@fortawesome/pro-duotone-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Link, usePage } from '@inertiajs/vue3'
-import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
-import { h, reactive } from 'vue'
+import { ArrowUpRight, Search } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 
-import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-// import { hasCompanyFeature } from '@/composables/helpers/companyFeatures'
-import { useRolesAndPermissions } from '@/composables/hooks/auth'
+import { Input } from '@/components/ui/input'
+import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompaniesQuery } from '@/composables/queries/company'
 
-import SelectThemeDialog from '../theme/SelectThemeDialog.vue'
-import CompanyInfoCell from './CompanyInfoCell.vue'
-// import ToggleMapSwitch from './ToggleMapSwitch.vue'
-
-const { initialCompanies } = usePage().props
-
-const { userCan } = useRolesAndPermissions()
-
+defineProps({ studio: Boolean })
+const query = ref(``)
 const { data, isError } = useCompaniesQuery({
-  config: {
-    initialData: initialCompanies,
-  },
+  config: { initialData: usePage().props.initialCompanies },
 })
-
-const columns = [
-  {
-    accessorKey: `name`,
-    header: () => h(`div`, { class: `text-sm font-semibold` }, `Name`),
-    cell: ({ row }) => {
-      return h(CompanyInfoCell, {
-        company: row.original,
-      })
-    },
-  },
-  // {
-  //   id: `enable_map`,
-  //   accessorFn: (row) => hasCompanyFeature(row, `enable_map`),
-  //   header: () => h(`div`, { class: `text-sm font-semibold` }, `Tracking Map`),
-  //   cell: ({ row }) => {
-  //     return h(ToggleMapSwitch, {
-  //       companyId: row.original.id,
-  //       id: `enable_map`,
-  //       name: `Enable Map`,
-  //       value: hasCompanyFeature(row.original, `enable_map`),
-  //     })
-  //   },
-  // },
-  {
-    accessorKey: `theme_id`,
-    header: () => h(`div`, { class: `text-base` }, `Theme`),
-    cell: ({ row }) => {
-      return h(SelectThemeDialog, {
-        companyId: row.original.id,
-        currentTheme: row.original.theme,
-      })
-    },
-  },
-  userCan(`company:edit`)
-    ? {
-        accessorKey: `edit`,
-        header: () => h(`div`, { class: `text-sm font-semibold` }, `Edit`),
-        cell: ({ row }) => {
-          return h(
-            Button,
-            { variant: `outline`, size: `sm`, asChild: true },
-            {
-              default: () =>
-                h(
-                  Link,
-                  { href: route(`admin.companies.show`, row.original.uuid) },
-                  {
-                    default: () =>
-                      h(FontAwesomeIcon, { icon: faEdit, fixedWidth: true }),
-                  },
-                ),
-            },
-          )
-        },
-      }
-    : null,
-].filter(Boolean)
-
-const tableOptions = reactive({
-  get data() {
-    return data
-  },
-  get columns() {
-    return columns
-  },
-  getCoreRowModel: getCoreRowModel(),
-})
-
-const companiesTable = useVueTable(tableOptions)
+const companies = computed(() =>
+  (data.value || []).filter((company) =>
+    [company.name, company.brand, company.pipeline_company_id].some((value) =>
+      String(value ?? ``)
+        .toLowerCase()
+        .includes(query.value.trim().toLowerCase()),
+    ),
+  ),
+)
 </script>
-
 <template>
-  <div class="rounded border border-border">
-    <Table v-if="data && !isError">
-      <TableHeader>
-        <TableRow
-          v-for="headerGroup in companiesTable.getHeaderGroups()"
-          :key="headerGroup.id"
+  <section aria-label="Company directory">
+    <label
+      for="find-company"
+      class="mb-1.5 block text-sm font-medium text-foreground"
+      >Find a company</label
+    >
+    <div class="relative mb-5 max-w-md">
+      <Search
+        :size="16"
+        class="absolute left-3 top-3 text-muted-foreground"
+      /><Input
+        id="find-company"
+        v-model="query"
+        type="search"
+        class="bg-card pl-9"
+        placeholder="Name, brand, or Pipeline ID"
+      />
+    </div>
+    <p v-if="isError" role="alert">
+      The company directory could not be loaded.
+    </p>
+    <div v-else class="divide-y rounded border bg-card">
+      <Link
+        v-for="company in companies"
+        :key="company.uuid"
+        :href="
+          route(
+            studio ? 'admin.drafts.index' : 'admin.companies.show',
+            company.uuid,
+          )
+        "
+        class="signal-company-row"
+      >
+        <span class="signal-company-logo"
+          ><img
+            v-if="company.logo?.file_path"
+            :src="imageAssetUrl({ filePath: company.logo.file_path })"
+            alt=""
+          /><span v-else>{{ company.name.slice(0, 1) }}</span></span
         >
-          <TableHead v-for="header in headerGroup.headers" :key="header.id">
-            <FlexRender
-              v-if="!header.isPlaceholder"
-              :render="header.column.columnDef.header"
-              :props="header.getContext()"
-            />
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        <template v-if="companiesTable.getRowModel().rows?.length">
-          <TableRow
-            v-for="row in companiesTable.getRowModel().rows"
-            :key="row.uuid"
-          >
-            <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-              <FlexRender
-                :render="cell.column.columnDef.cell"
-                :props="cell.getContext()"
-              />
-            </TableCell>
-          </TableRow>
-        </template>
-
-        <template v-else>
-          <TableRow>
-            <TableCell :colspan="columns.length" class="h-24 text-center">
-              No results.
-            </TableCell>
-          </TableRow>
-        </template>
-      </TableBody>
-    </Table>
-  </div>
+        <span
+          ><strong>{{ company.name }}</strong
+          ><small
+            >{{ company.brand || 'Company' }} ·
+            {{ company.pipeline_company_id }}</small
+          ></span
+        >
+        <span class="company-state">{{
+          company.is_active ? 'Active' : 'Inactive'
+        }}</span
+        ><ArrowUpRight :size="17" aria-hidden="true" />
+      </Link>
+      <p v-if="!companies.length" class="p-5 text-sm text-muted-foreground">
+        {{ query ? 'No matching companies.' : 'No companies available.' }}
+      </p>
+    </div>
+  </section>
 </template>

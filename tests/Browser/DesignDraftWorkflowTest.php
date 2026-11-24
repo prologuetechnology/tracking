@@ -15,10 +15,14 @@ class DesignDraftWorkflowTest extends DuskTestCase
         $theme = $this->makeTheme(['name' => 'Review palette']);
         $original = $company->theme->colors['root']['primary'];
         $this->browse(function (Browser $browser) use ($user, $company, $theme, $original) {
-            $browser->loginAs($user)->visit('/admin/companies/'.$company->uuid)
+            $browser->loginAs($user)->visit('/admin/companies?workspace=studio')
+                ->waitFor('#find-company')->type('#find-company', 'absent fixture')->waitForText('No matching companies.')
+                ->type('#find-company', '1001')->waitForLink('Test Freight', 5)
+                ->click('a.signal-company-row')->waitForLink('Create design draft')
+                ->visit('/admin/companies/'.$company->uuid.'?trackingNumber=BOL123&searchOption=bol')
                 ->waitForLink('Design drafts')->clickLink('Design drafts')
                 ->waitForLink('Create design draft')->clickLink('Create design draft')
-                ->waitFor('#draft-name')->type('#draft-name', 'Autumn proposal')
+                ->waitFor('#draft-name')->assertInputValue('#tracking-number', 'BOL123')->type('#draft-name', 'Autumn proposal')
                 ->click('@inspector-appearance')->click('#draft-theme')->waitForText('Review palette')->click('@draft-theme-option-'.$theme->id)
                 ->type('#tracking-number', 'BOL123')->press('Save draft')
                 ->waitForLink('Preview saved revision 1')->clickLink('Test Freight drafts')

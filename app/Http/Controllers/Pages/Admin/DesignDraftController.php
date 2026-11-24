@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pages\Admin;
 use App\Actions\DesignDrafts\ClassicDesign;
 use App\Actions\DesignDrafts\DesignBrandImages;
 use App\Actions\DesignDrafts\DesignCatalog;
+use App\Actions\DesignDrafts\DraftShipmentLookup;
 use App\Actions\DesignDrafts\LiveDesignSummary;
 use App\Actions\DesignDrafts\SaveDesignDraft;
 use App\Http\Controllers\Controller;
@@ -21,9 +22,12 @@ use Inertia\Response;
 
 class DesignDraftController extends Controller
 {
-    public function index(Company $company): Response
+    public function index(Company $company, Request $request): Response
     {
+        $lookup = DraftShipmentLookup::fromQuery($request);
+
         return Inertia::render('admin/designDrafts/Index', [
+            'shipmentLookup' => $lookup ?: null,
             'company' => $company->only(['uuid', 'name']),
             'publications' => $company->publications()->latest('id')->with(['proof:id,uuid,design_draft_revision_id', 'proof.revision:id,design_draft_id,version', 'proof.revision.draft:id,uuid,name'])
                 ->get()->map(fn ($entry) => [
@@ -35,16 +39,16 @@ class DesignDraftController extends Controller
                 ]),
             'drafts' => $company->drafts()->select(['id', 'uuid', 'name', 'updated_at'])->withCount('revisions')
                 ->addSelect(['layout' => DesignDraftRevision::select('design->layout')->whereColumn('design_draft_id', 'design_drafts.id')->latest('version')->limit(1)])
-                ->latest('updated_at')->orderByDesc('id')->paginate(20)->through(fn ($draft) => [
+                ->latest('updated_at')->orderByDesc('id')->paginate(20)->appends($lookup)->through(fn ($draft) => [
                     ...$draft->only(['uuid', 'name', 'revisions_count', 'updated_at']),
                     'layout' => DesignCatalog::LAYOUTS[$draft->layout]['name'] ?? null,
                 ]),
         ]);
     }
 
-    public function create(Company $company): Response
+    public function create(Company $company, Request $request): Response
     {
-        return $this->editor($company);
+        return $this->editor($company, lookup: DraftShipmentLookup::fromQuery($request));
     }
 
     public function show(Company $company, DesignDraft $draft): Response
@@ -74,7 +78,7 @@ class DesignDraftController extends Controller
         return to_route('admin.drafts.show', [$company->uuid, $draft->uuid]);
     }
 
-    private function editor(Company $company, ?DesignDraft $draft = null): Response
+    private function editor(Company $company, ?DesignDraft $draft = null, array $lookup = []): Response
     {
         $publication = $company->publications()->latest('id')->first();
         $revision = $draft ? $draft->revisions()->latest('version')->firstOrFail() : $publication?->effectiveRevision();
@@ -88,8 +92,8 @@ class DesignDraftController extends Controller
             ...ClassicDesign::editorSettings($company, $revision?->design),
             'upgrade_presentation' => false,
             'name' => $draft?->name ?? '',
-            'search_option' => $draft ? $revision->search_option : 'bol',
-            'tracking_number' => $draft ? $revision->tracking_number : null,
+            'search_option' => $draft ? $revision->search_option : ($lookup['searchOption'] ?? 'bol'),
+            'tracking_number' => $draft ? $revision->tracking_number : ($lookup['trackingNumber'] ?? null),
             'base_version' => $draft ? $revision->version : null,
             'source_publication_id' => $draft ? null : $publication?->id,
         ];

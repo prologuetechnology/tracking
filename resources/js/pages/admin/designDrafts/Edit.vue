@@ -163,7 +163,7 @@ const save = () => {
           :variant="mobilePane === 'settings' ? 'default' : 'ghost'"
           :aria-pressed="mobilePane === 'settings'"
           @click="mobilePane = 'settings'"
-          ><Settings2 class="mr-2 size-4" aria-hidden="true" />Settings</Button
+          ><Settings2 class="mr-2 size-4" aria-hidden="true" />Edit</Button
         >
         <Button
           type="button"
@@ -177,10 +177,10 @@ const save = () => {
       </div>
 
       <div
-        class="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(17rem,20rem)_minmax(0,1fr)] xl:grid-cols-[minmax(19rem,22rem)_minmax(0,1fr)]"
+        class="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,23rem)] xl:grid-cols-[minmax(0,1fr)_minmax(20rem,25rem)]"
       >
         <div
-          class="min-w-0 space-y-5 lg:block"
+          class="min-w-0 space-y-5 lg:col-start-2 lg:row-start-1 lg:block"
           :class="mobilePane === 'settings' ? 'block' : 'hidden'"
         >
           <form
@@ -474,7 +474,7 @@ const save = () => {
         </div>
 
         <div
-          class="min-w-0 lg:sticky lg:top-4 lg:block"
+          class="min-w-0 lg:sticky lg:top-4 lg:col-start-1 lg:row-start-1 lg:block"
           :class="mobilePane === 'preview' ? 'block' : 'hidden'"
         >
           <StudioShipmentPreview

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Pages\Admin;
 
 use App\Actions\Companies\ListCompanies;
 use App\Actions\Companies\ShowCompany;
+use App\Actions\DesignDrafts\CompanyDesignWorkspace;
+use App\Actions\DesignDrafts\DraftShipmentLookup;
 use App\Actions\Images\ListImageTypes;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CompanyFeatureResource;
@@ -11,6 +13,7 @@ use App\Http\Resources\CompanyResource;
 use App\Http\Resources\ImageTypeResource;
 use App\Models\Company;
 use App\Models\CompanyFeature;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,9 +39,13 @@ class CompanyPageController extends Controller
         return Inertia::render('admin/companies/Create');
     }
 
-    public function show(Company $company): Response
+    public function show(Company $company, Request $request, CompanyDesignWorkspace $workspace): Response
     {
+        $lookup = DraftShipmentLookup::fromQuery($request);
+
         return Inertia::render('admin/companies/Edit', [
+            'shipmentLookup' => $lookup ?: null,
+            'designWorkspace' => $workspace->execute($company, $request->user()->can('company:update'), $lookup),
             'companyInitialValues' => CompanyResource::make(
                 $this->showCompany->execute($company),
             )->resolve(),
