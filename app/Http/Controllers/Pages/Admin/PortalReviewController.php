@@ -20,6 +20,11 @@ class PortalReviewController extends Controller
         return Inertia::render('admin/portalReview/Workbench', ['shipment' => PortalReviewShipment::shipment()]);
     }
 
+    public function directions(): Response
+    {
+        return Inertia::render('admin/portalReview/Directions', ['shipment' => PortalReviewShipment::shipment()]);
+    }
+
     public function asset(string $asset): BinaryFileResponse
     {
         return response()->file(PortalReviewShipment::assetPath($asset), ['Content-Type' => 'image/webp']);

@@ -39,6 +39,8 @@
 
 ## Next
 
+- [ ] Select a staff portal direction after comparing Manifest, Fieldbook, and Signal on desktop and mobile.
+
 - [ ] Review the clickable staff portal at `/admin/portal-review` in Herd. After design acceptance, connect the shipment-first workspace and versioned style library to the live staff workflow.
 
 - [ ] Demo all four layouts and the draft, export, approval, publication, and

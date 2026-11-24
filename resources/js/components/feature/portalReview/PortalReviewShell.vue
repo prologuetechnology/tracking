@@ -1,5 +1,5 @@
 <script setup>
-import { usePage } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import {
   Building2,
   Images,
@@ -127,6 +127,11 @@ function navigate(id) {
             items.find((i) => i.id === section)?.title || 'Company workspace'
           }}
         </span>
+        <Link
+          class="direction-entry"
+          :href="route('admin.portal-review.directions')"
+          >Compare portal designs ↗</Link
+        >
         <span class="local-mark">
           <i />
           Local design review
@@ -255,6 +260,21 @@ function navigate(id) {
   font-style: normal;
   color: #87928a;
   margin: 0 8px;
+}
+.direction-entry {
+  margin-left: auto;
+  color: #344a37;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mast {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .mast .local-mark {
+    display: none;
+  }
 }
 .local-mark {
   display: flex;

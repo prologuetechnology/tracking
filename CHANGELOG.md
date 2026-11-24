@@ -4,6 +4,8 @@
 
 ### Added
 
+- Staff can compare Manifest, Fieldbook, and Signal across shipment lookup, company files, design review, themes, assets, and access in the local portal review.
+
 - Staff can review the proposed shipment-first portal locally with the Jayco sample, versioned styles, desktop and mobile proofs, and a browser-local approval history.
 - Tracking pages now place their themed footer and optional artwork after the shipment content. Staff screens use a separate, full-width Prologue footer.
 
