@@ -9,6 +9,20 @@ use Tests\DuskTestCase;
 
 class AdminManagementFlowsTest extends DuskTestCase
 {
+    public function test_read_only_staff_can_inspect_a_company_without_management_controls(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeStandardUser();
+        $staff->givePermissionTo('company:show');
+        $company = $this->makeCompany(['name' => 'Northline Supply']);
+        $this->browse(function (Browser $browser) use ($staff, $company) {
+            $browser->loginAs($staff)->visit(route('admin.companies.show', $company->uuid))
+                ->waitForText('Northline Supply')->assertSeeIn('[aria-label="Company details"]', 'Pipeline ID')
+                ->assertSee('Live design')->assertMissing('@company-form-save')->assertMissing('#is_active')
+                ->assertDontSeeLink('Design drafts');
+        });
+    }
+
     public function test_super_admin_can_create_a_company_from_the_browser(): void
     {
         $this->seedCoreFixtures();
@@ -48,11 +62,15 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->waitForText('Browser Theme')
                 ->click("@theme-edit-{$existingTheme->id}")
                 ->waitForText('Existing Browser Theme')
+                ->assertSee('Version to inspect')
                 ->clear('@theme-name')
                 ->type('@theme-name', 'Updated Browser Theme')
                 ->click('@theme-form-save')
                 ->waitUntil("window.location.pathname === '/admin/themes'")
-                ->waitForText('Updated Browser Theme');
+                ->waitForText('Updated Browser Theme')
+                ->click("@theme-edit-{$existingTheme->id}")->waitFor('#library-history')
+                ->assertSelectHasOption('#library-history', (string) $existingTheme->versions()->where('version', 1)->value('id'))
+                ->assertSelected('#library-history', (string) $existingTheme->versions()->where('version', 2)->value('id'));
         });
 
         $this->assertDatabaseHas('themes', ['name' => 'Browser Theme']);
@@ -164,7 +182,7 @@ class AdminManagementFlowsTest extends DuskTestCase
         $this->assertTrue(User::query()->findOrFail($targetUser->id)->hasRole('Company Admin'));
     }
 
-    public function test_super_admin_can_reuse_shared_company_images_and_sees_library_delete_warnings(): void
+    public function test_company_brand_changes_open_in_drafts_and_assigned_artwork_is_protected(): void
     {
         $this->seedCoreFixtures(withImageTypes: true);
 
@@ -187,31 +205,24 @@ class AdminManagementFlowsTest extends DuskTestCase
             $browser->loginAs($user)
                 ->visit("/admin/companies/{$secondCompany->uuid}")
                 ->waitForText('Shared Second Company')
-                ->click('@company-image-open-logo')
-                ->waitForText('Select From Shared Library')
-                ->waitFor("@company-image-library-select-{$sharedLogo->id}")
-                ->click("@company-image-library-select-{$sharedLogo->id}")
-                ->click('@company-image-assign-existing')
-                ->pause(500)
+                ->assertMissing('@company-image-open-logo')
                 ->visit("/admin/companies/{$firstCompany->uuid}")
                 ->waitForText('Shared First Company')
-                ->click('@company-image-clear-logo')
-                ->waitForText('Remove Logo')
-                ->click('@company-image-clear-confirm-logo')
-                ->pause(500)
+                ->assertMissing('@company-image-clear-logo')
                 ->visit('/admin/images')
                 ->waitForText('Manage Images')
                 ->click("@image-delete-open-{$sharedLogo->id}")
-                ->waitForText('currently assigned to 1 company');
+                ->waitForText('currently assigned to 1 company')
+                ->assertDisabled("@image-delete-confirm-{$sharedLogo->id}");
         });
 
         $this->assertDatabaseHas('companies', [
             'id' => $firstCompany->id,
-            'logo_image_id' => null,
+            'logo_image_id' => $sharedLogo->id,
         ]);
         $this->assertDatabaseHas('companies', [
             'id' => $secondCompany->id,
-            'logo_image_id' => $sharedLogo->id,
+            'logo_image_id' => null,
         ]);
         $this->assertDatabaseHas('images', [
             'id' => $sharedLogo->id,

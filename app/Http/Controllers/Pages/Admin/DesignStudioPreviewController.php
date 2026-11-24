@@ -50,7 +50,7 @@ class DesignStudioPreviewController extends Controller
             'snapshot_token' => $snapshot['token'],
             'captured_at' => $snapshot['captured_at'],
             'render_id' => $renderId,
-            'live_design' => LiveDesignSummary::forPublication($publication),
+            'live_design' => LiveDesignSummary::forPublication($publication, $company),
         ])->header('Cache-Control', 'private, no-store');
     }
 }

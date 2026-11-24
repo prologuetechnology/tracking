@@ -10,7 +10,7 @@ class ListThemes
     public function execute(): Collection
     {
         return Theme::query()
-            ->orderBy('name')
+            ->with('latestVersion')->orderBy('name')
             ->get();
     }
 }

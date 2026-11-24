@@ -32,7 +32,7 @@ class ThemePageController extends Controller
     public function show(Theme $theme): Response
     {
         return Inertia::render('admin/themes/Edit', [
-            'initialTheme' => ThemeResource::make($theme)->resolve(),
+            'initialTheme' => ThemeResource::make($theme->load('latestVersion', 'versions'))->resolve(),
         ]);
     }
 }

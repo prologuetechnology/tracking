@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class UpdateThemeRequest extends FormRequest
+class UpdateThemeRequest extends StoreThemeRequest
 {
     public function authorize(): bool
     {
@@ -13,25 +13,10 @@ class UpdateThemeRequest extends FormRequest
 
     public function rules(): array
     {
-        $themeId = $this->route('theme')?->id ?? null;
-
         return [
-            'name' => 'required|string|max:255|unique:themes,name,'.$themeId,
-            'primary_hue' => 'required|array',
-            'primary_hue.*' => 'integer|min:0|max:360',
-            'primary_saturation' => 'required|array',
-            'primary_saturation.*' => 'integer|min:0|max:100',
-            'primary_lightness' => 'required|array',
-            'primary_lightness.*' => 'integer|min:0|max:100',
-            'accent_hue' => 'required|array',
-            'accent_hue.*' => 'integer|min:0|max:360',
-            'accent_saturation' => 'required|array',
-            'accent_saturation.*' => 'integer|min:0|max:100',
-            'accent_lightness' => 'required|array',
-            'accent_lightness.*' => 'integer|min:0|max:100',
-            'derive_from' => 'required|string|in:primary,accent',
-            'radius' => 'nullable|string|max:255',
-            'is_system' => 'boolean',
+            ...parent::rules(),
+            'base_version' => ['required', 'integer', 'min:1'],
+            'source_version_id' => ['sometimes', 'integer', 'min:1', Rule::prohibitedIf($this->has('style'))],
         ];
     }
 }

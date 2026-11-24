@@ -2,6 +2,8 @@
 
 ## Active
 
+- [x] Pin existing customer themes to version 1, author reusable style versions from the library or studio, and publish visual changes through an approved proof.
+
 - [x] Extend Signal to company workspaces, the two-pane studio, the shared asset inspector, and access administration.
 
 - [x] Keep existing companies on Classic with the same links, branding, fixed
@@ -42,8 +44,6 @@
 ## Next
 
 - [x] Select Signal and build the shipment console and staff appearance preference.
-
-- [ ] Review the clickable staff portal at `/admin/portal-review` in Herd. After design acceptance, connect the shipment-first workspace and versioned style library to the live staff workflow.
 
 - [ ] Demo all four layouts and the draft, export, approval, publication, and
       rollback workflow from `feature/tracking-layouts-and-branding`. Open the

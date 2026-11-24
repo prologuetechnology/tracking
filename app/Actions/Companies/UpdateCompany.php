@@ -17,6 +17,7 @@ class UpdateCompany
     public function execute(Company $company, array $attributes): Company
     {
         return DB::transaction(function () use ($company, $attributes): Company {
+            $attributes = PreserveCompanyBranding::operationalAttributes($company, $attributes);
             $siblingBrandAssignments = $attributes['sibling_brand_assignments'] ?? [];
             unset($attributes['sibling_brand_assignments']);
 

@@ -5,7 +5,7 @@ import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-import { advanced, contrast, tokenHex } from './reviewStyles'
+import { advanced, contrast, tokenHex } from './themeColorFields'
 const props = defineProps({
   modelValue: { type: Object, required: true },
   derived: { type: Object, required: true },
@@ -166,22 +166,24 @@ function finish(event, key, custom) {
 .inspector input[type='color'] {
   width: 32px;
   height: 32px;
-  border: 1px solid var(--line);
+  border: 1px solid hsl(var(--border));
   padding: 2px;
   border-radius: 6px;
-  background: white;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   cursor: pointer;
 }
 .inspector select {
   max-width: 160px;
-  border: 1px solid var(--line);
+  border: 1px solid hsl(var(--border));
   border-radius: 7px;
   padding: 6px;
-  background: white;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 .inspector details {
   margin-top: 18px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid hsl(var(--border));
 }
 .inspector summary {
   padding: 12px 0;
@@ -198,7 +200,7 @@ function finish(event, key, custom) {
 }
 .override small {
   font-size: 11px;
-  color: var(--sub);
+  color: hsl(var(--muted-foreground));
 }
 .inspector label {
   font-size: 13px;

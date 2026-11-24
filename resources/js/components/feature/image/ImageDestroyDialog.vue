@@ -28,6 +28,7 @@ const queryClient = useQueryClient()
 const {
   mutate: destroyImage,
   error,
+  isPending,
   reset,
 } = useImageDestroyMutation({
   config: {
@@ -63,7 +64,7 @@ const usageWarning = () => {
 
   return `This shared image is currently assigned to ${companyCount} compan${
     companyCount === 1 ? `y` : `ies`
-  }. Deleting it will remove the image everywhere it is used.`
+  }. Publish an approved replacement for each company before deleting this image.`
 }
 </script>
 
@@ -107,7 +108,7 @@ const usageWarning = () => {
           size="sm"
           type="button"
           variant="destructive"
-          class=""
+          :disabled="image.is_in_use || isPending"
           @click="handleDelete"
         >
           Delete

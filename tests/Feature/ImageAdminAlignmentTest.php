@@ -207,7 +207,7 @@ class ImageAdminAlignmentTest extends TestCase
             ->assertJsonPath('0.is_in_use', true);
     }
 
-    public function test_deleting_images_clears_related_company_asset_references(): void
+    public function test_deleting_an_assigned_image_preserves_the_live_asset_and_stored_file(): void
     {
         Storage::fake('spaces');
 
@@ -223,29 +223,15 @@ class ImageAdminAlignmentTest extends TestCase
             'footer_image_id' => $footer->id,
         ])->save();
 
-        $this->actingAs($superAdmin)
-            ->deleteJson(route('api.images.destroy', $logo))
-            ->assertNoContent();
+        foreach ([$logo, $banner, $footer] as $image) {
+            Storage::disk('spaces')->put($image->file_path, 'retained artwork');
+            $this->actingAs($superAdmin)->deleteJson(route('api.images.destroy', $image))
+                ->assertUnprocessable()->assertJsonValidationErrors('image');
+            Storage::disk('spaces')->assertExists($image->file_path);
+        }
 
-        $company->refresh();
-        $this->assertNull($company->logo_image_id);
-        $this->assertSame($banner->id, $company->banner_image_id);
-        $this->assertSame($footer->id, $company->footer_image_id);
-
-        $this->actingAs($superAdmin)
-            ->deleteJson(route('api.images.destroy', $banner))
-            ->assertNoContent();
-
-        $company->refresh();
-        $this->assertNull($company->banner_image_id);
-        $this->assertSame($footer->id, $company->footer_image_id);
-
-        $this->actingAs($superAdmin)
-            ->deleteJson(route('api.images.destroy', $footer))
-            ->assertNoContent();
-
-        $company->refresh();
-        $this->assertNull($company->footer_image_id);
+        $this->assertDatabaseHas('companies', ['id' => $company->id, 'logo_image_id' => $logo->id,
+            'banner_image_id' => $banner->id, 'footer_image_id' => $footer->id]);
     }
 
     protected function createSuperAdmin(): User

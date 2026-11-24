@@ -61,8 +61,8 @@ class CompanySurfaceCoverageTest extends TestCase
                 'image_id' => $logo->id,
                 'type' => ImageTypeEnum::LOGO->value,
             ])
-            ->assertOk()
-            ->assertJsonPath('logo.id', $logo->id);
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('logo_image_id');
 
         $this->actingAs($updater)
             ->patchJson(route('api.companies.clearImageAsset', $company), [
@@ -176,39 +176,34 @@ class CompanySurfaceCoverageTest extends TestCase
         $this->actingAs($user)->deleteJson(route('api.companies.destroy', $company))->assertForbidden();
     }
 
-    public function test_a_shared_image_can_be_assigned_to_multiple_companies_without_duplication(): void
+    public function test_company_updates_require_an_approved_draft_for_theme_or_artwork_changes(): void
     {
         $this->seedCoreFixtures(withImageTypes: true);
+        $logo = $this->makeImage(ImageTypeEnum::LOGO->value);
+        $banner = $this->makeImage(ImageTypeEnum::BANNER->value);
+        $footer = $this->makeImage(ImageTypeEnum::FOOTER->value);
+        $theme = $this->makeTheme();
+        $company = $this->makeCompany(['logo_image_id' => $logo->id]);
+        $this->actingAs($this->makeUserWithPermission('company:update'));
 
-        $sharedLogo = $this->makeImage(ImageTypeEnum::LOGO->value);
-        $firstCompany = $this->makeCompany();
-        $secondCompany = $this->makeCompany([
-            'pipeline_company_id' => 908001,
-            'name' => 'Second Company',
-            'email' => 'second@example.test',
+        $this->patchJson(route('api.companies.clearImageAsset', $company), ['type' => 'logo'])
+            ->assertUnprocessable()->assertJsonValidationErrors('logo_image_id');
+        $this->patchJson(route('api.companies.setTheme', $company), ['theme_id' => $theme->id])
+            ->assertUnprocessable()->assertJsonValidationErrors('theme_id');
+
+        $attributes = ['name' => 'Ordinary edit', 'pipeline_company_id' => $company->pipeline_company_id];
+        $this->patchJson(route('api.companies.update', $company), [
+            ...$attributes, 'theme_id' => $theme->id, 'theme_version_id' => 9999,
+            'logo_image_id' => null, 'banner_image_id' => $banner->id, 'footer_image_id' => $footer->id,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['theme_id', 'theme_version_id', 'logo_image_id', 'banner_image_id', 'footer_image_id']);
+
+        $this->assertDatabaseHas('companies', [
+            'id' => $company->id, 'name' => $company->name, 'theme_id' => $company->theme_id,
+            'logo_image_id' => $logo->id, 'banner_image_id' => null, 'footer_image_id' => null,
         ]);
-        $updater = $this->makeUserWithPermission('company:update');
-
-        $this->actingAs($updater)
-            ->patchJson(route('api.companies.setImageAsset', $firstCompany), [
-                'image_id' => $sharedLogo->id,
-                'type' => ImageTypeEnum::LOGO->value,
-            ])
-            ->assertOk();
-
-        $this->actingAs($updater)
-            ->patchJson(route('api.companies.setImageAsset', $secondCompany), [
-                'image_id' => $sharedLogo->id,
-                'type' => ImageTypeEnum::LOGO->value,
-            ])
-            ->assertOk();
-
-        $firstCompany->refresh();
-        $secondCompany->refresh();
-
-        $this->assertSame($sharedLogo->id, $firstCompany->logo_image_id);
-        $this->assertSame($sharedLogo->id, $secondCompany->logo_image_id);
-        $this->assertSame(1, $sharedLogo->newQuery()->whereKey($sharedLogo->id)->count());
+        $this->patchJson(route('api.companies.update', $company), [
+            ...$attributes, 'theme_id' => $company->theme_id, 'logo_image_id' => $logo->id,
+        ])->assertOk()->assertJsonPath('name', 'Ordinary edit');
     }
 
     public function test_duplicate_pipeline_company_id_creation_converts_the_active_group_to_branded_tracking(): void

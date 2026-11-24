@@ -79,7 +79,7 @@ const items = computed(() => {
       :key="item.name"
       :href="item.href"
       :aria-current="item.active ? 'location' : undefined"
-      @click="emit('navigate')"
+      @success="emit('navigate')"
       ><component :is="item.icon" :size="16" aria-hidden="true" />{{
         item.name
       }}</Link

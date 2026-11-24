@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Themes\ArchiveTheme;
 use App\Actions\Themes\CreateTheme;
 use App\Actions\Themes\ListThemes;
 use App\Actions\Themes\UpdateTheme;
@@ -34,12 +35,12 @@ class ThemeController extends Controller
     {
         $theme = $this->createTheme->execute($request->validated());
 
-        return response()->json(ThemeResource::make($theme), Response::HTTP_CREATED);
+        return response()->json(ThemeResource::make($theme->load('latestVersion', 'versions')), Response::HTTP_CREATED);
     }
 
     public function show(Theme $theme): JsonResponse
     {
-        return response()->json(ThemeResource::make($theme), Response::HTTP_OK);
+        return response()->json(ThemeResource::make($theme->load('latestVersion', 'versions')), Response::HTTP_OK);
     }
 
     public function update(UpdateThemeRequest $request, Theme $theme): JsonResponse
@@ -49,9 +50,9 @@ class ThemeController extends Controller
         return response()->json(ThemeResource::make($theme), Response::HTTP_OK);
     }
 
-    public function destroy(Theme $theme, DeleteThemeRequest $request): JsonResponse
+    public function destroy(Theme $theme, DeleteThemeRequest $request, ArchiveTheme $archive): JsonResponse
     {
-        $theme->delete();
+        $archive->execute($theme);
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }

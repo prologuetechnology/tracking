@@ -97,15 +97,15 @@ class DesignDraftController extends Controller
             'base_version' => $draft ? $revision->version : null,
             'source_publication_id' => $draft ? null : $publication?->id,
         ];
-        $themes = Theme::query()->orderBy('name')->get(['id', 'name'])->toBase();
+        $themes = Theme::query()->with('versions:id,theme_id,version,name,style')->orderBy('name')->get(['id', 'name'])->toBase();
         $savedTheme = $revision?->design['theme'] ?? null;
         if ($savedTheme && ! $themes->contains('id', $savedTheme['id'])) {
-            $themes->push(['id' => $savedTheme['id'], 'name' => $savedTheme['name'].' (saved)']);
+            $themes->push(['id' => $savedTheme['id'], 'name' => $savedTheme['name'].' (saved)', 'versions' => []]);
         }
 
         return Inertia::render('admin/designDrafts/Edit', [
             'catalog' => DesignCatalog::editor(),
-            'liveDesign' => LiveDesignSummary::forPublication($publication),
+            'liveDesign' => LiveDesignSummary::forPublication($publication, $company),
             'canUpgradePresentation' => $revision !== null && ($revision->design['presentation_version'] ?? 1) < 2 && $revision->design['layout'] !== ClassicDesign::LAYOUT,
             'company' => $company->only(['uuid', 'name']),
             'draft' => $draft?->only(['uuid', 'name']),

@@ -6,6 +6,9 @@ use App\Traits\HasUuid;
 use Database\Factories\ThemeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
@@ -38,18 +41,40 @@ use Illuminate\Support\Carbon;
 class Theme extends Model
 {
     /** @use HasFactory<ThemeFactory> */
-    use HasFactory, HasUuid;
+    use HasFactory, HasUuid, SoftDeletes;
 
     protected $fillable = [
         'name',
         'colors',
+        'style',
         'radius',
         'is_system',
         'derive_from',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(fn (Theme $theme) => $theme->appendVersion(1));
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(ThemeVersion::class)->orderByDesc('version');
+    }
+
+    public function latestVersion(): HasOne
+    {
+        return $this->hasOne(ThemeVersion::class)->latestOfMany('version');
+    }
+
+    public function appendVersion(int $number): ThemeVersion
+    {
+        return $this->versions()->create([...$this->only(['name', 'colors', 'radius', 'style']), 'version' => $number]);
+    }
+
     protected $casts = [
         'colors' => 'array',
+        'style' => 'array',
         'is_system' => 'boolean',
     ];
 }

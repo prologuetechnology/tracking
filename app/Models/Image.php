@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ImageTypeEnum;
 use App\Traits\HasUuid;
 use Database\Factories\ImageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -44,15 +44,11 @@ class Image extends Model
 
     protected static function booted(): void
     {
-        static::deleting(function (Image $image) {
-            $type = $image->loadMissing('imageType')->imageType?->name;
-
-            match ($type) {
-                ImageTypeEnum::LOGO->value => Company::query()->where('logo_image_id', $image->id)->update(['logo_image_id' => null]),
-                ImageTypeEnum::BANNER->value => Company::query()->where('banner_image_id', $image->id)->update(['banner_image_id' => null]),
-                ImageTypeEnum::FOOTER->value => Company::query()->where('footer_image_id', $image->id)->update(['footer_image_id' => null]),
-                default => null,
-            };
+        static::deleting(function (Image $image): void {
+            if (Company::query()->where('logo_image_id', $image->id)
+                ->orWhere('banner_image_id', $image->id)->orWhere('footer_image_id', $image->id)->exists()) {
+                throw ValidationException::withMessages(['image' => 'A live tracking page uses this image. Replace it through an approved design draft first.']);
+            }
         });
     }
 
