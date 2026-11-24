@@ -25,6 +25,15 @@ class TrackingPageContractsTest extends TestCase
         config()->set('app.url', 'https://tracking.example');
     }
 
+    public function test_staff_lookup_distinguishes_an_upstream_failure_from_a_missing_shipment(): void
+    {
+        Http::fake(['*/shipmentSearch' => Http::sequence()->push([], 503)->push(['data' => []])]);
+        $this->actingAs($this->makeStandardUser());
+        $lookup = ['trackingNumber' => 'test', 'searchOption' => 'bol', 'companyId' => null, 'brand' => null];
+        $this->postJson(route('api.shipmentTracking'), $lookup)->assertStatus(502);
+        $this->postJson(route('api.shipmentTracking'), $lookup)->assertNotFound();
+    }
+
     public function test_tracking_page_renders_hydrated_props_for_a_found_brand_matched_shipment(): void
     {
         Http::preventStrayRequests();

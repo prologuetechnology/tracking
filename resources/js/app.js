@@ -6,6 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import { createApp, h } from 'vue'
 
 import { ZiggyVue } from '../../vendor/tightenco/ziggy'
+import { useStaffAppearance } from './composables/hooks/theme/useStaffAppearance'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +27,12 @@ createInertiaApp({
       import.meta.glob(`./pages/**/*.vue`),
     ),
   setup({ el, App, props, plugin }) {
-    return createApp({ render: () => h(App, props) })
+    return createApp({
+      setup() {
+        useStaffAppearance()
+        return () => h(App, props)
+      },
+    })
       .use(plugin)
       .use(VueQueryPlugin, { queryClient, enableDevtoolsV6Plugin: true })
       .use(ZiggyVue)

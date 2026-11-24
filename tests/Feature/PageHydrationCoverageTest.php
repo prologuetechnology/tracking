@@ -33,7 +33,7 @@ class PageHydrationCoverageTest extends TestCase
 
         $this->actingAs($admin)
             ->get(route('home'))
-            ->assertRedirect(route('admin.companies.index'));
+            ->assertRedirect(route('admin.tracking.index'));
     }
 
     public function test_dashboard_redirects_to_the_correct_surface_for_each_user_type(): void
@@ -43,7 +43,7 @@ class PageHydrationCoverageTest extends TestCase
 
         $this->actingAs($companyViewer)
             ->get(route('admin.dashboard'))
-            ->assertRedirect(route('admin.companies.index'));
+            ->assertRedirect(route('admin.tracking.index'));
 
         $this->actingAs($trackingOnly)
             ->get(route('admin.dashboard'))

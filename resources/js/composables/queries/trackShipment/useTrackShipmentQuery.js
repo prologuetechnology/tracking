@@ -1,12 +1,6 @@
 import { useQuery } from '@tanstack/vue-query'
 import axios from 'axios'
 
-const trackShipment = async (formData) => {
-  const { data } = await axios.post(route(`api.shipmentTracking`), formData)
-
-  return data
-}
-
 const useTrackShipmentQuery = ({
   config = {},
   trackingNumber = ``,
@@ -16,16 +10,21 @@ const useTrackShipmentQuery = ({
 } = {}) =>
   useQuery({
     queryKey: [`trackShipment`, trackingNumber, searchOption, companyId, brand],
-    queryFn: () =>
-      trackShipment({
-        trackingNumber: trackingNumber?.value ?? trackingNumber,
-        searchOption: searchOption?.value ?? searchOption,
-        companyId,
-        brand,
-      }),
-
+    queryFn: async ({ queryKey, signal }) => {
+      const [, trackingNumber, searchOption, companyId, brand] = queryKey
+      const { data } = await axios.post(
+        route(`api.shipmentTracking`),
+        {
+          trackingNumber,
+          searchOption,
+          companyId,
+          brand,
+        },
+        { signal },
+      )
+      return data
+    },
     retry: false,
     ...config,
   })
-
 export default useTrackShipmentQuery

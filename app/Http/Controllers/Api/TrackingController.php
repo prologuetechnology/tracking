@@ -30,6 +30,10 @@ class TrackingController extends Controller
             brand: $request->validated('brand'),
         );
 
+        if ($payload['unavailable'] ?? false) {
+            return response()->json(['error' => 'Shipment lookup is temporarily unavailable.'], Response::HTTP_BAD_GATEWAY);
+        }
+
         if (! $payload['found']) {
             return response()->json([
                 'error' => 'Tracking data not found or invalid.',

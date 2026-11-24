@@ -4,6 +4,8 @@
 
 ### Added
 
+- Signal gives staff a live shipment console and an account-wide System, Light, or Dark appearance, including mobile navigation and sign-in.
+
 - Staff can compare Manifest, Fieldbook, and Signal across shipment lookup, company files, design review, themes, assets, and access in the local portal review.
 
 - Staff can review the proposed shipment-first portal locally with the Jayco sample, versioned styles, desktop and mobile proofs, and a browser-local approval history.

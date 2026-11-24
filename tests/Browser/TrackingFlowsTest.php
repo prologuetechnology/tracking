@@ -27,7 +27,7 @@ class TrackingFlowsTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/admin/tracking')
-                ->waitForText('Track a Shipment')
+                ->waitForText('Shipment console')
                 ->type('@tracking-number-input', 'BOL123')
                 ->click('@tracking-search-option-trigger')
                 ->waitFor('@tracking-search-option-bol')
@@ -35,7 +35,40 @@ class TrackingFlowsTest extends DuskTestCase
                 ->click('@tracking-search-submit')
                 ->waitForText('Shipment Details')
                 ->waitForText('Shipment Documents')
-                ->assertPresent('#trackingMap');
+                ->assertPresent('#trackingMap')
+                ->assertSeeIn('.scan-inspector', 'Delivered')
+                ->assertSeeLink('Customer tracking page')
+                ->assertDontSeeLink('Company workspace')
+                ->press('Clear')->waitUntilMissing('.scan-console');
+        });
+    }
+
+    public function test_scan_and_stop_selection_preserve_repeated_visits_and_untimed_events(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeCompanyAdmin();
+        $company = $this->makeCompany(['pipeline_company_id' => 1001]);
+        $this->browse(function (Browser $browser) use ($staff, $company) {
+            $browser->loginAs($staff)->visit('/admin/tracking')
+                ->type('@tracking-number-input', 'SIGNAL-SCANS')->click('@tracking-search-submit')
+                ->waitFor('.scan-inspector')->assertSeeIn('.scan-inspector', 'Delivered')
+                ->assertPresent('button[aria-label="Stop 1, Chicago, IL"]')
+                ->click('button[aria-label="Stop 2, Memphis, TN"]')
+                ->assertSeeIn('.scan-inspector', 'Delivery exception')
+                ->press('Exceptions')->assertSeeIn('.scan-inspector', 'Delivery exception')
+                ->click('button[aria-label="Stop 3, Chicago, IL"]')
+                ->assertSeeIn('.scan-inspector', 'Delivered')
+                ->click('.scan-list li:last-child button')->assertSeeIn('.scan-inspector', 'Time unavailable')
+                ->assertSeeIn('.scan-inspector', 'Location unavailable')
+                ->assertSeeLink('Company workspace')->assertSeeLink('Create design draft');
+            $draft = $browser->attribute('a[href*="/design-drafts/create"]', 'href');
+            $this->assertSame(route('admin.drafts.create', $company->uuid), strtok($draft, '?'));
+            parse_str(parse_url($draft, PHP_URL_QUERY), $parameters);
+            $this->assertEquals(['trackingNumber' => 'SIGNAL-SCANS', 'searchOption' => 'carrierPro'], $parameters);
+            $browser->type('@tracking-number-input', 'SIGNAL-EMPTY')->click('@tracking-search-submit')
+                ->waitForText('No carrier scans reported yet.')->assertSeeIn('.scan-inspector', 'No scan selected.')
+                ->type('@tracking-number-input', 'BOL404')->click('@tracking-search-submit')
+                ->waitForText('Shipment not found.')->assertMissing('.scan-console');
         });
     }
 

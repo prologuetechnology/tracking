@@ -7,13 +7,13 @@ use Tests\DuskTestCase;
 
 class AdminSmokeTest extends DuskTestCase
 {
-    public function test_oauth_test_login_reaches_the_authenticated_companies_shell(): void
+    public function test_oauth_test_login_reaches_the_staff_shipment_console(): void
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('/testing/oauth-login')
-                ->waitForText('Companies')
-                ->assertPathIs('/admin/companies')
-                ->assertSee('Companies');
+                ->waitForText('Shipment console')
+                ->assertPathIs('/admin/tracking')
+                ->assertPresent('@tracking-number-input');
         });
     }
 

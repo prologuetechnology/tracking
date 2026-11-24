@@ -47,9 +47,10 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
 
 <template>
   <DropdownMenu>
-    <DropdownMenuTrigger>
+    <DropdownMenuTrigger as-child>
       <Button
         dusk="user-menu-trigger"
+        aria-label="Staff account"
         class="flex flex-row items-center justify-center space-x-1"
         variant="outline"
         size="xs"

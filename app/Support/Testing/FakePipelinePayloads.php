@@ -61,6 +61,18 @@ class FakePipelinePayloads
             ];
         }
 
+        if ($trackingNumber === 'SIGNAL-EMPTY') {
+            $payload['data'][0]['allStatuses'] = [];
+        }
+        if ($trackingNumber === 'SIGNAL-SCANS') {
+            $payload['data'][0]['allStatuses'] = [
+                ['current_status' => 'Created'],
+                ['current_status' => 'Picked up', 'status_date_time' => '2026-03-01T09:00:00Z', 'current_location' => 'Chicago, IL'],
+                ['current_status' => 'Delivery exception', 'timestamp' => '2026-03-02T09:00:00Z', 'current_location' => 'Memphis, TN'],
+                ['current_status' => 'Delivered', 'status_date_time' => '2026-03-03T09:00:00Z', 'current_location' => 'Chicago, IL'],
+            ];
+        }
+
         return $payload;
     }
 
