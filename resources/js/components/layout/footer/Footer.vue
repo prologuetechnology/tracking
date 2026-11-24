@@ -1,44 +1,56 @@
 <script setup>
-import { faCopyright } from '@fortawesome/pro-regular-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { usePage } from '@inertiajs/vue3'
 import dayjs from 'dayjs'
+import { computed } from 'vue'
 
-import { Badge } from '@/components/ui/badge'
+import { imageAssetUrl } from '@/composables/hooks/disks'
 
-defineProps({ sticky: { type: Boolean, default: true } })
+const page = usePage()
+const artwork = computed(() => page.props.initialCompany?.footer)
+const image = computed(
+  () =>
+    artwork.value?.file_path &&
+    imageAssetUrl({ filePath: artwork.value.file_path }),
+)
 </script>
-
 <template>
   <footer
-    :class="{ 'sticky bottom-0 z-50': sticky }"
-    class="flex w-full flex-row items-center justify-center space-x-2 border-t border-t-border/70 bg-background/70 py-4 shadow-[0_-12px_25px_-12px_rgb(0_0_0_/_0.17)] backdrop-blur-lg"
+    data-tracking-footer
+    data-design-field="footer"
+    class="mt-auto w-full shrink-0 border-t border-border bg-card text-card-foreground"
   >
-    <p class="text-center text-sm">
+    <div
+      v-if="image"
+      class="mx-auto w-full max-w-6xl px-4 pt-5 text-center sm:px-8"
+    >
+      <img
+        :src="image"
+        :alt="artwork.name || ''"
+        class="mx-auto block h-auto max-h-48 max-w-full object-contain"
+      />
+    </div>
+    <p
+      class="flex min-h-14 flex-wrap items-center justify-center gap-x-1.5 px-4 py-3 text-center text-sm"
+    >
       <a
         href="https://prologuetechnology.com/"
         target="_blank"
         rel="noopener noreferrer"
-        class="font-semibold underline"
+        class="font-semibold underline decoration-primary/60 underline-offset-4 hover:decoration-current"
       >
-        {{ $page.props.app.name }}
+        {{ page.props.app.name }}
       </a>
-
-      <FontAwesomeIcon
-        class="mx-[0.125rem] text-xs"
-        :icon="faCopyright"
-        fixed-width
-      />
-
-      {{ dayjs().year() }}
+      <span>© {{ dayjs(page.props.frozenAt || undefined).year() }}</span>
     </p>
-
-    <div
-      v-if="$page.props.app.env !== `production`"
-      class="flex flex-row items-center justify-center"
-    >
-      <Badge variant="destructive" class="capitalize">
-        <span>{{ $page.props.app.env }}</span>
-      </Badge>
-    </div>
   </footer>
 </template>
+
+<style scoped>
+footer {
+  border-block-start: 2px solid hsl(var(--primary) / 0.28);
+  background-image: linear-gradient(
+    hsl(var(--primary) / 0.045),
+    hsl(var(--primary) / 0.045)
+  );
+}
+</style>

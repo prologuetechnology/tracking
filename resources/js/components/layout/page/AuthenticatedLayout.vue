@@ -9,6 +9,7 @@ import { useIsCurrentlyImpersonating } from '@/composables/hooks/auth'
 import { useImpersonateUserStopMutation } from '@/composables/mutations/user'
 import { useUserQuery } from '@/composables/queries/user'
 
+import StaffFooter from '../footer/StaffFooter.vue'
 import AuthenticatedNavbar from '../navigation/AuthenticatedNavbar.vue'
 
 const { isCurrentlyImpersonating } = useIsCurrentlyImpersonating()
@@ -77,7 +78,7 @@ onMounted(() => {
 <template>
   <Toaster />
 
-  <div class="grid min-h-screen grid-rows-[auto,1fr] items-start">
+  <div class="grid min-h-dvh grid-rows-[auto,1fr,auto] items-start">
     <AuthenticatedNavbar :sticky="!wide" />
 
     <main
@@ -99,6 +100,7 @@ onMounted(() => {
 
       <slot />
     </main>
+    <StaffFooter />
   </div>
 
   <VueQueryDevtools />

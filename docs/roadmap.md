@@ -39,6 +39,8 @@
 
 ## Next
 
+- [ ] Review the clickable staff portal at `/admin/portal-review` in Herd. After design acceptance, connect the shipment-first workspace and versioned style library to the live staff workflow.
+
 - [ ] Demo all four layouts and the draft, export, approval, publication, and
       rollback workflow from `feature/tracking-layouts-and-branding`. Open the
       integration PR to `develop` after business acceptance.

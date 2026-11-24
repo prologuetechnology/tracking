@@ -11,6 +11,7 @@ use App\Http\Controllers\Pages\Admin\DesignProofController;
 use App\Http\Controllers\Pages\Admin\DesignStudioPreviewController;
 use App\Http\Controllers\Pages\Admin\ImagePageController;
 use App\Http\Controllers\Pages\Admin\PermissionPageController;
+use App\Http\Controllers\Pages\Admin\PortalReviewController;
 use App\Http\Controllers\Pages\Admin\RolePageController;
 use App\Http\Controllers\Pages\Admin\ThemePageController;
 use App\Http\Controllers\Pages\Admin\TrackingPageController;
@@ -35,6 +36,17 @@ Route::prefix('admin')
     ->middleware(['auth'])
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+        if (App::environment('local', 'testing', 'dusk.local')) {
+            Route::controller(PortalReviewController::class)->prefix('portal-review')->name('portal-review.')
+                ->middleware('cache.headers:private;no_store')->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('assets/{asset}', 'asset')->name('asset');
+                    Route::get('classic', 'classic')->name('classic');
+                    Route::get('preview', 'preview')->name('preview');
+                    Route::post('proofs', 'proofs')->middleware('throttle:12,1')->name('proofs');
+                });
+        }
 
         Route::controller(CompanyPageController::class)
             ->group(function () {

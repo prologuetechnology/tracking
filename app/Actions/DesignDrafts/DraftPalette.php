@@ -31,6 +31,11 @@ final class DraftPalette
         return ['name' => 'Custom colors', 'colors' => ['root' => array_map(self::hsl(...), $root)]];
     }
 
+    public static function colorToken(string $hex): string
+    {
+        return self::hsl(self::rgb($hex));
+    }
+
     private static function rgb(string $hex): array
     {
         return array_map(hexdec(...), str_split(substr($hex, 1), 2));

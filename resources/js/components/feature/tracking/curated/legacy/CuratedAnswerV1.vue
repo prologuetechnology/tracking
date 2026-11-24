@@ -48,7 +48,7 @@ const itinerary = computed(() =>
 <template>
   <div
     data-tracking-layout="answer"
-    class="min-h-screen bg-background text-foreground"
+    class="flex min-h-dvh flex-col bg-background text-foreground"
   >
     <Head :title="[company.name, reference].filter(Boolean).join(' · ')" />
     <TrackingBrandHeader />
@@ -184,13 +184,7 @@ const itinerary = computed(() =>
           The carrier has not reported a tracking event yet.
         </p>
       </section>
-      <img
-        v-if="company.footer"
-        :src="imageAssetUrl({ filePath: company.footer.file_path })"
-        alt=""
-        class="mx-auto mt-8 max-w-full rounded"
-      />
     </main>
-    <Footer :sticky="false" />
+    <Footer />
   </div>
 </template>

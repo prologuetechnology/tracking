@@ -80,7 +80,7 @@ const refresh = () => router.reload({ preserveScroll: true })
 
 <template>
   <Head :title="[company.name, reference].filter(Boolean).join(' · ')" />
-  <div class="min-h-screen bg-background text-foreground">
+  <div class="flex min-h-dvh flex-col bg-background text-foreground">
     <header class="border-b border-border">
       <div
         class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-10"
@@ -115,7 +115,7 @@ const refresh = () => router.reload({ preserveScroll: true })
         </div>
       </div>
     </header>
-    <main class="mx-auto max-w-6xl px-5 pb-12 pt-6 sm:px-10">
+    <main class="mx-auto w-full max-w-6xl px-5 pb-12 pt-6 sm:px-10">
       <p
         class="mb-5 flex flex-wrap items-baseline gap-2 text-sm text-muted-foreground"
       >
@@ -229,12 +229,6 @@ const refresh = () => router.reload({ preserveScroll: true })
           :show-history="false"
         />
       </div>
-      <img
-        v-if="company.footer"
-        :src="imageAssetUrl({ filePath: company.footer.file_path })"
-        alt=""
-        class="mx-auto mt-8 max-w-full rounded"
-      />
     </main>
     <Footer />
   </div>

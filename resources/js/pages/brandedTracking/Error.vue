@@ -35,8 +35,8 @@ defineProps({
         it.
       </p>
 
-      <div class="mt-24 flex flex-row justify-center p-12">
-        <AlienGhostSvg />
+      <div class="flex w-full justify-center px-4 sm:p-12">
+        <AlienGhostSvg class="h-auto w-full max-w-[484px]" />
       </div>
 
       <p

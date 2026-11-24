@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3'
 
 import LoginButton from '@/components/feature/auth/LoginButton.vue'
+import StaffFooter from '@/components/layout/footer/StaffFooter.vue'
 import DefaultLayout from '@/components/layout/page/DefaultLayout.vue'
 </script>
 
@@ -24,5 +25,6 @@ import DefaultLayout from '@/components/layout/page/DefaultLayout.vue'
 
       <LoginButton provider="azure" size="lg" />
     </div>
+    <template #footer><StaffFooter /></template>
   </DefaultLayout>
 </template>

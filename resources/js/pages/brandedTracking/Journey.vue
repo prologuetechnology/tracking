@@ -58,7 +58,7 @@ const statusIcon = computed(() => {
 
 <template>
   <div
-    class="journey-page flex min-h-screen flex-col bg-background text-foreground"
+    class="journey-page flex min-h-dvh flex-col bg-background text-foreground"
     data-tracking-layout="journey"
   >
     <Head
@@ -189,15 +189,8 @@ const statusIcon = computed(() => {
       </section>
 
       <JourneyTravelLog :events="events" :heading-class="titleClass" />
-      <img
-        v-if="company.footer"
-        data-design-field="footer"
-        :src="imageAssetUrl({ filePath: company.footer.file_path })"
-        alt=""
-        class="mx-auto w-auto max-w-full lg:col-span-2"
-      />
     </main>
-    <Footer :sticky="false" />
+    <Footer />
   </div>
 </template>
 

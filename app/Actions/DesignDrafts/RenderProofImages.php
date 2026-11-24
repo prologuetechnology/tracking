@@ -21,6 +21,12 @@ class RenderProofImages
             $images[$path] = base64_encode($this->readImage($path));
         }
 
+        return $this->render($page, $images, $directory);
+    }
+
+    /** @param array<string, string> $images Base64-encoded brand assets keyed by the snapshot's image path. */
+    public function render(array $page, array $images, string $directory): array
+    {
         $process = new Process([config('tracking_proofs.node'), base_path('tools/proof-renderer/render.mjs'), $directory], base_path());
         $process->setInput(json_encode([
             'page' => $page,
