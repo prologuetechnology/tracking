@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
@@ -25,6 +26,17 @@ class HandleInertiaRequests extends Middleware
         return parent::version($request);
     }
 
+    private function staffAppearance(Request $request, ?User $user): ?string
+    {
+        if (! $request->routeIs('login', 'admin.*') || $request->routeIs('admin.portal-review.*', 'admin.drafts.render', 'admin.drafts.studio-preview')) {
+            return null;
+        }
+
+        $actor = $request->session()->get('impersonate_original_id');
+
+        return ($actor ? User::find($actor)?->staff_appearance : $user?->staff_appearance) ?? 'system';
+    }
+
     /**
      * Define the props that are shared by default.
      *
@@ -36,6 +48,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'staffAppearance' => fn () => $this->staffAppearance($request, $user),
             'auth' => [
                 'user' => $user ? UserResource::make($user)->resolve() : null,
                 'roles' => $user?->getRoleNames()->values()->all() ?? [],

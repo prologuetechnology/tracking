@@ -43,6 +43,8 @@ class ResolveTrackingPayload
 
                 return [
                     'found' => false,
+                    'unavailable' => $shipmentSearchResponse->serverError()
+                        || in_array($shipmentSearchResponse->status(), [401, 403, 408, 429], true),
                 ];
             }
 
@@ -117,6 +119,7 @@ class ResolveTrackingPayload
 
             return [
                 'found' => false,
+                'unavailable' => true,
             ];
         }
     }

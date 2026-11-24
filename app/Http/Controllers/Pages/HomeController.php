@@ -14,10 +14,6 @@ class HomeController extends Controller
             return redirect()->route('login');
         }
 
-        if ($request->user()->can('company:show')) {
-            return redirect()->route('admin.companies.index');
-        }
-
         return redirect()->route('admin.tracking.index');
     }
 }

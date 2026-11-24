@@ -2,6 +2,7 @@
 
 namespace Tests\Browser;
 
+use Facebook\WebDriver\Chrome\ChromeDevToolsDriver;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
@@ -25,6 +26,32 @@ class AuthAndNavigationTest extends DuskTestCase
                 ->pause(500)
                 ->assertPathIs('/login')
                 ->assertSee('Login with Microsoft');
+        });
+    }
+
+    public function test_appearance_follows_the_device_and_account_across_staff_documents(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeSuperAdmin();
+        $this->browse(function (Browser $browser) use ($staff) {
+            $viewport = new ChromeDevToolsDriver($browser->driver);
+            $emulate = fn (string $value) => $viewport->execute('Emulation.setEmulatedMedia', ['features' => [['name' => 'prefers-color-scheme', 'value' => $value]]]);
+            $select = '.signal-desktop select[aria-label="Staff appearance"]';
+            try {
+                $viewport->execute('Emulation.setDeviceMetricsOverride', ['width' => 1440, 'height' => 900, 'deviceScaleFactor' => 1, 'mobile' => false]);
+                $emulate('dark');
+                $browser->loginAs($staff)->visit('/admin/tracking')->waitFor($select)->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="system"]\')');
+                $emulate('light');
+                $browser->waitUntil('!document.documentElement.classList.contains("dark")')->select($select, 'dark')->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="dark"]\')')
+                    ->visit('/admin/themes')->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="dark"]\')')
+                    ->visit('/trackShipment/notFound/sample')->waitForText('Shipment not found')->assertScript('!document.documentElement.hasAttribute("data-staff-appearance")');
+                $viewport->execute('Emulation.setDeviceMetricsOverride', ['width' => 390, 'height' => 844, 'deviceScaleFactor' => 1, 'mobile' => true]);
+                $browser->visit('/admin/tracking')->press('Sections')->waitFor('[role="dialog"] select')->select('[role="dialog"] select', 'light')
+                    ->waitUntil('document.documentElement.dataset.staffAppearance === "light"')->assertScript('!document.documentElement.classList.contains("dark")')->assertScript('document.documentElement.scrollWidth === innerWidth');
+            } finally {
+                $viewport->execute('Emulation.clearDeviceMetricsOverride');
+                $viewport->execute('Emulation.setEmulatedMedia', ['features' => []]);
+            }
         });
     }
 

@@ -34,6 +34,27 @@ export const formatEventTime = (event) => {
   return event.approximate ? `Approx. ` + time : time
 }
 
+export const trackingEvents = (statuses) =>
+  (Array.isArray(statuses) ? statuses : [])
+    .filter((raw) => raw && typeof raw === `object`)
+    .map((raw, index) => {
+      const scanned = dateValue(raw.status_date_time)
+      const time = scanned ?? dateValue(raw.timestamp)
+      return {
+        id: String(raw.id ?? `scan`) + `-` + index,
+        status: raw.current_status || `Carrier update`,
+        location: raw.current_location ?? ``,
+        at: time ? (scanned ? raw.status_date_time : raw.timestamp) : null,
+        approximate: !scanned && !!time,
+        exception: /\b(exception|delay(?:ed)?)\b/i.test(
+          raw.current_status ?? ``,
+        ),
+        sortTime: time?.valueOf() ?? -Infinity,
+        raw,
+      }
+    })
+    .sort((a, b) => b.sortTime - a.sortTime)
+
 export function useTrackingDesign() {
   const inherited = inject(key, null)
   if (inherited) return inherited
@@ -41,26 +62,7 @@ export function useTrackingDesign() {
   const page = usePage()
   const company = computed(() => page.props.initialCompany ?? {})
   const shipment = computed(() => page.props.initialTrackingData ?? {})
-  const events = computed(() =>
-    (shipment.value.allStatuses ?? [])
-      .map((raw, index) => {
-        const scanned = dateValue(raw.status_date_time)
-        const time = scanned ?? dateValue(raw.timestamp)
-        return {
-          id: String(raw.id ?? `scan`) + `-` + index,
-          status: raw.current_status || `Carrier update`,
-          location: raw.current_location ?? ``,
-          at: time ? (scanned ? raw.status_date_time : raw.timestamp) : null,
-          approximate: !scanned && !!time,
-          exception: /\b(exception|delay(?:ed)?)\b/i.test(
-            raw.current_status ?? ``,
-          ),
-          sortTime: time?.valueOf() ?? -Infinity,
-          raw,
-        }
-      })
-      .sort((a, b) => b.sortTime - a.sortTime),
-  )
+  const events = computed(() => trackingEvents(shipment.value.allStatuses))
   const latest = computed(() => events.value[0])
   const status = computed(
     () =>

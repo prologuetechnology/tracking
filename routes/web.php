@@ -19,6 +19,7 @@ use App\Http\Controllers\Pages\Admin\TrackingPublicationController;
 use App\Http\Controllers\Pages\Admin\UserPageController;
 use App\Http\Controllers\Pages\HomeController;
 use App\Http\Controllers\Pages\LoginPageController;
+use App\Http\Controllers\StaffAppearanceController;
 use App\Http\Controllers\Testing\FakePipelineController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Models\User;
@@ -35,6 +36,7 @@ Route::prefix('admin')
     ->as('admin.')
     ->middleware(['auth'])
     ->group(function () {
+        Route::patch('preferences/appearance', StaffAppearanceController::class)->name('preferences.appearance');
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         if (App::environment('local', 'testing', 'dusk.local')) {

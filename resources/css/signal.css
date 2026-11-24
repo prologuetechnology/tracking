@@ -1,0 +1,235 @@
+/* Staff documents include overlays teleported to body. Customer frames own their document tokens. */
+html[data-staff-appearance] {
+  color-scheme: light;
+  --background: 205 16% 95%;
+  --foreground: 204 25% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 204 25% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 204 25% 14%;
+  --muted: 206 14% 90%;
+  --muted-foreground: 205 13% 34%;
+  --primary: 83 52% 24%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 204 13% 89%;
+  --secondary-foreground: 204 22% 18%;
+  --accent: 81 42% 88%;
+  --accent-foreground: 85 53% 20%;
+  --border: 205 12% 77%;
+  --input: 205 12% 55%;
+  --ring: 82 58% 28%;
+  --destructive: 3 69% 39%;
+  --destructive-foreground: 0 0% 100%;
+  --signal-marker: 77 83% 75%;
+  --signal-header: 206 17% 91%;
+  --radius: 0.24rem;
+}
+html[data-staff-appearance].dark {
+  color-scheme: dark;
+  --background: 208 24% 11%;
+  --foreground: 185 19% 91%;
+  --card: 204 19% 15%;
+  --card-foreground: 185 19% 91%;
+  --popover: 205 18% 17%;
+  --popover-foreground: 185 19% 91%;
+  --muted: 204 16% 20%;
+  --muted-foreground: 194 11% 70%;
+  --primary: 77 83% 75%;
+  --primary-foreground: 80 38% 9%;
+  --secondary: 204 13% 23%;
+  --secondary-foreground: 190 15% 89%;
+  --accent: 133 11% 23%;
+  --accent-foreground: 77 83% 77%;
+  --border: 205 15% 32%;
+  --input: 205 15% 46%;
+  --ring: 77 83% 75%;
+  --destructive: 4 67% 65%;
+  --destructive-foreground: 3 40% 9%;
+  --signal-header: 202 26% 8%;
+}
+.signal-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+.signal-mast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 62px;
+  padding: 0.6rem clamp(1rem, 2vw, 2.3rem);
+  background: hsl(var(--signal-header));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.signal-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: hsl(var(--primary));
+  font:
+    700 19px/1 ui-monospace,
+    monospace;
+  letter-spacing: -0.07em;
+}
+.signal-wordmark small {
+  display: block;
+  font:
+    500 10px/1.5 ui-monospace,
+    monospace;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground));
+}
+.signal-mark {
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  width: 26px;
+  height: 25px;
+  transform: skewY(-17deg);
+}
+.signal-mark i {
+  width: 6px;
+  height: 72%;
+  background: currentColor;
+}
+.signal-mark i:nth-child(2) {
+  height: 100%;
+}
+.signal-mark i:last-child {
+  height: 50%;
+}
+.signal-nav,
+.signal-account,
+.signal-appearance label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.signal-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px;
+  font:
+    550 12px/1.4 ui-monospace,
+    monospace;
+  white-space: nowrap;
+  color: hsl(var(--muted-foreground));
+}
+.signal-nav a:hover,
+.signal-nav a[aria-current] {
+  color: hsl(var(--accent-foreground));
+  background: hsl(var(--accent));
+}
+.signal-nav a[aria-current] {
+  box-shadow: inset 0 -2px hsl(var(--primary));
+}
+.signal-appearance label {
+  gap: 4px;
+  color: hsl(var(--muted-foreground));
+  font:
+    500 12px/1.3 ui-monospace,
+    monospace;
+}
+.signal-appearance select {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  padding: 5px 22px 5px 6px;
+  background-position: right 0.25rem center;
+  background-size: 1rem;
+}
+.signal-appearance small {
+  color: hsl(var(--destructive));
+}
+.signal-main {
+  width: 100%;
+  max-width: 100rem;
+  min-width: 0;
+  flex: 1;
+  margin-inline: auto;
+  padding: clamp(16px, 2.4vw, 40px) clamp(16px, 3.4vw, 56px) 42px;
+  outline: none;
+}
+.signal-main h1,
+.signal-signin h1 {
+  font-size: clamp(2rem, 3.3vw, 3.65rem);
+  font-weight: 720;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+}
+.signal-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.signal-acting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: hsl(var(--accent));
+  padding: 6px;
+}
+html[data-staff-appearance] .staff-footer {
+  color-scheme: inherit;
+  background: hsl(var(--signal-header));
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
+  font-family: ui-monospace, monospace;
+}
+html[data-staff-appearance] .staff-footer a {
+  color: hsl(var(--foreground));
+}
+.signal-signin {
+  display: grid;
+  align-items: center;
+  flex: 1;
+  max-width: 31rem;
+  width: 100%;
+  margin: auto;
+  padding: 1.5rem;
+}
+.signal-signin h1 {
+  margin: 2rem 0 1rem;
+}
+.signal-signin p {
+  margin-bottom: 1.4rem;
+  color: hsl(var(--muted-foreground));
+}
+.signal-mobile {
+  display: none !important;
+}
+@media (max-width: 1023px) {
+  .signal-desktop {
+    display: none;
+  }
+  .signal-mobile {
+    display: inline-flex !important;
+  }
+  .signal-mast {
+    gap: 6px;
+  }
+  .signal-account {
+    margin-left: auto;
+  }
+  .signal-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .signal-nav a {
+    padding: 12px;
+  }
+  .signal-main {
+    padding-bottom: 24px;
+  }
+}
