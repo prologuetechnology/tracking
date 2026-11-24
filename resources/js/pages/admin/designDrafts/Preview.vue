@@ -3,10 +3,10 @@ import { Head, Link, useForm } from '@inertiajs/vue3'
 import { CopyPlus } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import DraftSelect from '@/components/feature/designDraft/DraftSelect.vue'
 import ProofArchive from '@/components/feature/designDraft/ProofArchive.vue'
 import TrackingStudioLayout from '@/components/layout/page/TrackingStudioLayout.vue'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import SelectField from '@/components/ui/form/SelectField.vue'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -138,7 +139,7 @@ load()
 <template>
   <TrackingStudioLayout :company="company">
     <Head :title="`${draft.name} · Staff preview`" />
-    <header class="grid gap-4 rounded-lg border bg-card p-4 sm:p-5">
+    <Card as="header" class="grid gap-4 p-4 sm:p-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="grid gap-1">
           <Link
@@ -214,7 +215,7 @@ load()
         </div>
       </div>
       <form class="flex flex-wrap items-end gap-3" @submit.prevent="load">
-        <DraftSelect
+        <SelectField
           id="preview-by"
           v-model="option"
           label="Find shipment by"
@@ -260,9 +261,10 @@ load()
         "
         @snapshot-expired="expire"
       />
-    </header>
-    <section
-      class="mt-5 overflow-hidden rounded-lg border bg-white"
+    </Card>
+    <Card
+      as="section"
+      class="mt-5 overflow-hidden"
       aria-labelledby="saved-shipment-preview"
     >
       <h2 id="saved-shipment-preview" class="border-b px-4 py-3 font-semibold">
@@ -302,6 +304,6 @@ load()
           revision.
         </p>
       </div>
-    </section>
+    </Card>
   </TrackingStudioLayout>
 </template>

@@ -1,6 +1,5 @@
 <script setup>
 import {
-  faBars,
   faGlobePointer,
   faShieldKeyhole,
   faSignOut,
@@ -10,6 +9,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Link, router, usePage } from '@inertiajs/vue3'
 
+import StaffAppearanceMenu from '@/components/feature/user/navigation/StaffAppearanceMenu.vue'
 import Button from '@/components/ui/button/Button.vue'
 import DropdownMenu from '@/components/ui/dropdown-menu/DropdownMenu.vue'
 import DropdownMenuContent from '@/components/ui/dropdown-menu/DropdownMenuContent.vue'
@@ -27,6 +27,13 @@ import { useImpersonateUserStopMutation } from '@/composables/mutations/user'
 
 const { user } = usePage().props.auth
 
+const initials =
+  [user.first_name, user.last_name]
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join(``) ||
+  user.email?.[0] ||
+  `U`
 const { logout } = useLogout()
 
 const { userIs } = useRolesAndPermissions()
@@ -51,22 +58,23 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
       <Button
         dusk="user-menu-trigger"
         aria-label="Staff account"
-        class="flex flex-row items-center justify-center space-x-1"
-        variant="outline"
-        size="xs"
-      >
-        <FontAwesomeIcon class="text-sm" :icon="faBars" fixed-width />
+        class="size-9 rounded-full p-0 font-mono text-xs uppercase"
+        variant="secondary"
+        ><span aria-hidden="true">{{ initials }}</span>
       </Button>
     </DropdownMenuTrigger>
 
-    <DropdownMenuContent class="w-72" align="end">
+    <DropdownMenuContent
+      class="w-72 max-w-[calc(100vw-9.5rem)] sm:max-w-none"
+      align="end"
+    >
       <DropdownMenuGroup>
         <DropdownMenuLabel class="flex flex-col">
           <span class="text-foreground">
             {{ user.first_name ?? `` }} {{ user.last_name ?? `` }}
           </span>
 
-          <span class="text-xs font-medium text-foreground/70">
+          <span class="break-all text-xs font-medium text-foreground/70">
             {{ user.email }}
           </span>
 
@@ -78,6 +86,9 @@ const { mutate: mutateImpersonateUserStop } = useImpersonateUserStopMutation({
           </span>
         </DropdownMenuLabel>
       </DropdownMenuGroup>
+
+      <DropdownMenuSeparator />
+      <StaffAppearanceMenu />
 
       <DropdownMenuSeparator v-if="userIs(`Super Admin`)" />
 

@@ -1,7 +1,11 @@
 <script setup>
 import { computed, ref } from 'vue'
 
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { SelectField } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useImagesQuery } from '@/composables/queries/image'
@@ -13,7 +17,7 @@ const props = defineProps({
 })
 const { userCan } = useRolesAndPermissions()
 const query = ref(``),
-  kind = ref(``),
+  kind = ref(null),
   activeId = ref(null)
 const { data, isError } = useImagesQuery({
   config: { initialData: props.initialImages },
@@ -32,37 +36,35 @@ const selected = computed(
 <template>
   <section aria-label="Image Library">
     <div class="mb-5 flex flex-wrap items-end gap-4">
-      <label
-        class="max-w-md grow text-sm font-medium text-foreground"
-        for="asset-search"
-        >Find an asset<Input
+      <div class="grid max-w-md grow gap-2">
+        <Label for="asset-search">Find an asset</Label
+        ><Input
           id="asset-search"
           v-model="query"
-          class="mt-1 bg-card"
           type="search"
-          placeholder="Asset name" /></label
-      ><label class="text-sm font-medium"
-        >Image type<select v-model="kind" class="signal-select">
-          <option value="">All image types</option>
-          <option
-            v-for="t in initialImageTypes"
-            :key="t.id"
-            :value="String(t.id)"
-          >
-            {{ t.name }}
-          </option>
-        </select></label
-      >
+          placeholder="Asset name"
+        />
+      </div>
+      <SelectField
+        id="asset-kind"
+        v-model="kind"
+        label="Image type"
+        empty-label="All image types"
+        :choices="initialImageTypes"
+        class="min-w-40"
+      />
     </div>
     <p v-if="isError" role="alert">The asset library could not be loaded.</p>
     <div
       v-else-if="selected"
       class="grid items-start gap-5 md:grid-cols-[minmax(0,1fr)_minmax(16rem,.65fr)]"
     >
-      <div class="divide-y rounded border bg-card">
-        <button
+      <Card class="divide-y overflow-hidden">
+        <Button
           v-for="asset in images"
           :key="asset.id"
+          type="button"
+          variant="ghost"
           class="signal-asset-row"
           :aria-pressed="selected.id === asset.id"
           @click="activeId = asset.id"
@@ -75,9 +77,9 @@ const selected = computed(
             ><strong>{{ asset.name }}</strong
             ><small>{{ asset.image_type?.name }}</small></span
           >
-        </button>
-      </div>
-      <aside class="rounded border bg-card p-4" aria-label="Asset inspector">
+        </Button>
+      </Card>
+      <Card as="aside" class="p-5" aria-label="Asset inspector">
         <p class="mb-3 font-mono text-xs uppercase text-muted-foreground">
           Selected asset
         </p>
@@ -105,7 +107,7 @@ const selected = computed(
             >Delete image</ImageDestroyDialog
           >
         </div>
-      </aside>
+      </Card>
     </div>
     <p v-else class="rounded border bg-card p-6">No matching assets.</p>
   </section>

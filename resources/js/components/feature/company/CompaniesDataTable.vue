@@ -3,7 +3,10 @@ import { Link, usePage } from '@inertiajs/vue3'
 import { ArrowUpRight, Search } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { imageAssetUrl } from '@/composables/hooks/disks'
 import { useCompaniesQuery } from '@/composables/queries/company'
 
@@ -24,11 +27,7 @@ const companies = computed(() =>
 </script>
 <template>
   <section aria-label="Company directory">
-    <label
-      for="find-company"
-      class="mb-1.5 block text-sm font-medium text-foreground"
-      >Find a company</label
-    >
+    <Label for="find-company" class="mb-2 block">Find a company</Label>
     <div class="relative mb-5 max-w-md">
       <Search
         :size="16"
@@ -44,7 +43,7 @@ const companies = computed(() =>
     <p v-if="isError" role="alert">
       The company directory could not be loaded.
     </p>
-    <div v-else class="divide-y rounded border bg-card">
+    <Card v-else class="divide-y overflow-hidden">
       <Link
         v-for="company in companies"
         :key="company.uuid"
@@ -70,14 +69,15 @@ const companies = computed(() =>
             {{ company.pipeline_company_id }}</small
           ></span
         >
-        <span class="company-state">{{
-          company.is_active ? 'Active' : 'Inactive'
-        }}</span
+        <Badge
+          :variant="company.is_active ? 'secondary' : 'outline'"
+          class="ml-auto"
+          >{{ company.is_active ? 'Active' : 'Inactive' }}</Badge
         ><ArrowUpRight :size="17" aria-hidden="true" />
       </Link>
       <p v-if="!companies.length" class="p-5 text-sm text-muted-foreground">
         {{ query ? 'No matching companies.' : 'No companies available.' }}
       </p>
-    </div>
+    </Card>
   </section>
 </template>

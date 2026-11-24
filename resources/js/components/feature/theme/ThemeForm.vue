@@ -4,6 +4,8 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { SelectField } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
@@ -103,8 +105,8 @@ const dirty = computed(
 const create = useThemeCreateMutation()
 const update = useThemeUpdateMutation()
 const saving = computed(() => create.isPending.value || update.isPending.value)
-function changeVersion(event) {
-  select(versions.value.find((v) => String(v.id) === event.target.value))
+function changeVersion(id) {
+  select(versions.value.find((v) => String(v.id) === id))
 }
 async function save() {
   if (!canWrite.value || !dirty.value || saving.value) return
@@ -130,7 +132,8 @@ async function save() {
   cache.setQueryData([`themes`, saved.id], saved)
   await cache.invalidateQueries({ queryKey: [`themes`] })
   if (props.embedded) emit(`saved`, saved)
-  else if (userCan(`theme:show`)) router.visit(route(`admin.themes.index`))
+  else if (userCan(`theme:show`))
+    router.visit(route(`admin.studio.styles.index`))
   else {
     select(null)
     savedNotice.value = saved.name + ` saved to the library.`
@@ -144,32 +147,35 @@ function reload() {
 
 <template>
   <div class="space-y-5">
-    <div v-if="versions.length" class="grid gap-1 sm:max-w-xs">
-      <Label for="library-history">Version to inspect</Label>
-      <select
-        id="library-history"
-        :value="selectedId"
-        class="rounded-md border border-input bg-background px-3 py-2 text-sm"
-        :disabled="saving"
-        @change="changeVersion"
-      >
-        <option v-for="v in versions" :key="v.id" :value="v.id">
-          v{{ v.version }} · {{ v.name
-          }}{{ v.version === theme.version ? ' (latest)' : '' }}
-        </option>
-      </select>
-    </div>
+    <SelectField
+      v-if="versions.length"
+      id="library-history"
+      label="Version to inspect"
+      class="max-w-sm"
+      :model-value="selectedId"
+      :choices="
+        versions.map((v) => ({
+          id: v.id,
+          name:
+            'v' +
+            v.version +
+            ' · ' +
+            v.name +
+            (v.version === theme.version ? ' (latest)' : ''),
+        }))
+      "
+      :disabled="saving"
+      @update:model-value="changeVersion"
+    />
     <form
       id="themeForm"
       dusk="theme-form"
       class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
       @submit.prevent="save"
     >
-      <section
-        class="grid gap-4 rounded-md border bg-card p-4 text-card-foreground"
-      >
+      <Card as="section" class="grid gap-5 p-5 sm:p-6">
         <div class="grid gap-1">
-          <Label for="theme-name">Theme name</Label>
+          <Label for="theme-name">Style name</Label>
           <Input
             id="theme-name"
             v-model="name"
@@ -187,14 +193,16 @@ function reload() {
         />
         <p v-if="errorMessage" role="alert" class="text-sm text-destructive">
           {{ errorMessage }}
-          <button
+          <Button
             v-if="errors.base_version"
+            variant="link"
+            size="sm"
             type="button"
             class="font-medium underline"
             @click="reload"
           >
             Reload version history
-          </button>
+          </Button>
         </p>
         <div class="flex flex-wrap gap-3">
           <Button
@@ -202,7 +210,7 @@ function reload() {
             type="submit"
             dusk="theme-form-save"
             :disabled="!dirty || saving"
-            >{{ theme ? 'Save new version' : 'Create theme' }}</Button
+            >{{ theme ? 'Save new version' : 'Create style' }}</Button
           >
           <Button
             v-if="embedded"
@@ -214,12 +222,12 @@ function reload() {
           <Link
             v-else-if="userCan('theme:show')"
             class="self-center text-sm font-medium underline underline-offset-4"
-            :href="route('admin.themes.index')"
-            >Back to themes</Link
+            :href="route('admin.studio.styles.index')"
+            >Back to style library</Link
           >
           <p v-if="savedNotice" role="status">{{ savedNotice }}</p>
         </div>
-      </section>
+      </Card>
       <aside
         class="grid gap-4"
         aria-label="Style inspector"
@@ -233,12 +241,18 @@ function reload() {
         />
         <p v-if="previewError" role="alert" class="text-sm text-destructive">
           The style preview could not be updated.
-          <button type="button" class="font-semibold underline" @click="retry">
+          <Button
+            variant="link"
+            size="sm"
+            type="button"
+            class="font-semibold underline"
+            @click="retry"
+          >
             Retry
-          </button>
+          </Button>
         </p>
         <section v-if="theme" class="space-y-2 border-t pt-4">
-          <h2 class="font-semibold">Where this theme is used</h2>
+          <h2 class="font-semibold">Where this style is used</h2>
           <p v-if="!theme.usage?.length" class="text-sm text-muted-foreground">
             No visible assignments.
           </p>

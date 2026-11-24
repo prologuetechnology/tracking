@@ -4,6 +4,7 @@ import { computed } from 'vue'
 
 import CompaniesDataTable from '@/components/feature/company/CompaniesDataTable.vue'
 import CompanyCreateButton from '@/components/feature/company/CompanyCreateButton.vue'
+import StudioNavigation from '@/components/layout/navigation/StudioNavigation.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 const page = usePage()
@@ -22,6 +23,7 @@ const studio = computed(
     :action="!studio && userCan('company:store') ? CompanyCreateButton : null"
   >
     <Head :title="studio ? 'Choose a company' : 'Companies'" />
+    <StudioNavigation v-if="studio" />
     <CompaniesDataTable :studio="studio" />
   </AuthenticatedLayout>
 </template>

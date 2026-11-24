@@ -6,6 +6,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { attachStudioInspector } from '@/components/feature/designDraft/editor/useStudioInspector'
 import { Button } from '@/components/ui/button'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const props = defineProps({
   company: { type: Object, required: true },
@@ -300,28 +301,16 @@ const toggleInspect = async () => {
     </header>
     <div class="grid gap-2 border-b bg-background px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <div
-          role="group"
+        <ToggleGroup
           aria-label="Preview design"
-          class="inline-flex gap-1 rounded-md border p-0.5"
+          type="single"
+          size="sm"
+          class="signal-segment"
+          :model-value="mode"
+          @update:model-value="$event && (mode = $event)"
+          ><ToggleGroupItem value="draft">Draft</ToggleGroupItem
+          ><ToggleGroupItem value="live">Live</ToggleGroupItem></ToggleGroup
         >
-          <Button
-            type="button"
-            size="sm"
-            :variant="mode === 'draft' ? 'secondary' : 'ghost'"
-            :aria-pressed="mode === 'draft'"
-            @click="mode = 'draft'"
-            >Draft</Button
-          >
-          <Button
-            type="button"
-            size="sm"
-            :variant="mode === 'live' ? 'secondary' : 'ghost'"
-            :aria-pressed="mode === 'live'"
-            @click="mode = 'live'"
-            >Live</Button
-          >
-        </div>
         <Button
           type="button"
           size="sm"

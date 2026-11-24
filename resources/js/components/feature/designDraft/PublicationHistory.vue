@@ -3,7 +3,14 @@ import { Link, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 
+import ConfirmPublication from './ConfirmPublication.vue'
 const props = defineProps({
   company: { type: Object, required: true },
   publications: { type: Array, required: true },
@@ -23,16 +30,6 @@ const proofUrl = (entry) =>
   `#proof-` +
   entry.proof_uuid
 const restore = (entry) => {
-  if (
-    !window.confirm(
-      `Restore ` +
-        title(entry) +
-        ` on the tracking links for ` +
-        props.company.name +
-        `?`,
-    )
-  )
-    return
   form.publication = current.value.id
   form.restore = entry?.id ?? 0
   form.post(route(`admin.drafts.rollback`, props.company.uuid), {
@@ -41,7 +38,7 @@ const restore = (entry) => {
 }
 </script>
 <template>
-  <section class="my-6 grid gap-2 rounded-lg border bg-card p-5">
+  <Card as="section" class="my-6 grid gap-2 p-5">
     <h2 class="text-sm font-semibold text-muted-foreground">
       Live tracking design
     </h2>
@@ -54,51 +51,75 @@ const restore = (entry) => {
         >View approved proof</Link
       >
     </div>
-    <details v-if="current" class="mt-2">
-      <summary class="cursor-pointer text-sm underline">
-        Publication history
-      </summary>
-      <ul class="mt-3 divide-y">
-        <li
-          v-for="entry in publications"
-          :key="entry.id"
-          class="flex flex-wrap items-center gap-3 py-2 text-sm"
+    <Collapsible v-if="current" class="mt-2">
+      <CollapsibleTrigger as-child>
+        <Button size="sm" variant="outline" type="button">
+          Publication history
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <ul class="mt-3 divide-y">
+          <li
+            v-for="entry in publications"
+            :key="entry.id"
+            class="flex flex-wrap items-center gap-3 py-2 text-sm"
+          >
+            <span>{{ title(entry) }}</span
+            ><span
+              >{{ entry.action === 'rollback' ? 'Restored' : 'Published' }}
+              {{ new Date(entry.at).toLocaleString() }}</span
+            >
+            <Link
+              v-if="entry.proof_uuid"
+              :href="proofUrl(entry)"
+              class="font-medium underline underline-offset-4"
+            >
+              View proof
+              <span class="font-mono">{{ entry.proof_uuid.slice(-8) }}</span>
+            </Link>
+            <ConfirmPublication
+              v-if="entry.id !== current.id"
+              title="Restore this tracking design?"
+              :description="
+                'Existing tracking links for ' +
+                company.name +
+                ' will use ' +
+                title(entry) +
+                '.'
+              "
+              action="Restore design"
+              :busy="form.processing"
+              @confirm="restore(entry)"
+            >
+              <Button size="sm" variant="outline" :disabled="form.processing">
+                Restore this version
+              </Button>
+            </ConfirmPublication>
+          </li>
+        </ul>
+        <ConfirmPublication
+          v-if="current.version"
+          title="Restore this tracking design?"
+          :description="
+            'Existing tracking links for ' +
+            company.name +
+            ' will use ' +
+            title(null) +
+            '.'
+          "
+          action="Restore design"
+          :busy="form.processing"
+          @confirm="restore(null)"
         >
-          <span>{{ title(entry) }}</span
-          ><span
-            >{{ entry.action === 'rollback' ? 'Restored' : 'Published' }}
-            {{ new Date(entry.at).toLocaleString() }}</span
-          >
-          <Link
-            v-if="entry.proof_uuid"
-            :href="proofUrl(entry)"
-            class="font-medium underline underline-offset-4"
-          >
-            View proof
-            <span class="font-mono">{{ entry.proof_uuid.slice(-8) }}</span>
-          </Link>
-          <Button
-            v-if="entry.id !== current.id"
-            size="sm"
-            variant="outline"
-            :disabled="form.processing"
-            @click="restore(entry)"
-            >Restore this version</Button
-          >
-        </li>
-      </ul>
-      <Button
-        v-if="current.version"
-        class="mt-3"
-        size="sm"
-        variant="outline"
-        :disabled="form.processing"
-        @click="restore(null)"
-        >Restore original Classic branding</Button
-      >
-      <p v-if="form.hasErrors" role="alert" class="text-sm text-destructive">
-        {{ Object.values(form.errors)[0] }}
-      </p>
-    </details>
-  </section>
+          <Button size="sm" variant="outline" :disabled="form.processing">
+            Restore original Classic branding
+          </Button>
+        </ConfirmPublication>
+
+        <p v-if="form.hasErrors" role="alert" class="text-sm text-destructive">
+          {{ Object.values(form.errors)[0] }}
+        </p>
+      </CollapsibleContent>
+    </Collapsible>
+  </Card>
 </template>

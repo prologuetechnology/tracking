@@ -1,13 +1,9 @@
 <script setup>
-import {
-  faBadgeCheck,
-  faTriangleExclamation,
-} from '@fortawesome/pro-duotone-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useForm, useIsFormDirty } from 'vee-validate'
 import * as yup from 'yup'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -138,19 +134,9 @@ const submitForm = () => {
           </span>
         </p>
 
-        <FontAwesomeIcon
-          v-if="tokenIsValid"
-          class="text-green-600"
-          :icon="faBadgeCheck"
-          fixed-width
-        />
-
-        <FontAwesomeIcon
-          v-else
-          class="text-red-600"
-          :icon="faTriangleExclamation"
-          fixed-width
-        />
+        <Badge :variant="tokenIsValid ? 'secondary' : 'destructive'">{{
+          tokenIsValid ? 'Valid' : 'Invalid'
+        }}</Badge>
       </div>
     </CardContent>
 

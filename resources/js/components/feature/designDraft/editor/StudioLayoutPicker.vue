@@ -2,6 +2,8 @@
 import { Check } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+
 const props = defineProps({
   layouts: { type: Array, required: true },
   error: { type: String, default: null },
@@ -19,36 +21,32 @@ const current = computed(() =>
     :aria-describedby="error ? 'layout-error' : 'layout-description'"
   >
     <legend class="text-sm font-semibold">Tracking layout</legend>
-    <div class="grid grid-cols-2 gap-2">
-      <label
+    <RadioGroup
+      v-model="selected"
+      name="draft-layout"
+      aria-label="Tracking layout"
+      class="grid-cols-2"
+    >
+      <RadioGroupItem
         v-for="layout in layouts"
         :key="layout.id"
-        class="relative min-w-0 cursor-pointer"
         :dusk="'draft-layout-option-' + layout.id"
+        :value="layout.id"
+        :aria-invalid="!!error"
+        choice
+        class="flex-col items-stretch"
       >
-        <input
-          v-model="selected"
-          type="radio"
-          class="peer sr-only"
-          name="draft-layout"
-          :value="layout.id"
-          :aria-invalid="!!error"
-        />
-        <span
-          class="flex h-full flex-col gap-2 rounded-lg border border-border px-3 py-2.5 hover:bg-muted/40 peer-checked:border-primary peer-checked:bg-primary/5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
-        >
-          <span class="flex items-center justify-between" aria-hidden="true">
-            <span class="layout-glyph" :data-layout="layout.id">
-              <i v-for="block in 4" :key="block"></i>
-            </span>
-            <Check v-if="selected === layout.id" class="size-4 text-primary" />
+        <span class="flex items-center justify-between" aria-hidden="true">
+          <span class="layout-glyph" :data-layout="layout.id">
+            <i v-for="block in 4" :key="block"></i>
           </span>
-          <span class="text-sm font-semibold leading-tight">{{
-            layout.name
-          }}</span>
+          <Check v-if="selected === layout.id" class="size-4 text-primary" />
         </span>
-      </label>
-    </div>
+        <span class="text-sm font-semibold leading-tight">{{
+          layout.name
+        }}</span></RadioGroupItem
+      ></RadioGroup
+    >
     <p
       id="layout-description"
       class="min-h-8 text-sm leading-snug text-muted-foreground"

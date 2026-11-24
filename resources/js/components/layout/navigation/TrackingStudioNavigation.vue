@@ -40,9 +40,9 @@ const navigation = computed(() =>
       visible: true,
     },
     {
-      name: `Themes`,
+      name: `Style library`,
       icon: Palette,
-      href: route(`admin.themes.index`),
+      href: route(`admin.studio.styles.index`),
       visible: userCan(`theme:show`),
     },
     {

@@ -36,7 +36,7 @@ async function reload() {
     >
       <DialogHeader>
         <DialogTitle>{{
-          themeId ? 'Edit library theme' : 'Create library theme'
+          themeId ? 'Edit library style' : 'Create library style'
         }}</DialogTitle>
         <DialogDescription
           >Save a reusable version here. Choose Use in draft to apply it to your
@@ -44,7 +44,7 @@ async function reload() {
         >
       </DialogHeader>
       <div v-if="themeId && isError" role="alert">
-        <p>Could not load this theme.</p>
+        <p>Could not load this style.</p>
         <Button type="button" variant="outline" @click="reload">Retry</Button>
       </div>
       <p v-else-if="themeId && !theme" role="status">

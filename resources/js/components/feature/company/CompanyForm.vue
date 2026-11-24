@@ -305,7 +305,7 @@ watch(
       <form
         id="companyForm"
         dusk="company-form"
-        class="flex w-full flex-col space-y-4"
+        class="grid w-full gap-x-6 gap-y-5 md:grid-cols-2"
         @submit="submitForm"
       >
         <FormField
@@ -324,8 +324,6 @@ watch(
                 v-bind="componentField"
               />
             </FormControl>
-
-            <FormDescription>The name of the company.</FormDescription>
           </FormItem>
         </FormField>
 
@@ -415,14 +413,12 @@ watch(
                 :disabled="createCompanyIsPending || updateCompanyIsPending"
               />
             </FormControl>
-
-            <FormDescription> The company's email address. </FormDescription>
           </FormItem>
         </FormField>
 
         <FormField v-slot="{ value, handleChange }" name="requires_brand">
           <FormItem
-            class="flex flex-row items-center justify-between rounded-lg border p-4"
+            class="flex items-center justify-between gap-4 rounded-lg border p-4 md:col-span-2"
           >
             <div class="space-y-0.5">
               <FormLabel class="text-base">Requires Brand</FormLabel>
@@ -475,7 +471,7 @@ watch(
 
         <div
           v-if="isSharedPipelineCompanyId"
-          class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-950"
+          class="rounded-lg border border-input bg-muted p-4 text-foreground md:col-span-2"
         >
           <h3 class="text-base font-semibold">Shared Pipeline Company ID</h3>
 
@@ -489,7 +485,7 @@ watch(
             <div
               v-for="sibling in activePipelineSiblings"
               :key="sibling.id"
-              class="rounded-md border border-amber-200 bg-background p-3"
+              class="rounded-md border border-border bg-card p-3"
             >
               <div
                 class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"

@@ -87,11 +87,12 @@ const choose = (id) => {
           placeholder="Search image names"
         />
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <button
+          <Button
             v-if="!search"
+            variant="outline"
             type="button"
             :aria-pressed="value == null"
-            class="asset-choice"
+            class="asset-choice h-auto whitespace-normal p-0"
             @click="choose(null)"
           >
             <span class="grid aspect-[2/1] w-full place-items-center bg-muted"
@@ -100,15 +101,16 @@ const choose = (id) => {
                 aria-hidden="true"
             /></span>
             <span class="px-2 py-1.5">{{ emptyLabel }}</span>
-          </button>
-          <button
+          </Button>
+          <Button
             v-for="item in matches"
             :key="item.id"
+            variant="outline"
             type="button"
             :dusk="id + '-option-' + item.id"
             :aria-pressed="selected?.id === item.id"
             :aria-label="item.name"
-            class="asset-choice"
+            class="asset-choice h-auto whitespace-normal p-0"
             @click="choose(item.id)"
           >
             <img
@@ -132,7 +134,7 @@ const choose = (id) => {
                 aria-hidden="true"
               />{{ item.name }}</span
             >
-          </button>
+          </Button>
         </div>
         <p
           v-if="search && !matches.length"

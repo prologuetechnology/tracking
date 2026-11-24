@@ -7,6 +7,7 @@ import ToggleCompanyIsActive from '@/components/feature/company/ToggleCompanyIsA
 import CompanyApiTokenForm from '@/components/feature/companyApiToken/CompanyApiTokenForm.vue'
 import CompanyFeatures from '@/components/feature/companyFeature/CompanyFeatures.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
+import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { useCompanyQuery } from '@/composables/queries/company'
@@ -48,8 +49,8 @@ const { data: company, isError } = useCompanyQuery({
 
     <template v-if="company && !isError && userCan('company:update')">
       <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-4">
-        <div
-          class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
+        <Card
+          class="flex min-w-0 items-center justify-between gap-4 p-5 lg:col-span-2"
         >
           <div class="w-full space-y-0.5">
             <Label class="text-base">Enabled</Label>
@@ -67,7 +68,7 @@ const { data: company, isError } = useCompanyQuery({
               :value="Boolean(company?.is_active)"
             />
           </div>
-        </div>
+        </Card>
       </div>
 
       <CompanyFeatures />
@@ -75,10 +76,11 @@ const { data: company, isError } = useCompanyQuery({
       <CompanyApiTokenForm :company="company" />
       <CompanyForm :company="company" />
     </template>
-    <section
+    <Card
       v-else-if="company && !isError"
+      as="section"
       aria-label="Company details"
-      class="rounded border bg-card p-4"
+      class="p-5"
     >
       <h2 class="mb-3 font-semibold">Company details</h2>
       <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
@@ -95,7 +97,7 @@ const { data: company, isError } = useCompanyQuery({
           <dd>{{ company.phone }}</dd></template
         >
       </dl>
-    </section>
+    </Card>
     <p v-else-if="isError" role="alert">Could not load company details.</p>
   </AuthenticatedLayout>
 </template>

@@ -1,5 +1,7 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3'
+
+import { Button } from '@/components/ui/button'
 const page = usePage()
 const areas = [
   [`Users`, `users`, `admin.users.index`],
@@ -10,14 +12,19 @@ const areas = [
 </script>
 <template>
   <nav aria-label="Access administration" class="signal-access-nav">
-    <Link
+    <Button
       v-for="[name, area, link] in areas"
       :key="area"
-      :href="route(link)"
-      :aria-current="
-        page.component.startsWith('admin/' + area + '/') ? 'page' : undefined
-      "
-      >{{ name }}</Link
+      size="sm"
+      variant="ghost"
+      as-child
+      ><Link
+        :href="route(link)"
+        :aria-current="
+          page.component.startsWith('admin/' + area + '/') ? 'page' : undefined
+        "
+        >{{ name }}</Link
+      ></Button
     >
   </nav>
 </template>

@@ -4,6 +4,7 @@ import { ArrowUpRight } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 const props = defineProps({
   company: { type: Object, required: true },
@@ -37,7 +38,7 @@ const proofLink = (proof) =>
     aria-label="Company design workspace"
     class="mb-6 grid gap-4 lg:grid-cols-3"
   >
-    <section class="min-w-0 border border-border bg-card p-4">
+    <Card as="section" class="min-w-0 p-5">
       <h2 class="text-sm font-semibold text-muted-foreground">Live design</h2>
       <p class="my-2 text-xl font-semibold">{{ overview.layout }}</p>
       <p v-if="overview.liveTheme" class="mb-2 text-sm">
@@ -77,9 +78,9 @@ const proofLink = (proof) =>
         <span>Track {{ lookup.trackingNumber }}</span>
         <ArrowUpRight aria-hidden="true" class="size-4 shrink-0" />
       </a>
-    </section>
+    </Card>
     <template v-if="overview.recentDrafts">
-      <section class="min-w-0 border border-border bg-card p-4">
+      <Card as="section" class="min-w-0 p-5">
         <h2 class="font-semibold">Recent drafts</h2>
         <ul class="my-3 divide-y divide-border">
           <li
@@ -115,8 +116,8 @@ const proofLink = (proof) =>
             >Design drafts</Link
           >
         </div>
-      </section>
-      <section class="min-w-0 border border-border bg-card p-4">
+      </Card>
+      <Card as="section" class="min-w-0 p-5">
         <h2 class="font-semibold">Approved proofs</h2>
         <p
           v-if="!overview.approvedProofs.data.length"
@@ -166,7 +167,7 @@ const proofLink = (proof) =>
             >More proofs</Link
           >
         </nav>
-      </section>
+      </Card>
     </template>
   </section>
 </template>

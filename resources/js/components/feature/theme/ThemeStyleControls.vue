@@ -3,9 +3,17 @@ import { RotateCcw } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import { Button } from '@/components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { SelectField } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 import { advanced, contrast, tokenHex } from './themeColorFields'
+import ThemeHexField from './ThemeHexField.vue'
 const props = defineProps({
   modelValue: { type: Object, required: true },
   derived: { type: Object, required: true },
@@ -48,95 +56,91 @@ function pairing(key, other) {
     (ratio >= (key === `ring` ? 3 : 4.5) ? `Good contrast` : `Low contrast`)
   )
 }
-function finish(event, key, custom) {
-  const value = event.target.value.trim()
-  if (!/^#[0-9a-f]{6}$/i.test(value)) {
-    event.target.setCustomValidity(
-      `Enter a six-digit hex color, such as #185E86.`,
-    )
-    event.target.reportValidity()
-    return
-  }
-  event.target.setCustomValidity(``)
-  color(key, value, custom)
-}
 </script>
 <template>
   <fieldset class="inspector" :disabled="readonly">
     <legend>Brand controls</legend>
     <div v-for="[key, label] in guided" :key="key" class="color-row">
-      <label :for="'hex-' + key">{{ label }}</label>
-      <input
+      <Label :for="'hex-' + key">{{ label }}</Label>
+      <Input
         type="color"
         :aria-label="'Pick ' + label"
-        :value="modelValue.colors[key]"
-        @input="color(key, $event.target.value)"
+        :model-value="modelValue.colors[key]"
+        @update:model-value="color(key, $event)"
       />
-      <Input
+      <ThemeHexField
         :id="'hex-' + key"
         :model-value="modelValue.colors[key]"
-        maxlength="7"
-        @input="$event.target.setCustomValidity('')"
-        @change="finish($event, key, false)"
+        @update:model-value="color(key, $event, false)"
       />
     </div>
-    <div class="style-choice">
-      <label for="headline">Headline style</label>
-      <select
-        id="headline"
-        :value="modelValue.headline"
-        @change="patch({ headline: $event.target.value })"
-      >
-        <option value="layout">Layout default</option>
-        <option value="sans">Modern sans</option>
-        <option value="serif">Editorial serif</option>
-      </select>
-    </div>
-    <div class="style-choice">
-      <label for="corners">Corners</label>
-      <select
-        id="corners"
-        :value="modelValue.corners"
-        @change="patch({ corners: $event.target.value })"
-      >
-        <option value="square">Square</option>
-        <option value="soft">Soft</option>
-        <option value="round">Rounded</option>
-      </select>
-    </div>
-    <details>
-      <summary>Advanced colors</summary>
-      <div v-for="[key, label, other] in advanced" :key="key" class="override">
-        <label :for="'override-' + key">{{ label }}</label>
-        <div class="override-fields">
-          <input
-            type="color"
-            :aria-label="'Pick ' + label"
-            :value="effective[key] || '#000000'"
-            @input="color(key, $event.target.value, true)"
-          />
-          <Input
-            :id="'override-' + key"
-            :model-value="effective[key]"
-            maxlength="7"
-            @input="$event.target.setCustomValidity('')"
-            @change="finish($event, key, true)"
-          />
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            :disabled="!modelValue.overrides[key]"
-            :aria-label="'Reset ' + label + ' to derived value'"
-            title="Reset to derived value"
-            @click="reset(key)"
-          >
-            <RotateCcw class="size-4" />
-          </Button>
+    <SelectField
+      id="headline"
+      class="mt-4"
+      label="Headline style"
+      :disabled="readonly"
+      :model-value="modelValue.headline"
+      :choices="[
+        { id: 'layout', name: 'Layout default' },
+        { id: 'sans', name: 'Modern sans' },
+        { id: 'serif', name: 'Editorial serif' },
+      ]"
+      @update:model-value="patch({ headline: $event })"
+    />
+    <SelectField
+      id="corners"
+      class="mt-4"
+      label="Corners"
+      :disabled="readonly"
+      :model-value="modelValue.corners"
+      :choices="[
+        { id: 'square', name: 'Square' },
+        { id: 'soft', name: 'Soft' },
+        { id: 'round', name: 'Rounded' },
+      ]"
+      @update:model-value="patch({ corners: $event })"
+    />
+    <Collapsible class="mt-5 border-t pt-3">
+      <CollapsibleTrigger as-child>
+        <Button type="button" variant="outline" size="sm">
+          Advanced colors
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div
+          v-for="[key, label, other] in advanced"
+          :key="key"
+          class="override"
+        >
+          <Label :for="'override-' + key">{{ label }}</Label>
+          <div class="override-fields">
+            <Input
+              type="color"
+              :aria-label="'Pick ' + label"
+              :model-value="effective[key] || '#000000'"
+              @update:model-value="color(key, $event, true)"
+            />
+            <ThemeHexField
+              :id="'override-' + key"
+              :model-value="effective[key]"
+              @update:model-value="color(key, $event, true)"
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              :disabled="!modelValue.overrides[key]"
+              :aria-label="'Reset ' + label + ' to derived value'"
+              title="Reset to derived value"
+              @click="reset(key)"
+            >
+              <RotateCcw class="size-4" />
+            </Button>
+          </div>
+          <small v-if="other">{{ pairing(key, other) }}</small>
         </div>
-        <small v-if="other">{{ pairing(key, other) }}</small>
-      </div>
-    </details>
+      </CollapsibleContent>
+    </Collapsible>
   </fieldset>
 </template>
 <style scoped>
@@ -147,15 +151,13 @@ function finish(event, key, custom) {
   font-weight: 700;
   margin-bottom: 10px;
 }
-.color-row,
-.style-choice {
+.color-row {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 9px 0;
 }
-.color-row label,
-.style-choice label {
+.color-row label {
   margin-right: auto;
 }
 .color-row input:last-child,
@@ -172,23 +174,6 @@ function finish(event, key, custom) {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   cursor: pointer;
-}
-.inspector select {
-  max-width: 160px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 7px;
-  padding: 6px;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-.inspector details {
-  margin-top: 18px;
-  border-top: 1px solid hsl(var(--border));
-}
-.inspector summary {
-  padding: 12px 0;
-  cursor: pointer;
-  font-weight: 650;
 }
 .override {
   margin: 10px 0;

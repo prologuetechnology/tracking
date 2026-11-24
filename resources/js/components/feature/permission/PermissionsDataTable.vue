@@ -6,6 +6,7 @@ import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { h, reactive } from 'vue'
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -80,7 +81,7 @@ const companiesTable = useVueTable(tableOptions)
 </script>
 
 <template>
-  <div class="rounded border border-border">
+  <Card class="overflow-hidden">
     <Table v-if="data && !isError">
       <TableHeader>
         <TableRow
@@ -121,5 +122,5 @@ const companiesTable = useVueTable(tableOptions)
         </template>
       </TableBody>
     </Table>
-  </div>
+  </Card>
 </template>

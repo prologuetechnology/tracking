@@ -4,6 +4,11 @@
 
 ### Added
 
+- Design Studio now owns the shared style library. Existing theme bookmarks open the corresponding Studio view. Classic drafts can reuse the company’s original versioned colors.
+
+- Staff choose System, Light, or Dark from the Appearance submenu in their account menu on desktop and mobile.
+- Signal staff screens share shadcn controls for navigation, appearance, filtering, design inspection and publication confirmations. Keyboard users can select layouts and manage role permissions with visible focus.
+
 - Customer themes now retain immutable versions. Staff can compare versions, author a style in the studio, and apply it through a saved draft and approved proof. Existing company branding stays pinned to its current colors and corners.
 
 - Staff can search companies and shared assets, open a company’s draft and approval history from its workspace, and edit a shipment design beside its preview.

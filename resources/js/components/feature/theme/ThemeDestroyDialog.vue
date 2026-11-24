@@ -43,7 +43,7 @@ const {
         queryKey: [`themes`],
       })
 
-      router.visit(route(`admin.themes.index`))
+      router.visit(route(`admin.studio.styles.index`))
     },
   },
 })
@@ -75,7 +75,7 @@ const cancelDialog = () => {
         <DialogTitle>Delete {{ theme.name }}</DialogTitle>
 
         <DialogDescription>
-          Remove this theme from the library? A theme used by a company or saved
+          Remove this style from the library? A style used by a company or saved
           revision must remain available.
         </DialogDescription>
       </DialogHeader>
@@ -84,7 +84,7 @@ const cancelDialog = () => {
         {{
           error.response?.data?.errors?.theme?.[0] ??
           error.response?.data?.message ??
-          'The theme could not be deleted.'
+          'The style could not be deleted.'
         }}
       </p>
       <DialogFooter

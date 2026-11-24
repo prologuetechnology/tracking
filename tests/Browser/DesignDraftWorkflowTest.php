@@ -32,7 +32,7 @@ class DesignDraftWorkflowTest extends DuskTestCase
                 ->waitFor('#draft-name')->assertInputValue('#tracking-number', 'BOL123')->type('#draft-name', 'Autumn proposal')
                 ->click('@inspector-appearance')->click('#draft-theme')->waitForText('Review palette')->click('@draft-theme-option-'.$theme->id)
                 ->assertDontSeeIn('@draft-style-applied', 'Review palette')->press('Edit library version')
-                ->waitFor('@theme-form')->select('#corners', 'soft')->press('Save new version')
+                ->waitFor('@theme-form')->click('#corners')->waitFor('@corners-option-soft')->click('@corners-option-soft')->press('Save new version')
                 ->waitForText('Review palette v2 saved to the library.')
                 ->assertDontSeeIn('@draft-style-applied', 'Review palette');
             $this->assertSame(0, $company->drafts()->count());
@@ -40,10 +40,12 @@ class DesignDraftWorkflowTest extends DuskTestCase
                 ->type('#tracking-number', 'BOL123')->press('Save draft')
                 ->waitForLink('Preview saved revision 1')->clickLink('Test Freight drafts')
                 ->waitForLink('Autumn proposal')->clickLink('Autumn proposal')
-                ->waitFor('#draft-name')->assertInputValue('#draft-name', 'Autumn proposal')
+                ->waitFor('#draft-name')->assertInputValue('#draft-name', 'Autumn proposal')->click('#studio-shipment-lookup > button')->waitFor('#tracking-number')
                 ->assertInputValue('#tracking-number', 'BOL123')
                 ->click('@inspector-appearance')->assertSeeIn('#draft-theme', 'Review palette')
                 ->assertSeeIn('#draft-theme-version', 'v2')
+                ->assertSeeIn('@classic-colors', 'Original Classic colors')->press('Use original Classic colors')
+                ->assertSeeIn('@classic-colors', 'Applied to this draft')->assertDontSeeIn('@draft-style-applied', 'Review palette')
                 ->clickLink('Preview saved revision 1')->waitFor('iframe')
                 ->withinFrame('iframe', function (Browser $frame) use ($theme) {
                     $frame->waitForText('Shipment Details')->assertSee('BOL123')->assertDontSee('Copy Link')
@@ -54,11 +56,17 @@ class DesignDraftWorkflowTest extends DuskTestCase
                 ->type('#preview-number', 'BOL404')->press('Load shipment')
                 ->withinFrame('iframe', fn (Browser $frame) => $frame->waitForText('Shipment unavailable'))
                 ->clickLink('Back to draft')->waitFor('#draft-name')
-                ->click('#studio-shipment-lookup > summary')->type('#tracking-number', 'BOL456')->press('Save new revision')
+                ->click('@inspector-appearance')->press('Use original Classic colors')->assertSeeIn('@classic-colors', 'Applied to this draft')
+                ->click('#studio-shipment-lookup > button')->waitFor('#tracking-number')->type('#tracking-number', 'BOL456')->press('Save new revision')
                 ->waitForLink('Preview saved revision 2')->assertSeeLink('Preview revision 1')
                 ->visit('/trackShipment?trackingNumber=BOL123&searchOption=bol')
                 ->waitForText('Shipment Details')->assertSee('Copy Link')
                 ->assertScript('document.documentElement.style.getPropertyValue("--primary")', $original);
         });
+
+        $revisions = $company->drafts()->sole()->revisions()->orderBy('version')->get();
+        $this->assertSame($theme->id, $revisions[0]->design['theme']['id']);
+        $this->assertSame($company->baselineTheme()->snapshot(), $revisions[1]->design['theme']);
+        $this->assertSame(0, $company->publications()->count());
     }
 }

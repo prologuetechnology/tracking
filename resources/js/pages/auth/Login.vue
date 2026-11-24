@@ -3,12 +3,13 @@ import { Head } from '@inertiajs/vue3'
 
 import LoginButton from '@/components/feature/auth/LoginButton.vue'
 import StaffFooter from '@/components/layout/footer/StaffFooter.vue'
+import { Card } from '@/components/ui/card'
 </script>
 <template>
   <div class="signal-shell">
     <Head title="Staff sign in" />
     <main class="signal-signin">
-      <div>
+      <Card class="p-6 sm:p-9">
         <div class="signal-wordmark">
           <span class="signal-mark" aria-hidden="true"><i /><i /><i /></span
           ><span>Prologue<small>Control room</small></span>
@@ -23,7 +24,7 @@ import StaffFooter from '@/components/layout/footer/StaffFooter.vue'
           {{ $page.props.errors.email }}
         </p>
         <LoginButton provider="azure" size="lg" />
-      </div>
+      </Card>
     </main>
     <StaffFooter />
   </div>

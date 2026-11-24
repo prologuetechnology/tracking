@@ -6,19 +6,31 @@ import {
   PanelsTopLeft,
   ScanLine,
   ShieldCheck,
-  SwatchBook,
 } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from '@/components/ui/navigation-menu'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
 
-const props = defineProps({ company: { type: Object, default: null } })
+const props = defineProps({
+  mobile: Boolean,
+  company: { type: Object, default: null },
+})
 const emit = defineEmits([`navigate`])
 const page = usePage()
 const { userCan, userIs } = useRolesAndPermissions()
 const items = computed(() => {
   const component = page.component
   const company = props.company || page.props.companyInitialValues
+  const canEditDrafts = userCan(`company:show`) && userCan(`company:update`)
+  const libraryRoute = userCan(`theme:show`)
+    ? `admin.studio.styles.index`
+    : `admin.studio.styles.create`
   const picker =
     new URL(page.url, location.origin).searchParams.get(`workspace`) ===
     `studio`
@@ -40,18 +52,13 @@ const items = computed(() => {
     {
       name: `Design studio`,
       icon: PanelsTopLeft,
-      href: company?.uuid
-        ? route(`admin.drafts.index`, company.uuid)
-        : route(`admin.companies.index`, { workspace: `studio` }),
+      href: canEditDrafts
+        ? company?.uuid
+          ? route(`admin.drafts.index`, company.uuid)
+          : route(`admin.companies.index`, { workspace: `studio` })
+        : route(libraryRoute),
       active: component.startsWith(`admin/designDrafts/`) || picker,
-      show: userCan(`company:show`) && userCan(`company:update`),
-    },
-    {
-      name: `Themes`,
-      icon: SwatchBook,
-      href: route(`admin.themes.index`),
-      active: component.startsWith(`admin/themes/`),
-      show: userCan(`theme:show`),
+      show: canEditDrafts || userCan(`theme:show`) || userCan(`theme:store`),
     },
     {
       name: `Shared assets`,
@@ -73,16 +80,31 @@ const items = computed(() => {
 })
 </script>
 <template>
-  <nav class="signal-nav" aria-label="Staff workspace">
-    <Link
-      v-for="item in items"
-      :key="item.name"
-      :href="item.href"
-      :aria-current="item.active ? 'location' : undefined"
-      @success="emit('navigate')"
-      ><component :is="item.icon" :size="16" aria-hidden="true" />{{
-        item.name
-      }}</Link
+  <NavigationMenu
+    :orientation="mobile ? 'vertical' : 'horizontal'"
+    aria-label="Staff workspace"
+    class="signal-nav"
+    :class="{ 'w-full max-w-none': mobile }"
+  >
+    <NavigationMenuList
+      :class="mobile ? 'w-full flex-col items-stretch gap-1' : 'gap-1'"
     >
-  </nav>
+      <NavigationMenuItem
+        v-for="item in items"
+        :key="item.name"
+        :class="{ 'w-full': mobile }"
+      >
+        <NavigationMenuLink as-child
+          ><Link
+            :href="item.href"
+            :aria-current="item.active ? 'location' : undefined"
+            @success="emit('navigate')"
+            ><component :is="item.icon" :size="16" aria-hidden="true" />{{
+              item.name
+            }}</Link
+          ></NavigationMenuLink
+        >
+      </NavigationMenuItem></NavigationMenuList
+    ></NavigationMenu
+  >
 </template>

@@ -4,6 +4,7 @@ import { useForm, useIsFormDirty } from 'vee-validate'
 import { watch } from 'vue'
 import * as yup from 'yup'
 
+import { Card } from '@/components/ui/card'
 import {
   FormControl,
   FormDescription,
@@ -154,10 +155,11 @@ defineExpose({
 </script>
 
 <template>
-  <form
+  <Card
     id="allowedDomainForm"
+    as="form"
     dusk="allowed-domain-form"
-    class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
+    class="mt-4 flex w-full max-w-2xl flex-col gap-5 p-5"
     @submit.prevent="submitForm"
   >
     <FormField
@@ -206,5 +208,5 @@ defineExpose({
         </FormControl>
       </FormItem>
     </FormField>
-  </form>
+  </Card>
 </template>

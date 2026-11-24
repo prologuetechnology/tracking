@@ -2,11 +2,14 @@
 import { Link } from '@inertiajs/vue3'
 import { ChevronRight } from 'lucide-vue-next'
 
+import StudioNavigation from '@/components/layout/navigation/StudioNavigation.vue'
+
 import SignalShell from './SignalShell.vue'
 defineProps({ company: { type: Object, required: true } })
 </script>
 <template>
   <SignalShell :company="company" content-id="studio-workspace">
+    <StudioNavigation />
     <nav
       aria-label="Breadcrumb"
       class="mb-4 flex items-center gap-2 text-sm text-muted-foreground"

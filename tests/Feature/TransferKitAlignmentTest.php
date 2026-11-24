@@ -51,10 +51,10 @@ class TransferKitAlignmentTest extends TestCase
         $user = $this->createUserWithPermission('theme:show');
 
         $this->actingAs($user)
-            ->get(route('admin.themes.index'))
+            ->get(route('admin.studio.styles.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/themes/Index')
+                ->component('admin/designDrafts/StyleLibrary')->where('mode', 'browse')
                 ->has('initialThemes', 1)
                 ->where('initialThemes.0.name', $theme->name));
     }

@@ -7,6 +7,7 @@ import * as yup from 'yup'
 
 import PermissionDestroyDialog from '@/components/feature/permission/PermissionDestroyDialog.vue'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   FormControl,
   FormDescription,
@@ -134,10 +135,11 @@ watch(
 </script>
 
 <template>
-  <form
+  <Card
     id="permissionForm"
+    as="form"
     dusk="permission-form"
-    class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
+    class="mt-4 flex w-full max-w-2xl flex-col gap-5 p-5"
     @submit="submitForm"
   >
     <FormField
@@ -211,5 +213,5 @@ watch(
         Save
       </Button>
     </div>
-  </form>
+  </Card>
 </template>

@@ -2,8 +2,10 @@
 import { Check } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 
-import DraftSelect from '@/components/feature/designDraft/DraftSelect.vue'
+import { tokenHex } from '@/components/feature/theme/themeColorFields'
 import { Button } from '@/components/ui/button'
+import SelectField from '@/components/ui/form/SelectField.vue'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useAuthorization } from '@/composables/hooks/auth'
 
 import StudioColorFields from './StudioColorFields.vue'
@@ -11,6 +13,7 @@ import StudioThemeAuthor from './StudioThemeAuthor.vue'
 
 const props = defineProps({
   liveDesign: { type: Object, required: true },
+  classicStyle: { type: Object, default: null },
   classic: { type: Boolean, required: true },
   palettes: { type: Array, required: true },
   themes: { type: Array, required: true },
@@ -67,6 +70,27 @@ const canApply = computed(
     String(candidateTheme.value) !== String(theme.value) ||
     String(candidateVersion.value) !== String(themeVersion.value),
 )
+const classicSwatches = computed(() => {
+  const tokens = props.classicStyle?.colors?.root ?? {}
+  return [
+    [`Primary`, tokens.primary],
+    [`Accent`, tokens.accent],
+    [`Background`, tokens.background],
+  ]
+    .filter(([, token]) => token)
+    .map(([label, token]) => ({ label, hex: tokenHex(token), token }))
+})
+const usingClassicColors = computed(
+  () =>
+    String(theme.value ?? ``) === String(props.classicStyle?.id ?? ``) &&
+    String(themeVersion.value ?? ``) ===
+      String(props.classicStyle?.theme_version_id ?? ``),
+)
+function useClassicColors() {
+  candidateTheme.value = props.classicStyle?.id ?? null
+  candidateVersion.value = props.classicStyle?.theme_version_id ?? null
+  apply()
+}
 function chooseTheme(id) {
   candidateTheme.value = id
   candidateVersion.value = libraryTheme.value?.versions?.[0]?.id ?? null
@@ -91,41 +115,36 @@ function apply() {
   <div class="grid gap-4">
     <fieldset v-if="!classic" class="min-w-0 space-y-2">
       <legend class="text-sm font-medium">Color palette</legend>
-      <div class="flex flex-wrap gap-2">
-        <label
+      <RadioGroup
+        v-model="palette"
+        name="palette"
+        aria-label="Color palette"
+        class="flex flex-wrap gap-2"
+      >
+        <RadioGroupItem
           v-for="item in palettes"
           :key="item.id"
           :dusk="'palette-' + item.id"
-          class="cursor-pointer"
+          :value="item.id"
+          choice
+          class="min-h-9 px-2.5 text-xs"
         >
-          <input
-            v-model="palette"
-            class="peer sr-only"
-            type="radio"
-            name="palette"
-            :value="item.id"
-          />
           <span
-            class="inline-flex min-h-9 items-center gap-2 rounded-md border px-2.5 text-xs font-semibold hover:bg-muted peer-checked:border-primary peer-checked:bg-primary/5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
-          >
-            <span
-              aria-hidden="true"
-              class="size-3.5 rounded-full border border-foreground/15"
-              :style="{
-                background:
-                  item.color ||
-                  'linear-gradient(90deg, currentColor 50%, transparent 50%)',
-              }"
-            />
-            {{ item.name
-            }}<Check
-              v-if="palette === item.id"
-              class="size-3.5"
-              aria-hidden="true"
-            />
-          </span>
-        </label>
-      </div>
+            aria-hidden="true"
+            class="size-3.5 rounded-full border border-foreground/15"
+            :style="{
+              background:
+                item.color ||
+                'linear-gradient(90deg, currentColor 50%, transparent 50%)',
+            }"
+          />
+          {{ item.name
+          }}<Check
+            v-if="palette === item.id"
+            class="size-3.5"
+            aria-hidden="true"
+          /> </RadioGroupItem
+      ></RadioGroup>
       <p v-if="errors.palette" role="alert" class="text-sm text-destructive">
         {{ errors.palette }}
       </p>
@@ -139,6 +158,47 @@ function apply() {
       v-if="classic || palette === 'company'"
       class="grid gap-3 rounded-md border p-3"
     >
+      <div
+        v-if="classic"
+        class="grid gap-2 border-b pb-3"
+        dusk="classic-colors"
+      >
+        <h4 class="text-sm font-semibold">Original Classic colors</h4>
+        <p class="text-xs text-muted-foreground">
+          {{
+            classicStyle
+              ? classicStyle.name + ' · v' + classicStyle.version
+              : 'Classic defaults'
+          }}
+        </p>
+        <ul v-if="classicSwatches.length" class="flex flex-wrap gap-2">
+          <li
+            v-for="swatch in classicSwatches"
+            :key="swatch.label"
+            class="inline-flex items-center gap-1.5 text-xs"
+            :title="swatch.label + ' ' + swatch.hex"
+          >
+            <span
+              class="size-3 rounded-sm border"
+              :style="{ backgroundColor: 'hsl(' + swatch.token + ')' }"
+              aria-hidden="true"
+            />
+            {{ swatch.label }} <span class="font-mono">{{ swatch.hex }}</span>
+          </li>
+        </ul>
+        <Button
+          v-if="!usingClassicColors"
+          type="button"
+          variant="outline"
+          size="sm"
+          class="w-fit"
+          @click="useClassicColors"
+          >Use original Classic colors</Button
+        >
+        <p v-else class="text-xs text-muted-foreground">
+          Applied to this draft
+        </p>
+      </div>
       <h4 class="text-sm font-semibold">Reusable style</h4>
       <div class="text-xs text-muted-foreground">
         <p>
@@ -162,16 +222,16 @@ function apply() {
           v{{ appliedTheme.versions[0].version }} available in the library.
         </p>
       </div>
-      <DraftSelect
+      <SelectField
         id="draft-theme"
         :model-value="candidateTheme"
-        label="Library theme"
+        label="Library style"
         empty-label="Default colors"
         :choices="themes"
         :error="errors.theme_id"
         @update:model-value="chooseTheme"
       />
-      <DraftSelect
+      <SelectField
         v-if="versionChoices.length"
         id="draft-theme-version"
         v-model="candidateVersion"
@@ -194,7 +254,7 @@ function apply() {
           size="sm"
           variant="outline"
           @click="authorMode = 'create'"
-          >Create library theme</Button
+          >Create library style</Button
         >
       </div>
       <p v-if="notice" role="status" class="text-xs text-muted-foreground">
@@ -216,7 +276,7 @@ function apply() {
         >Use in draft</Button
       >
     </section>
-    <DraftSelect
+    <SelectField
       v-if="!classic"
       id="draft-headline"
       v-model="headline"

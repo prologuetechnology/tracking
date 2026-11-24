@@ -5,6 +5,7 @@ import { usePage } from '@inertiajs/vue3'
 import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { h, reactive } from 'vue'
 
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -102,7 +103,7 @@ const allowedDomainsTable = useVueTable(tableOptions)
 </script>
 
 <template>
-  <div class="rounded border border-border">
+  <Card class="overflow-hidden">
     <Table v-if="allowedDomains && !isError">
       <TableHeader>
         <TableRow
@@ -145,5 +146,5 @@ const allowedDomainsTable = useVueTable(tableOptions)
         </template>
       </TableBody>
     </Table>
-  </div>
+  </Card>
 </template>

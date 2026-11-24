@@ -11,6 +11,7 @@ import {
 defineProps({
   id: { type: String, required: true },
   label: { type: String, required: true },
+  disabled: Boolean,
   choices: { type: Array, required: true },
   emptyLabel: { type: String, default: null },
   error: { type: String, default: null },
@@ -24,6 +25,7 @@ const value = defineModel({ type: [String, Number], default: null })
       {{ label }}
     </Label>
     <Select
+      :disabled="disabled"
       :model-value="String(value ?? 'none')"
       @update:model-value="value = $event === 'none' ? null : $event"
     >

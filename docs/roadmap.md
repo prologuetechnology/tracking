@@ -2,6 +2,10 @@
 
 ## Active
 
+- [x] Retire the standalone Themes screens and make each company’s original Classic palette available in Design Studio.
+
+- [x] Refine the Signal portal with shared shadcn surfaces, controls and keyboard interactions in both staff appearances.
+
 - [x] Pin existing customer themes to version 1, author reusable style versions from the library or studio, and publish visual changes through an approved proof.
 
 - [x] Extend Signal to company workspaces, the two-pane studio, the shared asset inspector, and access administration.

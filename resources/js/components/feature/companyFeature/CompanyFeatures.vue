@@ -2,6 +2,7 @@
 import { usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
+import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useCompanyQuery } from '@/composables/queries/company'
 import { useCompanyFeaturesQuery } from '@/composables/queries/companyFeature'
@@ -53,13 +54,15 @@ const computedFeatures = computed(() => {
     v-if="computedFeatures.length >= 1"
     class="grid grid-cols-1 gap-4 md:grid-cols-2"
   >
-    <div
+    <Card
       v-for="companyFeature in computedFeatures"
       :key="companyFeature.slug"
-      class="flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4"
+      class="flex min-w-0 items-center justify-between gap-4 p-5"
     >
       <div class="w-full space-y-0.5">
-        <Label class="text-base">{{ companyFeature.name }}</Label>
+        <Label :for="companyFeature.slug" class="text-base">{{
+          companyFeature.name
+        }}</Label>
 
         <p class="text-sm text-muted-foreground">
           {{ companyFeature.description }}
@@ -74,6 +77,6 @@ const computedFeatures = computed(() => {
           :value="companyFeature.enabled"
         />
       </div>
-    </div>
+    </Card>
   </section>
 </template>

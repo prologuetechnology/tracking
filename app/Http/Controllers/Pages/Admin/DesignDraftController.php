@@ -105,6 +105,7 @@ class DesignDraftController extends Controller
 
         return Inertia::render('admin/designDrafts/Edit', [
             'catalog' => DesignCatalog::editor(),
+            'classicStyle' => $company->baselineTheme()?->snapshot(),
             'liveDesign' => LiveDesignSummary::forPublication($publication, $company),
             'canUpgradePresentation' => $revision !== null && ($revision->design['presentation_version'] ?? 1) < 2 && $revision->design['layout'] !== ClassicDesign::LAYOUT,
             'company' => $company->only(['uuid', 'name']),

@@ -30,7 +30,7 @@ class ProofExportWorkflowTest extends DuskTestCase
                     ->waitForLink('Desktop PNG', 120)->assertSeeLink('Mobile PNG');
                 $archived = DesignProof::sole();
                 foreach (['dark', 'light'] as $appearance) {
-                    $browser->select('select[aria-label="Staff appearance"]', $appearance)
+                    $browser->click('@user-menu-trigger')->waitFor('@staff-appearance-menu')->click('@staff-appearance-menu')->waitFor('@appearance-'.$appearance)->click('@appearance-'.$appearance)
                         ->waitUntil("document.documentElement.dataset.staffAppearance === '{$appearance}'")
                         ->withinFrame('iframe[title="Shipment preview"]', fn (Browser $frame) => $frame
                             ->waitFor('#answer-history')->assertSee('BOL123')
@@ -41,7 +41,8 @@ class ProofExportWorkflowTest extends DuskTestCase
                 }
                 $browser->press('Record customer approval')->type('input[id^="approver-"]', 'Fixture reviewer')
                     ->press('Save customer approval')->waitForText('Publish approved revision')
-                    ->press('Publish approved revision')->acceptDialog()->waitForText('Live design');
+                    ->press('Publish approved revision')->waitFor('[role="alertdialog"]')->press('Cancel')->waitUntilMissing('[role="alertdialog"]')
+                    ->press('Publish approved revision')->waitFor('[role="alertdialog"]')->press('Publish revision')->waitForText('Live design');
 
                 $proof = DesignProof::sole();
                 foreach (['desktop' => 1440, 'mobile' => 390] as $view => $width) {
@@ -57,7 +58,7 @@ class ProofExportWorkflowTest extends DuskTestCase
                         ->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth');
                 }
                 $browser->resize(1440, 900)->visit($drafts)->waitForText('Live tracking design')
-                    ->click('summary')->press('Restore original Classic branding')->acceptDialog()
+                    ->press('Publication history')->waitForText('Restore original Classic branding')->press('Restore original Classic branding')->waitFor('[role="alertdialog"]')->press('Restore design')
                     ->waitUntilMissingText('Restore original Classic branding')
                     ->visit($public)->waitForText('Shipment Details')->assertSee('Status History');
                 $draft = $company->drafts()->where('name', 'Receiving desk')->sole();
@@ -72,7 +73,7 @@ class ProofExportWorkflowTest extends DuskTestCase
                     ->waitUntilMissing('[role="dialog"]')
                     ->press('Use revision as new draft')->waitFor('#fork-name')->type('#fork-name', 'Alternative receiving desk')
                     ->press('Create draft')->waitFor('#draft-name')->assertInputValue('#draft-name', 'Alternative receiving desk')
-                    ->assertInputValue('#tracking-number', 'BOL123')
+                    ->click('#studio-shipment-lookup > button')->waitFor('#tracking-number')->assertInputValue('#tracking-number', 'BOL123')
                     ->assertSeeLink('Preview saved revision 1')
                     ->assertVisible('header.signal-mast nav[aria-label="Staff workspace"]')
                     ->assertScript('document.querySelector("header.signal-mast").getBoundingClientRect().bottom <= document.querySelector("#studio-workspace").getBoundingClientRect().top + 1')

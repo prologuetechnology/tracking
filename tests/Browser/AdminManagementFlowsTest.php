@@ -5,6 +5,8 @@ namespace Tests\Browser;
 use App\Enums\ImageTypeEnum;
 use App\Models\User;
 use Laravel\Dusk\Browser;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\DuskTestCase;
 
 class AdminManagementFlowsTest extends DuskTestCase
@@ -21,6 +23,24 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->assertSee('Live design')->assertMissing('@company-form-save')->assertMissing('#is_active')
                 ->assertDontSeeLink('Design drafts');
         });
+    }
+
+    public function test_staff_can_assign_role_permissions_with_the_keyboard(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeSuperAdmin();
+        $role = Role::findByName('Company Admin');
+        $permission = Permission::create(['name' => 'fixture:review', 'guard_name' => 'web']);
+
+        $this->browse(function (Browser $browser) use ($staff, $role, $permission) {
+            $checkbox = '[role="checkbox"][aria-label="Assign '.$permission->name.'"]';
+            $browser->loginAs($staff)->visit(route('admin.role.show', $role))
+                ->waitFor($checkbox)->assertAttribute($checkbox, 'aria-checked', 'false')
+                ->keys($checkbox, '{space}')->waitFor($checkbox.'[aria-checked="true"]')
+                ->press('Save')->waitForLocation(route('admin.role.index', absolute: false));
+        });
+
+        $this->assertTrue($role->fresh()->hasPermissionTo($permission));
     }
 
     public function test_super_admin_can_create_a_company_from_the_browser(): void
@@ -55,10 +75,10 @@ class AdminManagementFlowsTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user, $existingTheme) {
             $browser->loginAs($user)
                 ->visit('/admin/themes/create')
-                ->waitForText('Create a Theme')
+                ->waitForText('Create a style')->assertPathIs('/admin/design-studio/styles/create')
                 ->type('@theme-name', 'Browser Theme')
                 ->click('@theme-form-save')
-                ->waitUntil("window.location.pathname === '/admin/themes'")
+                ->waitUntil("window.location.pathname === '/admin/design-studio/styles'")
                 ->waitForText('Browser Theme')
                 ->click("@theme-edit-{$existingTheme->id}")
                 ->waitForText('Existing Browser Theme')
@@ -66,11 +86,13 @@ class AdminManagementFlowsTest extends DuskTestCase
                 ->clear('@theme-name')
                 ->type('@theme-name', 'Updated Browser Theme')
                 ->click('@theme-form-save')
-                ->waitUntil("window.location.pathname === '/admin/themes'")
+                ->waitUntil("window.location.pathname === '/admin/design-studio/styles'")
                 ->waitForText('Updated Browser Theme')
                 ->click("@theme-edit-{$existingTheme->id}")->waitFor('#library-history')
-                ->assertSelectHasOption('#library-history', (string) $existingTheme->versions()->where('version', 1)->value('id'))
-                ->assertSelected('#library-history', (string) $existingTheme->versions()->where('version', 2)->value('id'));
+                ->assertSeeIn('#library-history', 'v2')->click('#library-history')
+                ->waitFor('@library-history-option-'.$existingTheme->versions()->where('version', 1)->value('id'))
+                ->click('@library-history-option-'.$existingTheme->versions()->where('version', 1)->value('id'))
+                ->assertSeeIn('#library-history', 'v1');
         });
 
         $this->assertDatabaseHas('themes', ['name' => 'Browser Theme']);

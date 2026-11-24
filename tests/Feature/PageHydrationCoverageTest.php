@@ -62,9 +62,9 @@ class PageHydrationCoverageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('admin/companies/Create'));
 
         $this->actingAs($themeCreator)
-            ->get(route('admin.themes.create'))
+            ->get(route('admin.studio.styles.create'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->component('admin/themes/Create'));
+            ->assertInertia(fn (Assert $page) => $page->component('admin/designDrafts/StyleLibrary')->where('mode', 'create')->missing('initialThemes'));
 
         $this->actingAs($superAdmin)
             ->get(route('admin.permissions.create'))

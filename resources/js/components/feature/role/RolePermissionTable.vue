@@ -4,9 +4,9 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { computed, h, reactive, ref } from 'vue'
 
-import RolePermissionCheckbox from '@/components/feature/role/RolePermissionCheckbox.vue'
 import { Button } from '@/components/ui/button/index.js'
-import { DialogFooter } from '@/components/ui/dialog/index.js'
+import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -92,9 +92,10 @@ const columns = [
     accessorKey: `edit`,
     header: () => h(`div`, { class: `text-sm font-semibold` }, `Assign`),
     cell: ({ row }) => {
-      return h(RolePermissionCheckbox, {
-        'modelValue': row.original.checked,
-        'onUpdate:modelValue': (checked) => {
+      return h(Checkbox, {
+        'aria-label': `Assign ` + row.original.name,
+        'checked': row.original.checked,
+        'onUpdate:checked': (checked) => {
           if (checked) {
             selectedPermissions.value = [
               ...new Set([...selectedPermissions.value, row.original.name]),
@@ -125,7 +126,7 @@ const companiesTable = useVueTable(tableOptions)
 </script>
 
 <template>
-  <div class="rounded border border-border">
+  <Card class="overflow-hidden">
     <Table v-if="props.permissions">
       <TableHeader>
         <TableRow
@@ -166,26 +167,26 @@ const companiesTable = useVueTable(tableOptions)
         </template>
       </TableBody>
     </Table>
-  </div>
-  <DialogFooter class="flex flex-row items-center justify-end space-x-2 pt-4">
-    <Button
-      variant="secondary"
-      size="sm"
-      :disabled="isPending"
-      @click="cancelDialog"
-    >
-      Cancel
-    </Button>
+    <footer class="flex flex-wrap items-center justify-end gap-2 border-t p-4">
+      <Button
+        variant="secondary"
+        size="sm"
+        :disabled="isPending"
+        @click="cancelDialog"
+      >
+        Cancel
+      </Button>
 
-    <Button
-      type="button"
-      variant="default"
-      size="sm"
-      class=""
-      :disabled="isPending"
-      @click="submitForm"
-    >
-      Save
-    </Button>
-  </DialogFooter>
+      <Button
+        type="button"
+        variant="default"
+        size="sm"
+        class=""
+        :disabled="isPending"
+        @click="submitForm"
+      >
+        Save
+      </Button>
+    </footer>
+  </Card>
 </template>

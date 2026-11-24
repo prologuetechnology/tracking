@@ -2,37 +2,24 @@
 
 namespace App\Http\Controllers\Pages\Admin;
 
-use App\Actions\Themes\ListThemes;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ThemeResource;
 use App\Models\Theme;
-use Inertia\Inertia;
-use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
 
 class ThemePageController extends Controller
 {
-    public function __construct(
-        private readonly ListThemes $listThemes,
-    ) {}
-
-    public function index(): Response
+    public function index(): RedirectResponse
     {
-        return Inertia::render('admin/themes/Index', [
-            'initialThemes' => ThemeResource::collection(
-                $this->listThemes->execute(),
-            )->resolve(),
-        ]);
+        return to_route('admin.studio.styles.index');
     }
 
-    public function create(): Response
+    public function create(): RedirectResponse
     {
-        return Inertia::render('admin/themes/Create');
+        return to_route('admin.studio.styles.create');
     }
 
-    public function show(Theme $theme): Response
+    public function show(Theme $theme): RedirectResponse
     {
-        return Inertia::render('admin/themes/Edit', [
-            'initialTheme' => ThemeResource::make($theme->load('latestVersion', 'versions'))->resolve(),
-        ]);
+        return to_route('admin.studio.styles.show', $theme->uuid);
     }
 }

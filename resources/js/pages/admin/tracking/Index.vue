@@ -7,6 +7,7 @@ import ShipmentDetailsAndTracking from '@/components/feature/tracking/ShipmentDe
 import SignalScanInspector from '@/components/feature/tracking/SignalScanInspector.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -72,17 +73,10 @@ async function submit() {
 }
 </script>
 <template>
-  <AuthenticatedLayout wide>
+  <AuthenticatedLayout title="Shipment console" wide>
     <Head title="Shipment console" />
     <div class="space-y-5">
-      <header>
-        <h1
-          class="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl"
-        >
-          Shipment console
-        </h1>
-      </header>
-      <form class="border-y border-border py-4" @submit.prevent="submit">
+      <Card as="form" class="p-4 sm:p-5" @submit.prevent="submit">
         <div class="flex flex-wrap items-end gap-3">
           <div class="w-40 max-w-full space-y-1.5">
             <Label for="searchOption">Reference type</Label>
@@ -155,7 +149,14 @@ async function submit() {
             placeholder="Brand from the customer’s tracking link"
           />
         </div>
-      </form>
+        <p
+          v-if="!lookup && !showBrand"
+          class="mt-3 text-sm text-muted-foreground"
+        >
+          Add a brand identifier when multiple brands share a Pipeline company
+          ID.
+        </p>
+      </Card>
       <p
         v-if="lookup && isFetching && !data"
         class="text-muted-foreground"
@@ -163,8 +164,9 @@ async function submit() {
       >
         Looking up shipment…
       </p>
-      <section
+      <Card
         v-if="lookup && isError"
+        as="section"
         class="space-y-2 border-l-2 border-destructive bg-card p-4"
         role="alert"
       >
@@ -184,7 +186,7 @@ async function submit() {
           @click="refetch()"
           >Retry lookup</Button
         >
-      </section>
+      </Card>
       <template v-if="lookup && data?.trackingData">
         <div class="flex flex-wrap items-end justify-between gap-3">
           <div class="min-w-0">

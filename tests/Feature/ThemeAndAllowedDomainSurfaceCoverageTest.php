@@ -21,10 +21,10 @@ class ThemeAndAllowedDomainSurfaceCoverageTest extends TestCase
         $destroyer = $this->makeUserWithPermission('theme:destroy');
 
         $this->actingAs($viewer)
-            ->get(route('admin.themes.show', $theme->uuid))
+            ->get(route('admin.studio.styles.show', $theme->uuid))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/themes/Edit')
+                ->component('admin/designDrafts/StyleLibrary')->where('mode', 'inspect')
                 ->where('initialTheme.name', 'Existing Theme'));
 
         $payload = [

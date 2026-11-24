@@ -36,22 +36,35 @@ class AuthAndNavigationTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($staff) {
             $viewport = new ChromeDevToolsDriver($browser->driver);
             $emulate = fn (string $value) => $viewport->execute('Emulation.setEmulatedMedia', ['features' => [['name' => 'prefers-color-scheme', 'value' => $value]]]);
-            $select = '.signal-desktop select[aria-label="Staff appearance"]';
             try {
                 $viewport->execute('Emulation.setDeviceMetricsOverride', ['width' => 1440, 'height' => 900, 'deviceScaleFactor' => 1, 'mobile' => false]);
                 $emulate('dark');
-                $browser->loginAs($staff)->visit('/admin/tracking')->waitFor($select)->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="system"]\')');
+                $browser->loginAs($staff)->visit('/admin/tracking')->waitFor('@user-menu-trigger')->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="system"]\')');
                 $emulate('light');
-                $browser->waitUntil('!document.documentElement.classList.contains("dark")')->select($select, 'dark')->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="dark"]\')')
+                $browser->waitUntil('!document.documentElement.classList.contains("dark")')->click('@user-menu-trigger')->waitFor('@staff-appearance-menu')->keys('@staff-appearance-menu', '{arrow_right}')->waitFor('@appearance-system')->assertAttribute('@appearance-system', 'aria-checked', 'true')->waitFor('@appearance-dark')->click('@appearance-dark')->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="dark"]\')')
                     ->visit('/admin/themes')->waitUntil('document.documentElement.matches(\'html.dark[data-staff-appearance="dark"]\')')
                     ->visit('/trackShipment/notFound/sample')->waitForText('Shipment not found')->assertScript('!document.documentElement.hasAttribute("data-staff-appearance")');
                 $viewport->execute('Emulation.setDeviceMetricsOverride', ['width' => 390, 'height' => 844, 'deviceScaleFactor' => 1, 'mobile' => true]);
-                $browser->visit('/admin/tracking')->press('Sections')->waitFor('[role="dialog"] select')->select('[role="dialog"] select', 'light')
+                $browser->visit('/admin/tracking')->press('Sections')->waitFor('[role="dialog"] nav')->assertDontSeeIn('[role="dialog"]', 'Appearance')->keys('[role="dialog"]', '{escape}')->waitUntilMissing('[role="dialog"]')
+                    ->click('@user-menu-trigger')->waitFor('@staff-appearance-menu')->click('@staff-appearance-menu')->waitFor('@appearance-dark')->assertAttribute('@appearance-dark', 'aria-checked', 'true')->waitFor('@appearance-light')->click('@appearance-light')
                     ->waitUntil('document.documentElement.dataset.staffAppearance === "light"')->assertScript('!document.documentElement.classList.contains("dark")')->assertScript('document.documentElement.scrollWidth === innerWidth');
             } finally {
                 $viewport->execute('Emulation.clearDeviceMetricsOverride');
                 $viewport->execute('Emulation.setEmulatedMedia', ['features' => []]);
             }
+        });
+    }
+
+    public function test_style_library_staff_can_enter_studio_without_company_permissions(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeUserWithPermission('theme:show');
+        $this->browse(function (Browser $browser) use ($staff) {
+            $browser->resize(1440, 900)->loginAs($staff)->visit('/admin/tracking')
+                ->waitForLink('Design studio')->assertDontSeeLink('Themes')->clickLink('Design studio')
+                ->waitForLocation('/admin/design-studio/styles')->waitFor('#find-theme')
+                ->assertDontSeeLink('Company drafts')->assertDontSeeLink('Create style')
+                ->assertMissing('@theme-form-save');
         });
     }
 

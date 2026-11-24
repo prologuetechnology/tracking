@@ -2,12 +2,15 @@
 import { cn } from '@/lib/utils'
 
 const props = defineProps({
+  as: { type: String, default: `div` },
   class: { type: null, required: false },
 })
 </script>
 
 <template>
-  <div
+  <component
+    :is="as"
+    data-slot="card"
     :class="
       cn(
         'rounded-lg border bg-card text-card-foreground shadow-sm',
@@ -16,5 +19,5 @@ const props = defineProps({
     "
   >
     <slot />
-  </div>
+  </component>
 </template>

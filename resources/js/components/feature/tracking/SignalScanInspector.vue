@@ -2,6 +2,9 @@
 import { ArrowRight } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   formatEventTime,
   place,
@@ -47,26 +50,25 @@ function showFilter(exception) {
 </script>
 <template>
   <div class="scan-console">
-    <section class="scan-list" aria-labelledby="signal-scans">
+    <Card as="section" class="scan-list" aria-labelledby="signal-scans">
       <h2 id="signal-scans">Scan history</h2>
-      <div class="scan-filters" aria-label="Filter carrier scans">
-        <button
-          type="button"
-          :aria-pressed="!exceptionsOnly"
-          @click="showFilter(false)"
-        >
-          All {{ scans.length }}</button
-        ><button
-          type="button"
-          :aria-pressed="exceptionsOnly"
-          @click="showFilter(true)"
-        >
-          Exceptions
-        </button>
-      </div>
+      <ToggleGroup
+        type="single"
+        :model-value="exceptionsOnly ? 'exceptions' : 'all'"
+        size="sm"
+        class="scan-filters"
+        aria-label="Filter carrier scans"
+        @update:model-value="$event && showFilter($event === 'exceptions')"
+      >
+        <ToggleGroupItem value="all">All {{ scans.length }}</ToggleGroupItem
+        ><ToggleGroupItem value="exceptions"
+          >Exceptions</ToggleGroupItem
+        ></ToggleGroup
+      >
       <ul v-if="visible.length" aria-label="Carrier scans">
         <li v-for="scan in visible" :key="scan.id">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             class="scan"
             :aria-pressed="selected?.id === scan.id"
@@ -77,7 +79,7 @@ function showFilter(exception) {
             ><time :datetime="scan.at || undefined">{{
               formatEventTime(scan)
             }}</time>
-          </button>
+          </Button>
         </li>
       </ul>
       <p v-else class="empty">
@@ -87,22 +89,23 @@ function showFilter(exception) {
             : 'No carrier scans reported yet.'
         }}
       </p>
-    </section>
-    <section class="trace" aria-labelledby="signal-route">
+    </Card>
+    <Card as="section" class="trace" aria-labelledby="signal-route">
       <h2 id="signal-route">Route trace</h2>
       <ol
         v-if="stops.length"
         aria-label="Reported stops in chronological order"
       >
         <li v-for="(stop, index) in stops" :key="stop.scans[0]">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             :aria-pressed="stop.scans.includes(selected?.id)"
             :aria-label="'Stop ' + (index + 1) + ', ' + stop.name"
             @click="chooseStop(stop)"
           >
             <i aria-hidden="true" /><span>{{ stop.name }}</span>
-          </button>
+          </Button>
         </li>
       </ol>
       <p v-else class="empty">No timed scan locations reported.</p>
@@ -112,8 +115,8 @@ function showFilter(exception) {
           place(shipment.destinationLocation) || 'Destination unavailable'
         }}</span>
       </div>
-    </section>
-    <aside class="scan-inspector" aria-live="polite">
+    </Card>
+    <Card as="aside" class="scan-inspector" aria-live="polite">
       <h2>Selected scan</h2>
       <template v-if="selected"
         ><strong>{{ selected.status }}</strong>
@@ -123,7 +126,7 @@ function showFilter(exception) {
         }}</time></template
       >
       <p v-else>No scan selected.</p>
-    </aside>
+    </Card>
   </div>
 </template>
 <style scoped>
@@ -136,9 +139,7 @@ function showFilter(exception) {
 .scan-console section,
 .scan-console aside {
   min-width: 0;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  padding: 18px;
+  padding: clamp(16px, 1.55vw, 24px);
 }
 .scan-list {
   grid-column: 1;
@@ -147,7 +148,7 @@ function showFilter(exception) {
 .scan-list ul {
   max-height: 410px;
   overflow-y: auto;
-  margin-inline: -18px;
+  margin-inline: calc(-1 * clamp(16px, 1.55vw, 24px));
 }
 .scan-console h2 {
   font-weight: 700;
@@ -164,21 +165,21 @@ function showFilter(exception) {
 .scan-filters {
   margin: 8px 0 12px;
 }
-.scan-filters button {
-  font-size: 12px;
-  padding: 5px 9px;
-  border: 1px solid transparent;
-}
-.scan-filters button[aria-pressed='true'] {
-  color: hsl(var(--primary));
-  background: hsl(var(--accent));
-  border-color: hsl(var(--border));
+.scan-filters {
+  width: fit-content;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
 }
 .scan {
   display: block;
   width: 100%;
+  height: auto;
+  min-height: 3.5rem;
+  white-space: normal;
+  border-radius: 0;
   text-align: left;
-  padding: 8px 18px;
+  padding: 10px clamp(16px, 1.55vw, 24px);
   border-top: 1px solid hsl(var(--border));
 }
 .scan strong,
@@ -207,11 +208,8 @@ function showFilter(exception) {
   flex-direction: column;
   justify-content: space-between;
   gap: 14px;
-  background-image: radial-gradient(
-    hsl(var(--border)) 1px,
-    transparent 1px
-  ) !important;
-  background-size: 13px 13px !important;
+  background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+  background-size: 13px 13px;
 }
 .trace ol {
   display: flex;
@@ -233,6 +231,8 @@ function showFilter(exception) {
   background: hsl(var(--primary));
 }
 .trace button {
+  height: auto;
+  white-space: normal;
   position: relative;
   display: flex;
   flex-direction: column;

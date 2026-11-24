@@ -1,7 +1,7 @@
 <script setup>
 import { ChevronDown } from 'lucide-vue-next'
 import { SelectIcon, SelectTrigger, useForwardProps } from 'radix-vue'
-import { computed } from 'vue'
+import { reactiveOmit } from '@vueuse/core'
 
 import { cn } from '@/lib/utils'
 
@@ -12,17 +12,14 @@ const props = defineProps({
   class: { type: null, required: false },
 })
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
-
-  return delegated
-})
+const delegatedProps = reactiveOmit(props, `class`)
 
 const forwardedProps = useForwardProps(delegatedProps)
 </script>
 
 <template>
   <SelectTrigger
+    data-slot="select-trigger"
     v-bind="forwardedProps"
     :class="
       cn(

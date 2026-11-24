@@ -3,7 +3,9 @@ import { Head, Link } from '@inertiajs/vue3'
 
 import PublicationHistory from '@/components/feature/designDraft/PublicationHistory.vue'
 import TrackingStudioLayout from '@/components/layout/page/TrackingStudioLayout.vue'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 defineProps({
   company: { type: Object, required: true },
@@ -42,10 +44,7 @@ defineProps({
       </Button>
     </header>
     <PublicationHistory :company="company" :publications="publications" />
-    <section
-      class="overflow-hidden rounded-lg border bg-card text-card-foreground"
-      aria-labelledby="named-drafts"
-    >
+    <Card as="section" class="overflow-hidden" aria-labelledby="named-drafts">
       <h2 id="named-drafts" class="border-b px-4 py-3 font-semibold sm:px-5">
         Saved drafts
       </h2>
@@ -72,10 +71,10 @@ defineProps({
           <div
             class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
           >
-            <span
+            <Badge
               v-if="publications[0]?.draft_uuid === item.uuid"
-              class="rounded bg-secondary px-2 py-1 font-semibold text-secondary-foreground"
-              >Revision {{ publications[0].version }} live</span
+              variant="secondary"
+              >Revision {{ publications[0].version }} live</Badge
             >
             <time :datetime="item.updated_at"
               >Updated
@@ -84,7 +83,7 @@ defineProps({
           </div>
         </li>
       </ul>
-    </section>
+    </Card>
     <nav
       v-if="drafts.last_page > 1"
       aria-label="Draft pages"

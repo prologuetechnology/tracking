@@ -7,7 +7,6 @@ import UserDropdown from '@/components/feature/user/navigation/UserDropdown.vue'
 import StaffFooter from '@/components/layout/footer/StaffFooter.vue'
 import SignalAccessNavigation from '@/components/layout/navigation/SignalAccessNavigation.vue'
 import SignalNavigation from '@/components/layout/navigation/SignalNavigation.vue'
-import StaffAppearanceSelect from '@/components/layout/navigation/StaffAppearanceSelect.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -51,7 +50,6 @@ const { mutate: stop } = useImpersonateUserStopMutation({
       >
       <div class="signal-desktop"><SignalNavigation :company="company" /></div>
       <div class="signal-account">
-        <div class="signal-desktop"><StaffAppearanceSelect /></div>
         <Dialog v-model:open="open"
           ><DialogTrigger as-child
             ><Button
@@ -62,15 +60,15 @@ const { mutate: stop } = useImpersonateUserStopMutation({
               ><Menu :size="16" /> Sections</Button
             ></DialogTrigger
           >
-          <DialogContent class="max-h-[90dvh] max-w-sm overflow-y-auto"
+          <DialogContent
+            class="max-h-[90dvh] max-w-sm overflow-y-auto data-[state=closed]:animate-none data-[state=open]:animate-none"
             ><DialogTitle>Staff navigation</DialogTitle
             ><DialogDescription class="sr-only"
-              >Choose a workspace or appearance.</DialogDescription
+              >Choose a workspace.</DialogDescription
             ><SignalNavigation
+              mobile
               :company="company"
-              @navigate="
-                open = false
-              " /><StaffAppearanceSelect /></DialogContent
+              @navigate="open = false" /></DialogContent
         ></Dialog>
         <UserDropdown />
       </div>

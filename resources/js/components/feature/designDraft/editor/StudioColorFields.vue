@@ -22,16 +22,16 @@ const setColor = (key, value) => {
       class="grid grid-cols-[1fr,auto,7rem] items-center gap-2"
     >
       <Label :for="'draft-color-' + field.key">{{ field.label }}</Label>
-      <input
+      <Input
         type="color"
         :aria-label="'Choose ' + field.label.toLowerCase()"
         class="size-9 cursor-pointer rounded border bg-card p-1"
-        :value="
+        :model-value="
           /^#[\da-f]{6}$/i.test(colors[field.key])
             ? colors[field.key]
             : '#ffffff'
         "
-        @input="setColor(field.key, $event.target.value)"
+        @update:model-value="setColor(field.key, $event)"
       />
       <Input
         :id="'draft-color-' + field.key"

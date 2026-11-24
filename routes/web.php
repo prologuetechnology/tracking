@@ -13,6 +13,7 @@ use App\Http\Controllers\Pages\Admin\ImagePageController;
 use App\Http\Controllers\Pages\Admin\PermissionPageController;
 use App\Http\Controllers\Pages\Admin\PortalReviewController;
 use App\Http\Controllers\Pages\Admin\RolePageController;
+use App\Http\Controllers\Pages\Admin\StudioStyleLibraryController;
 use App\Http\Controllers\Pages\Admin\ThemePageController;
 use App\Http\Controllers\Pages\Admin\TrackingPageController;
 use App\Http\Controllers\Pages\Admin\TrackingPublicationController;
@@ -87,6 +88,13 @@ Route::prefix('admin')
                     Route::post('{proof:uuid}/approve', [DesignProofController::class, 'approve'])->name('approve');
                     Route::post('{proof:uuid}/publish', [TrackingPublicationController::class, 'publish'])->name('publish');
                 });
+            });
+
+        Route::controller(StudioStyleLibraryController::class)->prefix('design-studio/styles')->name('studio.styles.')
+            ->group(function () {
+                Route::get('/', 'index')->middleware('permission:theme:show')->name('index');
+                Route::get('create', 'create')->middleware('permission:theme:store')->name('create');
+                Route::get('{theme:uuid}', 'show')->middleware('permission:theme:show')->name('show');
             });
 
         Route::controller(ThemePageController::class)

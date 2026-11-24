@@ -9,10 +9,8 @@ import {
   PanelsTopLeft,
   Settings2,
 } from 'lucide-vue-next'
-import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'radix-vue'
 import { computed, nextTick, ref } from 'vue'
 
-import DraftSelect from '@/components/feature/designDraft/DraftSelect.vue'
 import StudioAppearance from '@/components/feature/designDraft/editor/StudioAppearance.vue'
 import StudioAssetPicker from '@/components/feature/designDraft/editor/StudioAssetPicker.vue'
 import StudioLayoutPicker from '@/components/feature/designDraft/editor/StudioLayoutPicker.vue'
@@ -20,8 +18,18 @@ import StudioSections from '@/components/feature/designDraft/editor/StudioSectio
 import StudioShipmentPreview from '@/components/feature/designDraft/StudioShipmentPreview.vue'
 import TrackingStudioLayout from '@/components/layout/page/TrackingStudioLayout.vue'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import SelectField from '@/components/ui/form/SelectField.vue'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const props = defineProps({
   company: { type: Object, required: true },
@@ -33,8 +41,11 @@ const props = defineProps({
   revisions: { type: Array, required: true },
   catalog: { type: Object, required: true },
   liveDesign: { type: Object, required: true },
+  classicStyle: { type: Object, default: null },
   canUpgradePresentation: { type: Boolean, default: false },
 })
+const lookupOpen = ref(!props.draft)
+const artworkOpen = ref(false)
 const library = ref(props.themes)
 function rememberTheme(saved) {
   library.value = [
@@ -50,6 +61,7 @@ const previewMode = ref(`draft`)
 const previewModules = ref(null)
 const inspectField = async (field, section) => {
   mobilePane.value = `settings`
+  if ([`logo`, `banner`, `footer`].includes(field)) artworkOpen.value = true
   inspectorTab.value = field === `section` ? `sections` : `appearance`
   await nextTick()
   const id =
@@ -60,8 +72,6 @@ const inspectField = async (field, section) => {
         : `draft-` + field
   const target = document.getElementById(id)
   if (target) {
-    const details = target.closest(`details`)
-    if (details) details.open = true
     target.focus()
     target.scrollIntoView({ block: `nearest` })
   }
@@ -89,6 +99,12 @@ const save = () => {
     onError: async () => {
       mobilePane.value = `settings`
       const fields = Object.keys(form.errors)
+      if (fields.some((key) => key.endsWith(`_image_id`)))
+        artworkOpen.value = true
+      if (
+        fields.some((key) => [`tracking_number`, `search_option`].includes(key))
+      )
+        lookupOpen.value = true
       if (
         fields.some((key) =>
           /^(custom_colors|palette|theme_id|theme_version_id|headline_style|logo_|banner_|footer_)/.test(
@@ -108,8 +124,6 @@ const save = () => {
         `#design-editor [aria-invalid="true"]`,
       )
       if (invalid) {
-        const details = invalid.closest(`details`)
-        if (details) details.open = true
         invalid.focus()
       }
     },
@@ -153,35 +167,27 @@ const save = () => {
             type="submit"
             form="design-editor"
             :disabled="form.processing || previewMode === 'live'"
-            >{{ draft ? 'Save new revision' : 'Save draft' }}</Button
           >
+            {{ draft ? 'Save new revision' : 'Save draft' }}
+          </Button>
         </div>
       </header>
 
-      <div
-        class="mb-4 flex gap-1 rounded-lg border bg-muted/40 p-1 lg:hidden"
-        role="group"
+      <ToggleGroup
+        type="single"
+        size="sm"
         aria-label="Studio view"
+        :model-value="mobilePane"
+        class="signal-segment mb-4 lg:hidden"
+        @update:model-value="$event && (mobilePane = $event)"
       >
-        <Button
-          type="button"
-          class="flex-1"
-          size="sm"
-          :variant="mobilePane === 'settings' ? 'default' : 'ghost'"
-          :aria-pressed="mobilePane === 'settings'"
-          @click="mobilePane = 'settings'"
-          ><Settings2 class="mr-2 size-4" aria-hidden="true" />Edit</Button
-        >
-        <Button
-          type="button"
-          class="flex-1"
-          size="sm"
-          :variant="mobilePane === 'preview' ? 'default' : 'ghost'"
-          :aria-pressed="mobilePane === 'preview'"
-          @click="mobilePane = 'preview'"
-          ><Eye class="mr-2 size-4" aria-hidden="true" />Preview</Button
-        >
-      </div>
+        <ToggleGroupItem value="settings" class="flex-1">
+          <Settings2 class="mr-2 size-4" />Edit
+        </ToggleGroupItem>
+        <ToggleGroupItem value="preview" class="flex-1">
+          <Eye class="mr-2 size-4" />Preview
+        </ToggleGroupItem>
+      </ToggleGroup>
 
       <div
         class="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,23rem)] xl:grid-cols-[minmax(0,1fr)_minmax(20rem,25rem)]"
@@ -190,9 +196,10 @@ const save = () => {
           class="min-w-0 space-y-5 lg:col-start-2 lg:row-start-1 lg:block"
           :class="mobilePane === 'settings' ? 'block' : 'hidden'"
         >
-          <form
+          <Card
             id="design-editor"
-            class="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm"
+            as="form"
+            class="overflow-hidden"
             novalidate
             @submit.prevent="save"
           >
@@ -235,23 +242,32 @@ const save = () => {
                 </p>
               </div>
 
-              <details
+              <Collapsible
                 id="studio-shipment-lookup"
+                v-model:open="lookupOpen"
                 class="rounded-md border bg-muted/20"
-                :open="!draft || undefined"
               >
-                <summary
-                  class="cursor-pointer rounded-md px-3 py-2 text-sm font-medium"
-                >
-                  Preview shipment
-                  <span
-                    v-if="form.tracking_number"
-                    class="ml-1 break-all font-mono text-xs text-muted-foreground"
-                    >{{ form.tracking_number }}</span
+                <CollapsibleTrigger as-child>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    class="group h-auto w-full justify-start whitespace-normal text-left"
                   >
-                </summary>
-                <div class="grid gap-3 border-t p-3">
-                  <DraftSelect
+                    <ChevronDown
+                      class="size-4 shrink-0 -rotate-90 transition-transform group-data-[state=open]:rotate-0"
+                      aria-hidden="true"
+                    />
+                    Preview shipment
+                    <span
+                      v-if="form.tracking_number"
+                      class="ml-1 break-all font-mono text-xs text-muted-foreground"
+                      >{{ form.tracking_number }}</span
+                    >
+                  </Button>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent class="grid gap-3 border-t p-3">
+                  <SelectField
                     id="lookup-type"
                     v-model="form.search_option"
                     label="Find shipment by"
@@ -291,21 +307,25 @@ const save = () => {
                     variant="outline"
                     class="lg:hidden"
                     @click="mobilePane = 'preview'"
-                    >Open preview</Button
                   >
-                </div>
-              </details>
+                    Open preview
+                  </Button>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
 
-            <TabsRoot v-model="inspectorTab">
-              <TabsList aria-label="Design settings" class="flex border-b px-2">
+            <Tabs v-model="inspectorTab">
+              <TabsList
+                aria-label="Design settings"
+                class="signal-settings-tabs"
+              >
                 <TabsTrigger
                   v-for="tab in tabs"
                   :id="'inspector-tab-' + tab"
                   :key="tab"
                   :value="tab"
                   :dusk="'inspector-' + tab"
-                  class="min-h-11 flex-1 border-b-2 border-transparent px-1 text-sm font-medium capitalize text-muted-foreground outline-offset-[-3px] data-[state=active]:border-primary data-[state=active]:text-foreground"
+                  class="min-w-0 flex-1 px-1 capitalize"
                 >
                   {{ tab }}
                 </TabsTrigger>
@@ -324,11 +344,9 @@ const save = () => {
                       for="upgrade-presentation"
                       class="flex items-center gap-2 font-medium"
                     >
-                      <input
+                      <Checkbox
                         id="upgrade-presentation"
-                        v-model="form.upgrade_presentation"
-                        type="checkbox"
-                        class="size-4 accent-primary"
+                        v-model:checked="form.upgrade_presentation"
                       />
                       Use the updated {{ selectedLayout?.name }} layout
                     </label>
@@ -343,7 +361,7 @@ const save = () => {
                     :layouts="catalog.layouts"
                     :error="form.errors.layout"
                   />
-                  <DraftSelect
+                  <SelectField
                     v-if="form.layout === 'answer.v1'"
                     id="draft-emphasis"
                     v-model="form.emphasis"
@@ -373,33 +391,35 @@ const save = () => {
                     v-model:palette="form.palette"
                     v-model:headline="form.headline_style"
                     :live-design="liveDesign"
+                    :classic-style="classicStyle"
                     :classic="form.layout === 'classic.v1'"
                     :palettes="catalog.palettes"
                     :themes="library"
                     :errors="form.errors"
                     @library-saved="rememberTheme"
                   />
-                  <details
+                  <Collapsible
                     id="draft-image-library"
-                    class="group rounded-md border"
-                    :open="
-                      assets.some(
-                        (asset) => form.errors[asset.key + '_image_id'],
-                      ) || undefined
-                    "
+                    v-model:open="artworkOpen"
+                    class="rounded-md border"
                   >
-                    <summary
-                      class="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden"
-                    >
-                      <Image
-                        class="size-4 text-muted-foreground"
-                        aria-hidden="true"
-                      />Brand images<ChevronDown
-                        class="ml-auto size-4 group-open:rotate-180"
-                        aria-hidden="true"
-                      />
-                    </summary>
-                    <div class="grid gap-4 border-t p-3">
+                    <CollapsibleTrigger as-child>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        class="group w-full justify-start"
+                      >
+                        <Image
+                          class="size-4 text-muted-foreground"
+                          aria-hidden="true"
+                        />Brand images<ChevronDown
+                          class="ml-auto size-4 transition-transform group-data-[state=open]:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent class="grid gap-4 border-t p-3">
                       <StudioAssetPicker
                         v-for="asset in assets"
                         :id="'draft-' + asset.key"
@@ -410,8 +430,8 @@ const save = () => {
                         :choices="images[asset.key] ?? []"
                         :error="form.errors[asset.key + '_image_id']"
                       />
-                    </div>
-                  </details>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </TabsContent>
                 <TabsContent
                   v-for="tab in ['sections', 'features']"
@@ -440,7 +460,7 @@ const save = () => {
                   />
                 </TabsContent>
               </fieldset>
-            </TabsRoot>
+            </Tabs>
             <p
               v-if="form.errors.base_version"
               role="alert"
@@ -453,12 +473,9 @@ const save = () => {
                 >Reopen draft</a
               >
             </p>
-          </form>
+          </Card>
 
-          <section
-            v-if="revisions.length"
-            class="rounded-xl border bg-card p-5"
-          >
+          <Card v-if="revisions.length" as="section" class="p-5">
             <h2 class="mb-2 flex items-center gap-2 font-semibold">
               <History class="size-4" aria-hidden="true" />Saved revisions
             </h2>
@@ -480,7 +497,7 @@ const save = () => {
                 >
               </li>
             </ul>
-          </section>
+          </Card>
         </div>
 
         <div

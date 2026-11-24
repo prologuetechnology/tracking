@@ -26,7 +26,7 @@ beforeEach(function () {
 });
 
 it('backfills exact legacy tokens and pins once while preserving unthemed companies', function () {
-    $colors = ['root' => ['background' => '37 4.1% 78.3%', 'customPreservedToken' => '182 23% 41%']];
+    $colors = ['root' => ['background' => '37 4.1% 78.3%', 'customPreservedToken' => '182 23% 41%'], 'dark' => ['background' => '220 30% 10%']];
     $themeId = DB::table('themes')->insertGetId(['uuid' => (string) Str::uuid(), 'name' => 'Imported style',
         'derive_from' => 'accent', 'colors' => json_encode($colors), 'is_system' => 0, 'radius' => '0.617rem']);
     $legacy = $this->makeCompany(['theme_id' => null]);
@@ -37,6 +37,11 @@ it('backfills exact legacy tokens and pins once while preserving unthemed compan
 
     app(BackfillThemeVersions::class)->execute();
     $first = Theme::findOrFail($themeId)->versions()->sole();
+    $this->get(route('admin.drafts.create', $legacy->uuid))->assertInertia(fn ($page) => $page
+        ->where('initialValues.layout', 'classic.v1')->where('initialValues.theme_version_id', $first->id)
+        ->where('classicStyle.colors', $colors)->where('classicStyle.radius', '0.617rem'));
+    $this->get(route('admin.drafts.create', $unbranded->uuid))->assertInertia(fn ($page) => $page
+        ->where('classicStyle', null)->where('initialValues.theme_version_id', null));
     expect($first->colors)->toBe($colors)->and($first->radius)->toBe('0.617rem')
         ->and($legacy->fresh()->theme_version_id)->toBe($first->id)
         ->and($unbranded->fresh()->theme_version_id)->toBeNull()
@@ -138,4 +143,21 @@ it('rejects a version belonging to another theme and keeps library usage permiss
     expect(fn () => $this->makeCompany(['theme_id' => $other->id]))->toThrow(ValidationException::class);
     $this->post(route('admin.drafts.store', $company->uuid), [...$form, 'theme_id' => $other->id])
         ->assertSessionHasErrors('theme_id');
+});
+
+it('redirects old theme bookmarks to the Studio library with the original permissions', function () {
+    $theme = $this->makeTheme();
+    $viewer = $this->makeUserWithPermission('theme:show');
+    $creator = $this->makeUserWithPermission('theme:store');
+    $this->actingAs($viewer)->get('/admin/themes')->assertRedirectToRoute('admin.studio.styles.index');
+    foreach (['theme', 'themes'] as $prefix) {
+        $this->get('/admin/'.$prefix.'/'.$theme->uuid)->assertRedirectToRoute('admin.studio.styles.show', $theme->uuid);
+    }
+    $this->get(route('admin.studio.styles.index'))->assertOk();
+    $this->get(route('admin.studio.styles.create'))->assertForbidden();
+    $this->get('/admin/themes/create')->assertForbidden();
+    $this->actingAs($creator)->get('/admin/themes/create')->assertRedirectToRoute('admin.studio.styles.create');
+    $this->get(route('admin.studio.styles.create'))->assertOk();
+    $this->get(route('admin.studio.styles.index'))->assertForbidden();
+    $this->get(route('admin.studio.styles.show', $theme->uuid))->assertForbidden();
 });

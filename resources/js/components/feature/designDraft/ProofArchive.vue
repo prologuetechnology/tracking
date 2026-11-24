@@ -3,10 +3,12 @@ import { router, useForm } from '@inertiajs/vue3'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import ArchivedProofViewer from '@/components/feature/designDraft/ArchivedProofViewer.vue'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+import ConfirmPublication from './ConfirmPublication.vue'
 const emit = defineEmits([`snapshot-expired`])
 const props = defineProps({
   company: { type: Object, required: true },
@@ -61,16 +63,6 @@ const approve = (proof) =>
     },
   )
 const publish = (proof) => {
-  if (
-    !window.confirm(
-      `Publish revision ` +
-        props.revision.version +
-        ` to the existing tracking links for ` +
-        props.company.name +
-        `?`,
-    )
-  )
-    return
   release.publication = props.publication
   release.post(
     route(`admin.drafts.proofs.publish`, [...params.value, proof.uuid]),
@@ -106,8 +98,9 @@ onBeforeUnmount(() => clearInterval(timer))
         size="sm"
         :disabled="!lookup || capture.processing"
         @click="exporting"
-        >Export desktop and mobile PNGs</Button
       >
+        Export desktop and mobile PNGs
+      </Button>
     </div>
     <p
       v-if="capture.hasErrors || release.hasErrors"
@@ -150,11 +143,9 @@ onBeforeUnmount(() => clearInterval(timer))
               "
               >{{ view === 'desktop' ? 'Desktop PNG' : 'Mobile PNG' }}</a
             >
-            <span
-              v-if="proof.uuid === activeProof"
-              class="rounded bg-muted px-2 py-1 text-xs font-semibold"
-              >Live design</span
-            >
+            <Badge v-if="proof.uuid === activeProof" variant="secondary">
+              Live design
+            </Badge>
           </template>
           <span v-else role="status">{{
             proof.status === 'failed'
@@ -173,8 +164,10 @@ onBeforeUnmount(() => clearInterval(timer))
               { preserveScroll: true },
             )
           "
-          >Retry this snapshot</Button
         >
+          Retry this snapshot
+        </Button>
+
         <div
           v-if="proof.status === 'ready'"
           class="flex flex-wrap items-center gap-3 text-sm"
@@ -184,13 +177,24 @@ onBeforeUnmount(() => clearInterval(timer))
               >Approved by {{ proof.customer_approver }} ·
               {{ new Date(proof.approved_at).toLocaleDateString() }}</span
             >
-            <Button
+            <ConfirmPublication
               v-if="proof.uuid !== activeProof"
-              size="sm"
-              :disabled="release.processing"
-              @click="publish(proof)"
-              >Publish approved revision</Button
+              title="Publish this approved revision?"
+              :description="
+                'Revision ' +
+                revision.version +
+                ' will appear on the existing tracking links for ' +
+                company.name +
+                '.'
+              "
+              action="Publish revision"
+              :busy="release.processing"
+              @confirm="publish(proof)"
             >
+              <Button size="sm" :disabled="release.processing">
+                Publish approved revision
+              </Button>
+            </ConfirmPublication>
           </template>
           <form
             v-else-if="selected === proof.uuid"
@@ -212,15 +216,19 @@ onBeforeUnmount(() => clearInterval(timer))
               variant="default"
               size="sm"
               :disabled="approval.processing"
-              >Save customer approval</Button
             >
+              Save customer approval
+            </Button>
+
             <Button
               type="button"
               size="sm"
               variant="ghost"
               @click="selected = null"
-              >Cancel</Button
             >
+              Cancel
+            </Button>
+
             <p v-if="approval.hasErrors" role="alert">
               {{ approval.errors.customer_approver }}
             </p>
@@ -230,8 +238,9 @@ onBeforeUnmount(() => clearInterval(timer))
             size="sm"
             variant="outline"
             @click="startApproval(proof)"
-            >Record customer approval</Button
           >
+            Record customer approval
+          </Button>
         </div>
       </li>
     </ul>
