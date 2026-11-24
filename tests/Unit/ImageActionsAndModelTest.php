@@ -10,6 +10,7 @@ use App\Enums\ImageTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ImageActionsAndModelTest extends TestCase
@@ -47,7 +48,7 @@ class ImageActionsAndModelTest extends TestCase
         $this->assertDatabaseMissing('images', ['id' => $stored->id]);
     }
 
-    public function test_deleting_images_clears_company_asset_references(): void
+    public function test_deleting_assigned_images_preserves_company_asset_references(): void
     {
         $company = $this->makeCompany();
         $logo = $this->makeImage(ImageTypeEnum::LOGO->value);
@@ -60,14 +61,13 @@ class ImageActionsAndModelTest extends TestCase
             'footer_image_id' => $footer->id,
         ])->save();
 
-        $logo->delete();
-        $banner->delete();
-        $footer->delete();
+        foreach ([$logo, $banner, $footer] as $image) {
+            $this->assertThrows(fn () => $image->delete(), ValidationException::class);
+            $this->assertDatabaseHas('images', ['id' => $image->id]);
+        }
 
-        $company->refresh();
-
-        $this->assertNull($company->logo_image_id);
-        $this->assertNull($company->banner_image_id);
-        $this->assertNull($company->footer_image_id);
+        $this->assertDatabaseHas('companies', [
+            'id' => $company->id, 'logo_image_id' => $logo->id, 'banner_image_id' => $banner->id, 'footer_image_id' => $footer->id,
+        ]);
     }
 }

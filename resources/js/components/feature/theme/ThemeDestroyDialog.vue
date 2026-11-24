@@ -31,7 +31,12 @@ const isOpen = ref(false)
 
 const queryClient = useQueryClient()
 
-const { mutate: destroyTheme } = useThemeDestroyMutation({
+const {
+  mutate: destroyTheme,
+  error,
+  isPending,
+  reset,
+} = useThemeDestroyMutation({
   config: {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -48,6 +53,7 @@ const handleDelete = () => {
 }
 
 const cancelDialog = () => {
+  reset()
   isOpen.value = false
 }
 </script>
@@ -69,13 +75,18 @@ const cancelDialog = () => {
         <DialogTitle>Delete {{ theme.name }}</DialogTitle>
 
         <DialogDescription>
-          <p>
-            A you sure you want to delete the theme
-            <span class="font-semibold"> {{ theme.name }} </span>?
-          </p>
+          Remove this theme from the library? A theme used by a company or saved
+          revision must remain available.
         </DialogDescription>
       </DialogHeader>
 
+      <p v-if="error" role="alert" class="text-sm text-destructive">
+        {{
+          error.response?.data?.errors?.theme?.[0] ??
+          error.response?.data?.message ??
+          'The theme could not be deleted.'
+        }}
+      </p>
       <DialogFooter
         class="flex flex-row items-center justify-end space-x-2 pt-4"
       >
@@ -87,7 +98,7 @@ const cancelDialog = () => {
           size="sm"
           type="button"
           variant="destructive"
-          class=""
+          :disabled="isPending"
           @click="handleDelete"
         >
           Delete

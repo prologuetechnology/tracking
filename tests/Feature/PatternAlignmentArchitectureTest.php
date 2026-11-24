@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Pages\Admin\PortalReviewController;
 use App\Http\Middleware\AttachRequestContext;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Foundation\Http\FormRequest;
@@ -55,7 +56,15 @@ class PatternAlignmentArchitectureTest extends TestCase
 
             $this->assertContains('auth', $middleware, "{$name} must require an authenticated session.");
 
-            if (in_array($name, ['admin.dashboard', 'admin.tracking.index'], true)) {
+            if (str_starts_with($name, 'admin.portal-review.')) {
+                $this->assertTrue(app()->environment('local', 'testing', 'dusk.local'));
+                $this->assertSame(PortalReviewController::class, $route->getControllerClass());
+                $this->assertContains('cache.headers:private;no_store', $middleware);
+
+                continue;
+            }
+
+            if (in_array($name, ['admin.dashboard', 'admin.tracking.index', 'admin.preferences.appearance'], true)) {
                 continue;
             }
 

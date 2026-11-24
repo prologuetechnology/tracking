@@ -54,6 +54,7 @@ class SaveDesignDraft
             'version' => $version,
             'created_by' => $author,
             'design' => $design,
+            'theme_version_id' => $design['theme']['theme_version_id'] ?? null,
             'logo_image_id' => $design['logo']['id'] ?? null,
             'banner_image_id' => $design['banner']['id'] ?? null,
             'footer_image_id' => $design['footer']['id'] ?? null,

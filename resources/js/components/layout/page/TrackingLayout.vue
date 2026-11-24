@@ -169,7 +169,15 @@ const copyPageHref = () => pageHrefClipboard.copy(location.href)
     <div
       class="mx-auto mb-8 mt-12 w-full max-w-4xl rounded-lg bg-background px-6 py-4"
     >
-      <main class="w-full">
+      <main
+        class="w-full"
+        :class="{
+          '[&_:is(h2,h3)]:font-serif':
+            initialCompany?.theme?.style?.headline === 'serif',
+          '[&_:is(h2,h3)]:font-sans':
+            initialCompany?.theme?.style?.headline === 'sans',
+        }"
+      >
         <slot />
       </main>
     </div>

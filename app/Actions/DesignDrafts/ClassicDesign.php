@@ -44,11 +44,13 @@ class ClassicDesign
         $available = self::availableSections($company);
         $hidden = array_replace(array_fill_keys(array_keys($orders), []), $design['hidden_modules'] ?? []);
 
+        $baseline = $design === null ? $company->baselineTheme() : null;
         $settings = [
             'layout' => $design['layout'] ?? self::LAYOUT,
             'emphasis' => $design['emphasis'] ?? 'delivery',
             'palette' => $design['palette'] ?? 'company',
-            'theme_id' => $design === null ? $company->theme_id : ($design['theme']['id'] ?? null),
+            'theme_id' => $design === null ? $baseline?->theme_id : ($design['theme']['id'] ?? null),
+            'theme_version_id' => $design === null ? $baseline?->id : ($design['theme']['theme_version_id'] ?? null),
             'headline_style' => $design['headline_style'] ?? 'layout',
             'custom_colors' => array_map(strtoupper(...), $design['custom_colors'] ?? DraftPalette::DEFAULT_COLORS),
             'section_orders' => array_replace($orders, $design['section_orders'] ?? []),
@@ -63,6 +65,26 @@ class ClassicDesign
         return $settings;
     }
 
+    private function resolveTheme(Company $company, ?int $themeId, ?int $versionId, ?array $previous): ?array
+    {
+        if ($themeId === null && $versionId === null) {
+            return null;
+        }
+        if ($previous && $themeId === $previous['id'] && ($versionId === null || $versionId === ($previous['theme_version_id'] ?? null))) {
+            return $previous;
+        }
+        if ($themeId === $company->theme_id && ($versionId === null || $versionId === $company->theme_version_id)) {
+            return $company->baselineTheme()?->snapshot();
+        }
+        $theme = Theme::query()->lockForUpdate()->find($themeId);
+        $version = $versionId === null ? $theme?->latestVersion : $theme?->versions()->find($versionId);
+        if (! $version) {
+            throw ValidationException::withMessages(['theme_id' => 'Choose an available version of this theme.']);
+        }
+
+        return $version->snapshot();
+    }
+
     public function snapshot(Company $company, array $input, ?DesignDraftRevision $previous): array
     {
         if ($previous === null && isset($input['source_publication_id'])) {
@@ -71,15 +93,8 @@ class ClassicDesign
 
         $previousTheme = $previous?->design['theme'] ?? null;
         $themeId = $input['theme_id'];
-        $theme = null;
-        if ($themeId !== null) {
-            $theme = (int) $themeId === ($previousTheme['id'] ?? null)
-                ? $previousTheme
-                : Theme::query()->find($themeId)?->only(['id', 'name', 'colors', 'radius']);
-            if ($theme === null) {
-                throw ValidationException::withMessages(['theme_id' => 'Choose an available theme.']);
-            }
-        }
+        $versionId = $input['theme_version_id'] ?? null;
+        $theme = $this->resolveTheme($company, $themeId, $versionId, $previousTheme);
 
         $palette = $input['palette'] ?? $previous?->design['palette'] ?? 'company';
         $customColors = array_map(strtoupper(...), $input['custom_colors'] ?? $previous?->design['custom_colors'] ?? DraftPalette::DEFAULT_COLORS);

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ImagesController;
 use App\Http\Controllers\Api\ImageTypesController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\PreviewThemeStyleController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ThemeController;
 use App\Http\Controllers\Api\TrackingController;
@@ -57,7 +58,10 @@ Route::as('api.')
         Route::delete('images/{image}', [ImagesController::class, 'destroy'])
             ->name('images.destroy');
 
-        Route::apiResource('themes', ThemeController::class);
+        Route::post('themes/preview', PreviewThemeStyleController::class)->name('themes.preview');
+        Route::apiResource('themes', ThemeController::class)
+            ->middlewareFor('index', 'permission:theme:show|theme:update|theme:store|company:store|company:update')
+            ->middlewareFor('show', 'permission:theme:show|theme:update');
 
         Route::post('/impersonate/stop', [ImpersonationController::class, 'stopImpersonate'])
             ->withoutMiddleware('auth:sanctum')

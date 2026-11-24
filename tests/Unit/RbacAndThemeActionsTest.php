@@ -44,6 +44,7 @@ class RbacAndThemeActionsTest extends TestCase
         ]);
 
         $updated = (new UpdateTheme)->execute($theme, [
+            'base_version' => $theme->latestVersion->version,
             'name' => 'Sunset',
             'primary_hue' => [320],
             'primary_saturation' => [70],

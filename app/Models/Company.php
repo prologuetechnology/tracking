@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -76,6 +77,11 @@ class Company extends Model
     /** @use HasFactory<CompanyFactory> */
     use HasFactory, HasUuid;
 
+    public function latestPublication(): HasOne
+    {
+        return $this->hasOne(TrackingPublication::class)->latestOfMany();
+    }
+
     public function publications(): HasMany
     {
         return $this->hasMany(TrackingPublication::class);
@@ -107,6 +113,16 @@ class Company extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Company $company) {
+            if ($company->isDirty('theme_id')) {
+                $theme = $company->theme_id === null ? null : Theme::query()->lockForUpdate()->find($company->theme_id);
+                if ($company->theme_id !== null && ! $theme) {
+                    throw ValidationException::withMessages(['theme_id' => 'Choose an available customer style.']);
+                }
+                $company->theme_version_id = $theme?->latestVersion?->id;
+            }
+        });
+
         static::deleted(function (Company $company) {
             DB::afterCommit(fn () => Storage::disk('local')->deleteDirectory(DesignProof::companyDirectory($company->id)));
         });
@@ -170,6 +186,24 @@ class Company extends Model
     public function theme(): BelongsTo
     {
         return $this->belongsTo(Theme::class);
+    }
+
+    public function baselineTheme(): ?ThemeVersion
+    {
+        if ($this->theme_id === null || $this->theme === null) {
+            return null;
+        }
+
+        if ($this->theme_version_id !== null) {
+            return $this->themeVersion;
+        }
+
+        return ThemeVersion::where('theme_id', $this->theme_id)->where('version', 1)->first();
+    }
+
+    public function themeVersion(): BelongsTo
+    {
+        return $this->belongsTo(ThemeVersion::class);
     }
 
     public function features(): BelongsToMany
@@ -338,7 +372,7 @@ class Company extends Model
             $companies = self::query()
                 ->where('is_active', true)
                 ->where('pipeline_company_id', $resolvedPipelineCompanyId)
-                ->with(['logo.imageType', 'banner.imageType', 'footer.imageType', 'theme', 'apiToken', 'features'])
+                ->with(['logo.imageType', 'banner.imageType', 'footer.imageType', 'theme', 'themeVersion', 'apiToken', 'features'])
                 ->get();
 
             if ($companies->isEmpty()) {

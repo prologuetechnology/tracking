@@ -35,6 +35,13 @@ const props = defineProps({
   liveDesign: { type: Object, required: true },
   canUpgradePresentation: { type: Boolean, default: false },
 })
+const library = ref(props.themes)
+function rememberTheme(saved) {
+  library.value = [
+    ...library.value.filter((item) => item.id !== saved.id),
+    saved,
+  ].sort((a, b) => a.name.localeCompare(b.name))
+}
 const form = useForm(props.initialValues)
 const mobilePane = ref(`settings`)
 const tabs = [`layout`, `appearance`, `sections`, `features`]
@@ -84,7 +91,7 @@ const save = () => {
       const fields = Object.keys(form.errors)
       if (
         fields.some((key) =>
-          /^(custom_colors|palette|theme_id|headline_style|logo_|banner_|footer_)/.test(
+          /^(custom_colors|palette|theme_id|theme_version_id|headline_style|logo_|banner_|footer_)/.test(
             key,
           ),
         )
@@ -362,12 +369,15 @@ const save = () => {
                   <StudioAppearance
                     v-model:colors="form.custom_colors"
                     v-model:theme="form.theme_id"
+                    v-model:theme-version="form.theme_version_id"
                     v-model:palette="form.palette"
                     v-model:headline="form.headline_style"
+                    :live-design="liveDesign"
                     :classic="form.layout === 'classic.v1'"
                     :palettes="catalog.palettes"
-                    :themes="themes"
+                    :themes="library"
                     :errors="form.errors"
+                    @library-saved="rememberTheme"
                   />
                   <details
                     id="draft-image-library"

@@ -22,6 +22,7 @@ class CompanyResource extends JsonResource
             'banner_image_id' => $this->banner_image_id,
             'footer_image_id' => $this->footer_image_id,
             'theme_id' => $this->theme_id,
+            'theme_version_id' => $this->theme_version_id,
             'enable_map' => (bool) $this->enable_map,
             'enable_documents' => (bool) $this->enable_documents,
             'requires_brand' => (bool) $this->requires_brand,
@@ -40,7 +41,7 @@ class CompanyResource extends JsonResource
             ),
             'theme' => $this->whenLoaded(
                 'theme',
-                fn () => ThemeResource::make($this->theme)->resolve(),
+                fn () => [...ThemeResource::make($this->theme)->resolve(), ...($this->baselineTheme()?->snapshot() ?? [])],
             ),
             'api_token' => $this->whenLoaded(
                 'apiToken',

@@ -16,23 +16,14 @@ class SetCompanyImageAsset
 
     public function execute(
         Company $company,
-        int $imageId,
+        ?int $imageId,
         string $type,
     ): Company {
-        match ($type) {
-            ImageTypeEnum::LOGO->value => $company->forceFill([
-                'logo_image_id' => $imageId,
-            ]),
-            ImageTypeEnum::BANNER->value => $company->forceFill([
-                'banner_image_id' => $imageId,
-            ]),
-            ImageTypeEnum::FOOTER->value => $company->forceFill([
-                'footer_image_id' => $imageId,
-            ]),
-            default => throw new InvalidArgumentException('Invalid image type.'),
-        };
+        if (! in_array($type, self::TYPES, true)) {
+            throw new InvalidArgumentException('Invalid image type.');
+        }
 
-        $company->save();
+        PreserveCompanyBranding::operationalAttributes($company, [$type.'_image_id' => $imageId]);
 
         return $company->load(ListCompanies::RELATIONS);
     }

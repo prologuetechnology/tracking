@@ -21,8 +21,8 @@ import {
 import ShipmentCanvas from '@/components/feature/portalReview/ShipmentCanvas.vue'
 import ShipmentLookup from '@/components/feature/portalReview/ShipmentLookup.vue'
 import StyleCard from '@/components/feature/portalReview/StyleCard.vue'
-import StyleInspector from '@/components/feature/portalReview/StyleInspector.vue'
 import { usePortalReview } from '@/components/feature/portalReview/usePortalReview'
+import ThemeStyleControls from '@/components/feature/theme/ThemeStyleControls.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRolesAndPermissions } from '@/composables/hooks/auth'
@@ -337,7 +337,7 @@ const labels = {
                 {{ theme.name }} · v{{ theme.version }}
               </option>
             </select>
-            <StyleInspector
+            <ThemeStyleControls
               v-model="working"
               :derived="derived"
               :readonly="!permissions.author"

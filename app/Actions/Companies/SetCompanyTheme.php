@@ -8,9 +8,7 @@ class SetCompanyTheme
 {
     public function execute(Company $company, int $themeId): Company
     {
-        $company->forceFill([
-            'theme_id' => $themeId,
-        ])->save();
+        PreserveCompanyBranding::operationalAttributes($company, ['theme_id' => $themeId]);
 
         return $company->load(ListCompanies::RELATIONS);
     }

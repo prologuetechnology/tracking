@@ -34,12 +34,16 @@ const useCompanyTheme = () => {
       if (!colors) return
 
       const previous = new Map()
-      if (page.props.reviewRadius) {
+      const appearance = page.props.initialCompany?.theme
+      const radius =
+        page.props.reviewRadius ??
+        (appearance?.style ? appearance.radius : null)
+      if (radius) {
         previous.set(`--radius`, [
           style.getPropertyValue(`--radius`),
           style.getPropertyPriority(`--radius`),
         ])
-        style.setProperty(`--radius`, page.props.reviewRadius)
+        style.setProperty(`--radius`, radius)
       }
       for (const [token, property] of Object.entries(colorProperties)) {
         if (colors[token]) {

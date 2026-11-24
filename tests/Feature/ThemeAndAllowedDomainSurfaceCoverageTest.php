@@ -50,6 +50,7 @@ class ThemeAndAllowedDomainSurfaceCoverageTest extends TestCase
             ->putJson(route('api.themes.update', $theme), [
                 ...$payload,
                 'name' => 'Updated Theme',
+                'base_version' => 1,
                 'derive_from' => 'accent',
             ])
             ->assertOk()

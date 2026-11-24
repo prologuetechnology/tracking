@@ -27,8 +27,19 @@ class ProofExportWorkflowTest extends DuskTestCase
                     ->waitForLink('Preview saved revision 1')->clickLink('Preview saved revision 1')
                     ->waitForText('Shipment captured')->withinFrame('iframe[title="Shipment preview"]', fn (Browser $frame) => $frame->waitFor('#answer-history')->assertSee('BOL123'))
                     ->press('Export desktop and mobile PNGs')
-                    ->waitForLink('Desktop PNG', 120)->assertSeeLink('Mobile PNG')
-                    ->press('Record customer approval')->type('input[id^="approver-"]', 'Fixture reviewer')
+                    ->waitForLink('Desktop PNG', 120)->assertSeeLink('Mobile PNG');
+                $archived = DesignProof::sole();
+                foreach (['dark', 'light'] as $appearance) {
+                    $browser->select('select[aria-label="Staff appearance"]', $appearance)
+                        ->waitUntil("document.documentElement.dataset.staffAppearance === '{$appearance}'")
+                        ->withinFrame('iframe[title="Shipment preview"]', fn (Browser $frame) => $frame
+                            ->waitFor('#answer-history')->assertSee('BOL123')
+                            ->assertScript('!document.documentElement.hasAttribute("data-staff-appearance")'));
+                    foreach ($archived->checksums as $view => $checksum) {
+                        $this->assertSame($checksum, hash_file('sha256', Storage::disk('local')->path($archived->directory.'/'.$view.'.png')));
+                    }
+                }
+                $browser->press('Record customer approval')->type('input[id^="approver-"]', 'Fixture reviewer')
                     ->press('Save customer approval')->waitForText('Publish approved revision')
                     ->press('Publish approved revision')->acceptDialog()->waitForText('Live design');
 

@@ -10,7 +10,7 @@ class DesignDraftRevision extends Model
 {
     protected $fillable = [
         'version', 'created_by', 'design', 'search_option', 'tracking_number',
-        'logo_image_id', 'banner_image_id', 'footer_image_id',
+        'logo_image_id', 'banner_image_id', 'footer_image_id', 'theme_version_id',
     ];
 
     public function proofs(): HasMany

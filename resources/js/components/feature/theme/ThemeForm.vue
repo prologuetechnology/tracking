@@ -1,483 +1,276 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useForm, useIsFormDirty } from 'vee-validate'
-import { watch } from 'vue'
-import * as yup from 'yup'
+import { computed, ref, watch } from 'vue'
 
 import { Button } from '@/components/ui/button'
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Slider } from '@/components/ui/slider'
-import { useToast } from '@/components/ui/toast'
+import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import {
   useThemeCreateMutation,
   useThemeUpdateMutation,
 } from '@/composables/mutations/theme'
-import { cn } from '@/lib/utils'
 
+import { tokenHex } from './themeColorFields'
 import ThemeDestroyDialog from './ThemeDestroyDialog.vue'
+import ThemeStyleControls from './ThemeStyleControls.vue'
+import ThemeStyleSample from './ThemeStyleSample.vue'
+import { useThemeStylePreview } from './useThemeStylePreview'
 
 const props = defineProps({
-  theme: {
-    type: Object,
-    default: null,
-  },
-  heading: {
-    type: String,
-    default: `Theme Information`,
-  },
+  theme: { type: Object, default: null },
+  embedded: Boolean,
+  initialVersionId: { type: [String, Number], default: null },
 })
+const emit = defineEmits([`saved`, `cancel`, `reload`])
+const savedNotice = ref(``)
+const { userCan } = useRolesAndPermissions()
+const canWrite = computed(() =>
+  userCan(props.theme ? `theme:update` : `theme:store`),
+)
+const cache = useQueryClient()
+const source = ref(null)
+const baseVersion = ref(null)
+const name = ref(``)
+const style = ref(null)
+const original = ref(``)
+const errors = ref({})
+const errorMessage = ref(``)
+const versions = computed(() => props.theme?.versions ?? [])
+const selectedId = ref(null)
 
-const queryClient = useQueryClient()
-const { toast } = useToast()
-
-const buildThemeFormValues = (theme = null) => ({
-  name: theme?.name ?? ``,
-  primary_hue: theme ? [theme.colors.root.primary.split(` `)[0]] : [0],
-  primary_saturation: theme
-    ? [theme.colors.root.primary.split(` `)[1].replace(`%`, ``)]
-    : [0],
-  primary_lightness: theme
-    ? [theme.colors.root.primary.split(` `)[2].replace(`%`, ``)]
-    : [0],
-  accent_hue: theme ? [theme.colors.root.accent.split(` `)[0]] : [0],
-  accent_saturation: theme
-    ? [theme.colors.root.accent.split(` `)[1].replace(`%`, ``)]
-    : [0],
-  accent_lightness: theme
-    ? [theme.colors.root.accent.split(` `)[2].replace(`%`, ``)]
-    : [0],
-  derive_from: theme?.derive_from ?? `primary`,
-})
-
-const themeFormSchema = yup.object({
-  name: yup.string().min(1).required(),
-  primary_hue: yup.number().min(0).max(360).required(),
-  primary_saturation: yup.number().min(0).max(100).required(),
-  primary_lightness: yup.number().min(0).max(100).required(),
-  accent_hue: yup.number().min(0).max(360).required(),
-  accent_saturation: yup.number().min(0).max(100).required(),
-  accent_lightness: yup.number().min(0).max(100).required(),
-  derive_from: yup.string().oneOf([`primary`, `accent`]).required(),
-})
-
-const { isFieldDirty, handleSubmit, resetForm, values } = useForm({
-  validationSchema: themeFormSchema,
-  initialValues: buildThemeFormValues(props.theme),
-  keepValuesOnUnmount: true,
-})
-
-const isFormDirty = useIsFormDirty()
-
-const { mutate: createTheme, isPending: createThemeIsPending } =
-  useThemeCreateMutation({
-    config: {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
-          queryKey: [`themes`],
-        })
-
-        toast({
-          title: `Theme Created`,
-          description: `The new theme has been saved.`,
-        })
-
-        router.visit(route(`admin.themes.index`))
-      },
+function select(version) {
+  source.value = version
+  selectedId.value = version?.id ?? null
+  baseVersion.value = props.theme?.version ?? null
+  name.value = props.theme?.name ?? ``
+  const root = version?.colors?.root ?? {}
+  const radius = parseFloat(version?.radius)
+  const value = version?.style ?? {
+    colors: {
+      brand: tokenHex(root.brand ?? root.primary) ?? `#185E86`,
+      accent: tokenHex(root.accent) ?? `#B7D9E8`,
+      paper: tokenHex(root.background) ?? `#F5F8FA`,
     },
-  })
-
-const { mutate: updateTheme, isPending: updateThemeIsPending } =
-  useThemeUpdateMutation({
-    config: {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
-          queryKey: [`themes`],
-        })
-
-        await queryClient.invalidateQueries({
-          queryKey: [`themes`, props.theme?.id],
-          exact: true,
-        })
-
-        toast({
-          title: `Theme Updated`,
-          description: `The theme changes have been saved.`,
-        })
-
-        router.visit(route(`admin.themes.index`))
-      },
-    },
-  })
-
-const onValidForm = (values) => {
-  if (props.theme) {
-    updateTheme({
-      id: props.theme.id,
-      formData: {
-        ...values,
-      },
-    })
-  } else {
-    createTheme({
-      formData: {
-        ...values,
-      },
-    })
+    headline: `layout`,
+    corners: radius === 0 ? `square` : radius >= 1 ? `round` : `soft`,
+    overrides: {},
+  }
+  // Empty PHP arrays are serialized as JSON arrays; the editor adds named token keys.
+  style.value = {
+    ...value,
+    colors: { ...value.colors },
+    overrides: { ...value.overrides },
+  }
+  original.value = JSON.stringify(style.value)
+  errors.value = {}
+  errorMessage.value = ``
+}
+watch(
+  () => props.theme?.uuid,
+  () =>
+    select(
+      versions.value.find(
+        (v) => String(v.id) === String(props.initialVersionId),
+      ) ??
+        versions.value[0] ??
+        props.theme,
+    ),
+  { immediate: true },
+)
+const sameStyle = computed(() => JSON.stringify(style.value) === original.value)
+const savedAppearance = computed(() =>
+  sameStyle.value && source.value?.colors
+    ? { colors: source.value.colors, radius: source.value.radius ?? `0.5rem` }
+    : null,
+)
+const {
+  appearance,
+  derived,
+  error: previewError,
+  loading,
+  retry,
+} = useThemeStylePreview(style, savedAppearance)
+const dirty = computed(
+  () =>
+    !!name.value.trim() &&
+    (!props.theme ||
+      name.value.trim() !== props.theme.name ||
+      !sameStyle.value ||
+      selectedId.value !== props.theme.theme_version_id),
+)
+const create = useThemeCreateMutation()
+const update = useThemeUpdateMutation()
+const saving = computed(() => create.isPending.value || update.isPending.value)
+function changeVersion(event) {
+  select(versions.value.find((v) => String(v.id) === event.target.value))
+}
+async function save() {
+  if (!canWrite.value || !dirty.value || saving.value) return
+  errors.value = {}
+  errorMessage.value = ``
+  const formData = { name: name.value.trim() }
+  if (props.theme) formData.base_version = baseVersion.value
+  if (source.value?.id && sameStyle.value)
+    formData.source_version_id = source.value.id
+  else formData.style = style.value
+  let saved
+  try {
+    saved = props.theme
+      ? await update.mutateAsync({ id: props.theme.id, formData })
+      : await create.mutateAsync({ formData })
+  } catch (e) {
+    errors.value = e.response?.data?.errors ?? {}
+    errorMessage.value =
+      Object.values(errors.value).flat()[0] ??
+      `Could not save this version. Try again.`
+    return
+  }
+  cache.setQueryData([`themes`, saved.id], saved)
+  await cache.invalidateQueries({ queryKey: [`themes`] })
+  if (props.embedded) emit(`saved`, saved)
+  else if (userCan(`theme:show`)) router.visit(route(`admin.themes.index`))
+  else {
+    select(null)
+    savedNotice.value = saved.name + ` saved to the library.`
   }
 }
-
-const onInvalidForm = ({ errors }) => {
-  toast({
-    title: `Validation Error`,
-    description: errors.name ?? `Please fix the form errors.`,
-    variant: `destructive`,
-  })
+function reload() {
+  if (props.embedded) emit(`reload`)
+  else window.location.reload()
 }
-
-const submitForm = () => {
-  handleSubmit(onValidForm, onInvalidForm)()
-}
-
-watch(
-  () => props.theme,
-  (newTheme) => {
-    if (newTheme) {
-      resetForm({
-        values: buildThemeFormValues(newTheme),
-      })
-    }
-  },
-)
 </script>
 
 <template>
-  <form
-    id="themeForm"
-    dusk="theme-form"
-    class="mt-4 flex w-full flex-col space-y-4 rounded-lg border border-border p-4"
-    @submit.prevent="submitForm"
-  >
-    <div class="flex flex-col justify-stretch space-y-4">
-      <FormField
-        v-slot="{ componentField }"
-        name="name"
-        :validate-on-blur="!isFieldDirty"
+  <div class="space-y-5">
+    <div v-if="versions.length" class="grid gap-1 sm:max-w-xs">
+      <Label for="library-history">Version to inspect</Label>
+      <select
+        id="library-history"
+        :value="selectedId"
+        class="rounded-md border border-input bg-background px-3 py-2 text-sm"
+        :disabled="saving"
+        @change="changeVersion"
       >
-        <FormItem>
-          <div
-            class="flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4"
-          >
-            <div class="w-full space-y-0.5">
-              <FormLabel class="text-base">Name</FormLabel>
-
-              <FormDescription class="text-sm text-muted-foreground">
-                A catchy name for this theme or the name of the company it
-                should be used for.
-              </FormDescription>
-            </div>
-
-            <FormControl>
-              <Input
-                dusk="theme-name"
-                type="text"
-                placeholder="Punchy Piña Colada"
-                v-bind="componentField"
-              />
-            </FormControl>
-          </div>
-        </FormItem>
-      </FormField>
-
-      <FormField
-        v-slot="{ componentField }"
-        name="derive_from"
-        :validate-on-blur="!isFieldDirty"
+        <option v-for="v in versions" :key="v.id" :value="v.id">
+          v{{ v.version }} · {{ v.name
+          }}{{ v.version === theme.version ? ' (latest)' : '' }}
+        </option>
+      </select>
+    </div>
+    <form
+      id="themeForm"
+      dusk="theme-form"
+      class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+      @submit.prevent="save"
+    >
+      <section
+        class="grid gap-4 rounded-md border bg-card p-4 text-card-foreground"
       >
-        <FormItem>
-          <div
-            class="flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4"
+        <div class="grid gap-1">
+          <Label for="theme-name">Theme name</Label>
+          <Input
+            id="theme-name"
+            v-model="name"
+            name="theme_name"
+            dusk="theme-name"
+            maxlength="255"
+            required
+            :readonly="!canWrite"
+          />
+        </div>
+        <ThemeStyleControls
+          v-model="style"
+          :derived="derived"
+          :readonly="!canWrite"
+        />
+        <p v-if="errorMessage" role="alert" class="text-sm text-destructive">
+          {{ errorMessage }}
+          <button
+            v-if="errors.base_version"
+            type="button"
+            class="font-medium underline"
+            @click="reload"
           >
-            <div class="w-full space-y-0.5">
-              <FormLabel class="text-base">Derive From</FormLabel>
-
-              <FormDescription class="text-sm text-muted-foreground">
-                Select what color the accent should be derived from.
-              </FormDescription>
-            </div>
-
-            <FormControl>
-              <RadioGroup
-                :orientation="`horizontal`"
-                class="flex flex-row items-center justify-start space-x-4"
-                v-bind="componentField"
+            Reload version history
+          </button>
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <Button
+            v-if="canWrite"
+            type="submit"
+            dusk="theme-form-save"
+            :disabled="!dirty || saving"
+            >{{ theme ? 'Save new version' : 'Create theme' }}</Button
+          >
+          <Button
+            v-if="embedded"
+            type="button"
+            variant="outline"
+            @click="emit('cancel')"
+            >Cancel</Button
+          >
+          <Link
+            v-else-if="userCan('theme:show')"
+            class="self-center text-sm font-medium underline underline-offset-4"
+            :href="route('admin.themes.index')"
+            >Back to themes</Link
+          >
+          <p v-if="savedNotice" role="status">{{ savedNotice }}</p>
+        </div>
+      </section>
+      <aside
+        class="grid gap-4"
+        aria-label="Style inspector"
+        :aria-busy="loading"
+      >
+        <ThemeStyleSample
+          v-if="appearance"
+          :colors="appearance.colors.root"
+          :radius="appearance.radius"
+          :headline="style.headline"
+        />
+        <p v-if="previewError" role="alert" class="text-sm text-destructive">
+          The style preview could not be updated.
+          <button type="button" class="font-semibold underline" @click="retry">
+            Retry
+          </button>
+        </p>
+        <section v-if="theme" class="space-y-2 border-t pt-4">
+          <h2 class="font-semibold">Where this theme is used</h2>
+          <p v-if="!theme.usage?.length" class="text-sm text-muted-foreground">
+            No visible assignments.
+          </p>
+          <ul v-else class="divide-y text-sm">
+            <li
+              v-for="entry in theme.usage"
+              :key="
+                entry.kind +
+                '-' +
+                entry.company_uuid +
+                '-' +
+                (entry.draft_uuid ?? '')
+              "
+              class="flex flex-wrap items-center justify-between gap-2 py-2"
+            >
+              <span
+                >{{ entry.company_name
+                }}<span v-if="entry.draft_name">
+                  · {{ entry.draft_name }}</span
+                ></span
               >
-                <div class="flex items-center space-x-2">
-                  <RadioGroupItem id="primary" value="primary" />
-
-                  <Label for="primary" class="text-base">Primary</Label>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <RadioGroupItem id="accent" value="accent" />
-
-                  <Label for="accent" class="text-base">Accent</Label>
-                </div>
-              </RadioGroup>
-            </FormControl>
-          </div>
-        </FormItem>
-      </FormField>
-
-      <div class="grid grid-cols-[auto,1fr] gap-x-20 rounded-lg border p-4">
-        <div class="self-center">
-          <Label class="text-base">Primary Color</Label>
-
-          <p class="mt-[0.125rem] text-sm text-muted-foreground">
-            The color of the primary color.
-          </p>
-
-          <div
-            class="z-10 mt-4 aspect-square h-16 w-16 rounded-full outline outline-[0.375rem] outline-background"
-            :style="{
-              backgroundColor: `hsl(${values.primary_hue[0]}, ${values.primary_saturation[0]}%, ${values.primary_lightness[0]}%)`,
-            }"
-          />
-        </div>
-
-        <div class="grid grid-cols-1 gap-x-8 gap-y-2">
-          <FormField
-            v-slot="{ componentField }"
-            name="primary_hue"
-            :validate-on-blur="!isFieldDirty"
-          >
-            <FormItem class="grid grid-cols-[4rem,1fr,auto] gap-x-8 gap-y-2">
-              <FormLabel class="self-center text-sm">Hue</FormLabel>
-
-              <Slider
-                v-bind="componentField"
-                :max="360"
-                :min="0"
-                :class="cn('w-full', $attrs.class ?? ``)"
-              />
-
-              <Input
-                v-bind="componentField"
-                class="w-20"
-                type="number"
-                disabled
-                :min="0"
-                :max="360"
-              />
-            </FormItem>
-          </FormField>
-
-          <FormField
-            v-slot="{ componentField }"
-            name="primary_saturation"
-            :validate-on-blur="!isFieldDirty"
-          >
-            <FormItem class="grid grid-cols-[4rem,1fr,auto] gap-x-8 gap-y-2">
-              <FormLabel class="self-center text-sm">Saturation</FormLabel>
-
-              <Slider
-                v-bind="componentField"
-                :max="100"
-                :min="0"
-                :class="cn('w-full', $attrs.class ?? ``)"
-              />
-
-              <Input
-                v-bind="componentField"
-                class="w-20"
-                type="number"
-                disabled
-                :min="0"
-                :max="100"
-              />
-            </FormItem>
-          </FormField>
-
-          <FormField
-            v-slot="{ componentField }"
-            name="primary_lightness"
-            :validate-on-blur="!isFieldDirty"
-          >
-            <FormItem class="grid grid-cols-[4rem,1fr,auto] gap-x-8 gap-y-2">
-              <FormLabel class="self-center text-sm">Lightness</FormLabel>
-
-              <Slider
-                v-bind="componentField"
-                :max="100"
-                :min="0"
-                :class="cn('w-full', $attrs.class ?? ``)"
-              />
-
-              <Input
-                v-bind="componentField"
-                class="w-20"
-                type="number"
-                disabled
-                :min="0"
-                :max="100"
-              />
-            </FormItem>
-          </FormField>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-[auto,1fr] gap-x-20 rounded-lg border p-4">
-        <div class="self-center">
-          <Label class="text-base">Accent Color</Label>
-
-          <p class="mt-[0.125rem] text-sm text-muted-foreground">
-            The color of the accent theme.
-          </p>
-
-          <div
-            class="z-10 mt-4 aspect-square h-16 w-16 rounded-full outline outline-[0.375rem] outline-background"
-            :style="{
-              backgroundColor: `hsl(${values.accent_hue[0]}, ${values.accent_saturation[0]}%, ${values.accent_lightness[0]}%)`,
-            }"
-          />
-        </div>
-
-        <div class="grid grid-cols-1 gap-x-8 gap-y-2">
-          <FormField
-            v-slot="{ componentField }"
-            name="accent_hue"
-            :validate-on-blur="!isFieldDirty"
-          >
-            <FormItem class="grid grid-cols-[4rem,1fr,auto] gap-x-8 gap-y-2">
-              <FormLabel class="self-center text-sm">Hue</FormLabel>
-
-              <Slider
-                v-bind="componentField"
-                :max="360"
-                :min="0"
-                :class="cn('w-full', $attrs.class ?? ``)"
-              />
-
-              <Input
-                v-bind="componentField"
-                class="w-20"
-                type="number"
-                disabled
-                :min="0"
-                :max="360"
-              />
-            </FormItem>
-          </FormField>
-
-          <FormField
-            v-slot="{ componentField }"
-            name="accent_saturation"
-            :validate-on-blur="!isFieldDirty"
-          >
-            <FormItem class="grid grid-cols-[4rem,1fr,auto] gap-x-8 gap-y-2">
-              <FormLabel class="self-center text-sm">Saturation</FormLabel>
-
-              <Slider
-                v-bind="componentField"
-                :max="100"
-                :min="0"
-                :class="cn('w-full', $attrs.class ?? ``)"
-              />
-
-              <Input
-                v-bind="componentField"
-                class="w-20"
-                type="number"
-                disabled
-                :min="0"
-                :max="100"
-              />
-            </FormItem>
-          </FormField>
-
-          <FormField
-            v-slot="{ componentField }"
-            name="accent_lightness"
-            :validate-on-blur="!isFieldDirty"
-          >
-            <FormItem class="grid grid-cols-[4rem,1fr,auto] gap-x-8 gap-y-2">
-              <FormLabel class="self-center text-sm">Lightness</FormLabel>
-
-              <Slider
-                v-bind="componentField"
-                :max="100"
-                :min="0"
-                :class="cn('w-full', $attrs.class ?? ``)"
-              />
-
-              <Input
-                v-bind="componentField"
-                class="w-20"
-                type="number"
-                disabled
-                :min="0"
-                :max="100"
-              />
-            </FormItem>
-          </FormField>
-        </div>
-      </div>
-    </div>
-
-    <hr class="mb-4 mt-6" />
-
-    <div
-      class="mx-auto flex w-full max-w-3xl flex-row items-center justify-end space-x-2 py-2"
-    >
-      <div v-if="theme?.id" class="mr-auto">
-        <ThemeDestroyDialog :theme="theme" />
-      </div>
-
-      <Button
-        variant="secondary"
-        size="sm"
-        :disabled="createThemeIsPending || updateThemeIsPending"
-      >
-        <Link :href="route(`admin.themes.index`)">Cancel</Link>
-      </Button>
-
-      <Button
-        variant="default"
-        size="sm"
-        type="button"
-        class=""
-        dusk="theme-form-save"
-        :disabled="createThemeIsPending || updateThemeIsPending || !isFormDirty"
-        @click="submitForm"
-      >
-        Save
-      </Button>
-    </div>
-
-    <!-- <section
-      class="mt-12 flex flex-row items-center justify-center -space-x-12"
-    >
-      <div
-        class="z-10 aspect-square h-24 w-24 rounded-full outline outline-[0.375rem] outline-background"
-        :style="{
-          backgroundColor: `hsl(${values.primary_hue[0]}, ${values.primary_saturation[0]}%, ${values.primary_lightness[0]}%)`,
-        }"
-      />
-
-      <div
-        class="-z-0 aspect-square h-24 w-24 rounded-full"
-        :style="{
-          backgroundColor: `hsl(${values.accent_hue[0]}, ${values.accent_saturation[0]}%, ${values.accent_lightness[0]}%)`,
-        }"
-      />
-    </section> -->
-  </form>
+              <span
+                >{{ entry.kind === 'live' ? 'Live' : 'Draft' }} ·
+                {{
+                  entry.version ? 'v' + entry.version : 'Saved appearance'
+                }}</span
+              >
+            </li>
+          </ul>
+        </section>
+      </aside>
+    </form>
+    <ThemeDestroyDialog v-if="theme && !embedded" :theme="theme" />
+  </div>
 </template>

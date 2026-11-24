@@ -10,9 +10,12 @@ final class CompanyDesignWorkspace
     public function execute(Company $company, bool $canDesign, array $lookup): array
     {
         $publication = $company->publications()->latest('id')->first();
-        $live = LiveDesignSummary::forPublication($publication);
+        $live = LiveDesignSummary::forPublication($publication, $company);
         $overview = [
             'layout' => DesignCatalog::LAYOUTS[$live['layout']]['name'] ?? 'Classic',
+            'liveTheme' => $live['themeId'] === null ? null : [
+                'name' => $live['themeName'], 'version' => $live['themeVersion'], 'latestVersion' => $live['latestThemeVersion'],
+            ],
         ];
         if (! $canDesign) {
             return $overview;

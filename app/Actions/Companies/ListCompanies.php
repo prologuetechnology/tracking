@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class ListCompanies
 {
-    public const RELATIONS = ['logo', 'banner', 'footer', 'theme', 'apiToken', 'features'];
+    public const RELATIONS = ['logo', 'banner', 'footer', 'theme', 'themeVersion', 'apiToken', 'features'];
 
     public function execute(): Collection
     {

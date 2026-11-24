@@ -40,6 +40,21 @@ const proofLink = (proof) =>
     <section class="min-w-0 border border-border bg-card p-4">
       <h2 class="text-sm font-semibold text-muted-foreground">Live design</h2>
       <p class="my-2 text-xl font-semibold">{{ overview.layout }}</p>
+      <p v-if="overview.liveTheme" class="mb-2 text-sm">
+        {{ overview.liveTheme.name
+        }}<span v-if="overview.liveTheme.version">
+          · v{{ overview.liveTheme.version }}</span
+        ><span v-else> · Saved appearance</span>
+        <span
+          v-if="
+            overview.liveTheme.latestVersion > overview.liveTheme.version &&
+            overview.liveTheme.version
+          "
+          class="text-muted-foreground"
+        >
+          · v{{ overview.liveTheme.latestVersion }} available</span
+        >
+      </p>
       <p
         v-if="overview.live && overview.live !== 'Original Classic'"
         class="break-words text-sm"

@@ -2,21 +2,34 @@
 
 namespace App\Actions\Themes;
 
-use App\Actions\GenerateThemeColors;
 use App\Models\Theme;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UpdateTheme
 {
     public function execute(Theme $theme, array $attributes): Theme
     {
-        $theme->update([
-            'name' => $attributes['name'],
-            'colors' => GenerateThemeColors::execute($attributes),
-            'radius' => $attributes['radius'] ?? '0.5rem',
-            'is_system' => $attributes['is_system'] ?? false,
-            'derive_from' => $attributes['derive_from'],
-        ]);
+        return DB::transaction(function () use ($theme, $attributes) {
+            $theme = Theme::query()->lockForUpdate()->findOrFail($theme->id);
+            $latest = $theme->latestVersion()->firstOrFail();
+            if ($latest->version !== (int) $attributes['base_version']) {
+                throw ValidationException::withMessages(['base_version' => 'Another style version was saved. Reopen this theme to continue.']);
+            }
 
-        return $theme->refresh();
+            if (isset($attributes['source_version_id'])) {
+                $source = $theme->versions()->find($attributes['source_version_id']);
+                if (! $source) {
+                    throw ValidationException::withMessages(['source_version_id' => 'Choose a version of this theme.']);
+                }
+                $theme->fill([...$source->only(['colors', 'style', 'radius']), 'name' => $attributes['name']]);
+            } else {
+                $theme->fill(CreateTheme::attributes([...$theme->only(['derive_from', 'is_system']), ...$attributes]));
+            }
+            $theme->save();
+            $theme->appendVersion($latest->version + 1);
+
+            return $theme->load('latestVersion', 'versions');
+        }, attempts: 3);
     }
 }

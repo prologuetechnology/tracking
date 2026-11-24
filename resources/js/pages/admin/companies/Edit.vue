@@ -1,21 +1,14 @@
 <script setup>
-import { faImageSlash, faTrashAlt } from '@fortawesome/pro-duotone-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Head } from '@inertiajs/vue3'
 
-import CompanyClearImageAssetDialog from '@/components/feature/company/CompanyClearImageAssetDialog.vue'
 import CompanyDesignWorkspace from '@/components/feature/company/CompanyDesignWorkspace.vue'
 import CompanyForm from '@/components/feature/company/CompanyForm.vue'
-import CompanySetImageAsset from '@/components/feature/company/CompanySetImageAsset.vue'
 import ToggleCompanyIsActive from '@/components/feature/company/ToggleCompanyIsActive.vue'
-// import ToggleDocumentsSwitch from '@/components/feature/company/ToggleDocumentsSwitch.vue'
-// import ToggleMapSwitch from '@/components/feature/company/ToggleMapSwitch.vue'
 import CompanyApiTokenForm from '@/components/feature/companyApiToken/CompanyApiTokenForm.vue'
 import CompanyFeatures from '@/components/feature/companyFeature/CompanyFeatures.vue'
-import SelectThemeDialog from '@/components/feature/theme/SelectThemeDialog.vue'
 import AuthenticatedLayout from '@/components/layout/page/AuthenticatedLayout.vue'
 import { Label } from '@/components/ui/label'
-import { imageAssetUrl } from '@/composables/hooks/disks'
+import { useRolesAndPermissions } from '@/composables/hooks/auth'
 import { useCompanyQuery } from '@/composables/queries/company'
 
 const props = defineProps({
@@ -31,6 +24,7 @@ const props = defineProps({
   },
 })
 
+const { userCan } = useRolesAndPermissions()
 const { data: company, isError } = useCompanyQuery({
   id: props.companyInitialValues.id,
 
@@ -50,249 +44,58 @@ const { data: company, isError } = useCompanyQuery({
         :lookup="shipmentLookup"
         :overview="designWorkspace"
       />
-
-      <!-- Banner -->
-      <div class="group relative h-64 overflow-hidden rounded-lg">
-        <div
-          v-if="company.banner?.file_path"
-          class="h-full w-full opacity-65 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-        >
-          <img
-            :src="imageAssetUrl({ filePath: company.banner?.file_path })"
-            :alt="company.banner?.name"
-            class="h-full w-full object-cover"
-          />
-        </div>
-
-        <div
-          v-else
-          class="flex h-full w-full flex-row items-center justify-center bg-muted"
-        >
-          <FontAwesomeIcon
-            class="text-4xl text-muted-foreground"
-            :icon="faImageSlash"
-            fixed-width
-          />
-        </div>
-
-        <div
-          class="absolute right-2 top-2 flex flex-row items-center justify-end space-x-2"
-        >
-          <CompanyClearImageAssetDialog
-            v-if="company.banner?.file_path"
-            :company-id="company.id"
-            :image-name="company.banner.name"
-            type="banner"
-          >
-            <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
-          </CompanyClearImageAssetDialog>
-
-          <CompanySetImageAsset
-            :company="company"
-            :initial-image-types="initialImageTypes"
-            type="banner"
-          >
-            {{ company.banner?.file_path ? `Change` : `Add` }} Banner
-          </CompanySetImageAsset>
-        </div>
-      </div>
-
-      <!-- Logo row — overlaps banner bottom edge, stays in flow -->
-      <div
-        class="relative z-20 -mt-14 flex flex-row items-end gap-4 px-4 md:-mt-16"
-      >
-        <!-- Logo thumbnail -->
-        <div class="w-28 flex-shrink-0 md:w-40">
-          <div
-            class="rounded-xl border border-border/80 bg-background/95 p-2 shadow-xl backdrop-blur-sm"
-          >
-            <div
-              class="relative flex aspect-square w-full flex-row items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-3 shadow-lg"
-            >
-              <img
-                v-if="company.logo?.file_path"
-                :src="imageAssetUrl({ filePath: company.logo?.file_path })"
-                :alt="company.logo?.name"
-                class="h-full w-full object-contain"
-              />
-
-              <div
-                v-else
-                class="absolute left-0 top-0 flex h-full w-full flex-row items-center justify-center overflow-hidden rounded-lg bg-muted"
-              >
-                <FontAwesomeIcon
-                  class="text-3xl text-muted-foreground"
-                  :icon="faImageSlash"
-                  fixed-width
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Logo action buttons -->
-        <div class="inline-flex flex-col items-stretch gap-2 pb-2">
-          <CompanySetImageAsset
-            :company="company"
-            :initial-image-types="initialImageTypes"
-            type="logo"
-          >
-            {{ company.logo?.file_path ? `Change` : `Add` }} Logo
-          </CompanySetImageAsset>
-
-          <CompanyClearImageAssetDialog
-            v-if="company.logo?.file_path"
-            :company-id="company.id"
-            :image-name="company.logo.name"
-            type="logo"
-            full-width
-          >
-            <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
-            <span class="ml-2">Remove Logo</span>
-          </CompanyClearImageAssetDialog>
-        </div>
-      </div>
     </div>
 
-    <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-4">
-      <div
-        class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
-      >
-        <div class="w-full space-y-0.5">
-          <Label class="text-base">Enabled</Label>
-
-          <p class="text-sm text-muted-foreground">
-            Enable company tracking portal.
-          </p>
-        </div>
-
-        <div>
-          <ToggleCompanyIsActive
-            id="is_active"
-            name="is_active"
-            :company-id="company?.id"
-            :value="Boolean(company?.is_active)"
-          />
-        </div>
-      </div>
-
-      <!-- <div
-          class="flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4"
+    <template v-if="company && !isError && userCan('company:update')">
+      <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-4">
+        <div
+          class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
         >
           <div class="w-full space-y-0.5">
-            <Label class="text-base">Tracking Map</Label>
+            <Label class="text-base">Enabled</Label>
 
             <p class="text-sm text-muted-foreground">
-              Enable tracking map in portal.
+              Enable company tracking portal.
             </p>
           </div>
 
           <div>
-            <ToggleMapSwitch
-              id="enable_map"
-              name="enable_map"
+            <ToggleCompanyIsActive
+              id="is_active"
+              name="is_active"
               :company-id="company?.id"
-              :value="hasCompanyFeature(company, `enable_map`)"
+              :value="Boolean(company?.is_active)"
             />
           </div>
         </div>
+      </div>
 
-        <div
-          class="flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4"
+      <CompanyFeatures />
+
+      <CompanyApiTokenForm :company="company" />
+      <CompanyForm :company="company" />
+    </template>
+    <section
+      v-else-if="company && !isError"
+      aria-label="Company details"
+      class="rounded border bg-card p-4"
+    >
+      <h2 class="mb-3 font-semibold">Company details</h2>
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+        <dt class="text-muted-foreground">Tracking portal</dt>
+        <dd>{{ company.is_active ? 'Enabled' : 'Disabled' }}</dd>
+        <dt class="text-muted-foreground">Pipeline ID</dt>
+        <dd>{{ company.pipeline_company_id }}</dd>
+        <template v-if="company.email"
+          ><dt class="text-muted-foreground">Email</dt>
+          <dd class="break-all">{{ company.email }}</dd></template
         >
-          <div class="w-full space-y-0.5">
-            <Label class="text-base">Shipment Documents</Label>
-
-            <p class="text-sm text-muted-foreground">
-              Enable shipment documents in portal.
-            </p>
-          </div>
-
-          <div>
-            <ToggleDocumentsSwitch
-              id="enable_documents"
-              name="enable_documents"
-              :company-id="company?.id"
-              :value="hasCompanyFeature(company, `enable_documents`)"
-            />
-          </div>
-        </div> -->
-
-      <div
-        class="col-span-2 flex w-full flex-row items-center justify-between space-x-8 rounded-lg border p-4 lg:col-span-2"
-      >
-        <div class="w-full space-y-0.5">
-          <Label class="text-base">Theme</Label>
-
-          <p class="text-sm text-muted-foreground">
-            Set the color theme for the company's tracking portal.
-          </p>
-        </div>
-
-        <div>
-          <SelectThemeDialog
-            :company-id="company?.id"
-            :current-theme="company?.theme"
-          />
-        </div>
-      </div>
-    </div>
-
-    <CompanyFeatures />
-
-    <section v-if="company && !isError">
-      <div class="mx-2 mt-4 md:mx-0">
-        <Label>Footer</Label>
-
-        <div class="relative mt-2 h-72">
-          <div
-            class="absolute right-2 top-2 flex flex-row items-center justify-end space-x-2"
-          >
-            <CompanyClearImageAssetDialog
-              v-if="company.footer?.file_path"
-              :company-id="company.id"
-              :image-name="company.footer.name"
-              type="footer"
-            >
-              <FontAwesomeIcon :icon="faTrashAlt" fixed-width />
-            </CompanyClearImageAssetDialog>
-
-            <CompanySetImageAsset
-              :company="company"
-              :initial-image-types="initialImageTypes"
-              type="footer"
-            >
-              {{ company.footer?.file_path ? `Change` : `Add` }} Footer
-            </CompanySetImageAsset>
-          </div>
-
-          <div
-            v-if="company.footer?.file_path"
-            class="absolute left-0 top-0 -z-10 h-full w-full overflow-hidden rounded-lg"
-          >
-            <img
-              :src="imageAssetUrl({ filePath: company.footer?.file_path })"
-              :alt="company.footer.name"
-              class="h-full w-full object-cover"
-            />
-          </div>
-
-          <div
-            v-else
-            class="absolute left-0 top-0 -z-10 flex h-full w-full flex-row items-center justify-center overflow-hidden rounded-lg bg-muted"
-          >
-            <FontAwesomeIcon
-              class="text-4xl text-muted-foreground"
-              :icon="faImageSlash"
-              fixed-width
-            />
-          </div>
-        </div>
-      </div>
-
-      <CompanyApiTokenForm v-if="company && !isError" :company="company" />
-
-      <CompanyForm v-if="company && !isError" :company="company" />
+        <template v-if="company.phone"
+          ><dt class="text-muted-foreground">Phone</dt>
+          <dd>{{ company.phone }}</dd></template
+        >
+      </dl>
     </section>
+    <p v-else-if="isError" role="alert">Could not load company details.</p>
   </AuthenticatedLayout>
 </template>

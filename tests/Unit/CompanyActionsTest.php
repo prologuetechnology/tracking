@@ -12,6 +12,7 @@ use App\Actions\Companies\ToggleCompanyField;
 use App\Actions\Companies\UpdateCompany;
 use App\Enums\ImageTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -45,11 +46,11 @@ class CompanyActionsTest extends TestCase
         $this->assertTrue($shown->relationLoaded('features'));
     }
 
-    public function test_it_sets_theme_and_assets_and_toggles_boolean_fields(): void
+    public function test_it_accepts_unchanged_branding_and_toggles_operational_fields(): void
     {
-        $company = $this->makeCompany();
         $theme = $this->makeTheme();
         $logo = $this->makeImage(ImageTypeEnum::LOGO->value);
+        $company = $this->makeCompany(['theme_id' => $theme->id, 'logo_image_id' => $logo->id]);
 
         $company = (new SetCompanyTheme)->execute($company, $theme->id);
         $company = (new SetCompanyImageAsset)->execute($company, $logo->id, ImageTypeEnum::LOGO->value);
@@ -60,15 +61,13 @@ class CompanyActionsTest extends TestCase
         $this->assertTrue($company->enable_map);
     }
 
-    public function test_it_can_clear_a_company_image_asset_without_deleting_the_image(): void
+    public function test_it_preserves_an_assigned_image_when_a_direct_clear_is_attempted(): void
     {
-        $company = $this->makeCompany();
         $logo = $this->makeImage(ImageTypeEnum::LOGO->value);
+        $company = $this->makeCompany(['logo_image_id' => $logo->id]);
 
-        $company = (new SetCompanyImageAsset)->execute($company, $logo->id, ImageTypeEnum::LOGO->value);
-        $company = (new ClearCompanyImageAsset)->execute($company, ImageTypeEnum::LOGO->value);
-
-        $this->assertNull($company->logo_image_id);
+        $this->assertThrows(fn () => (new ClearCompanyImageAsset)->execute($company, ImageTypeEnum::LOGO->value), ValidationException::class);
+        $this->assertSame($logo->id, $company->fresh()->logo_image_id);
         $this->assertDatabaseHas('images', ['id' => $logo->id]);
     }
 

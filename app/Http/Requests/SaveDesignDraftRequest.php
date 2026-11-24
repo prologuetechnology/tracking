@@ -29,6 +29,7 @@ class SaveDesignDraftRequest extends FormRequest
             'section_orders' => ['sometimes', 'bail', 'array', $this->moduleLists(fullOrder: true)],
             'hidden_modules' => ['sometimes', 'bail', 'array', $this->moduleLists(fullOrder: false)],
             'name' => ['required', 'string', 'max:120'],
+            'theme_version_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'theme_id' => ['present', 'nullable', 'integer', 'min:1'],
             'logo_image_id' => ['present', 'nullable', 'integer', 'min:1'],
             'banner_image_id' => ['present', 'nullable', 'integer', 'min:1'],
