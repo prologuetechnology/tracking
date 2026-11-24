@@ -3,6 +3,7 @@
 namespace Tests\Browser;
 
 use App\Models\DesignProof;
+use Facebook\WebDriver\Chrome\ChromeDevToolsDriver;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
@@ -39,6 +40,69 @@ class PortalWorkbenchReviewTest extends DuskTestCase
                 ->assertScript('document.documentElement.scrollWidth <= innerWidth');
         });
         $this->assertSame(0, DesignProof::count());
+    }
+
+    public function test_staff_can_compare_directions_across_the_portal_on_desktop_and_phone(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeSuperAdmin();
+
+        $this->browse(function (Browser $browser) use ($staff) {
+            $browser->loginAs($staff)->visit('/admin/portal-review')->waitForLink('Compare portal designs ↗')
+                ->clickLink('Compare portal designs ↗')->waitFor('#dir-reference');
+
+            $viewport = new ChromeDevToolsDriver($browser->driver);
+            foreach (['manifest', 'fieldbook', 'signal'] as $direction) {
+                $viewport->execute('Emulation.setDeviceMetricsOverride', ['width' => 1440, 'height' => 940, 'deviceScaleFactor' => 1, 'mobile' => false]);
+                $browser->visit('/admin/portal-review/directions#'.$direction.'/lookup')
+                    ->waitFor('.is-'.$direction.' .scan-row')->assertSee('Delivered')
+                    ->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth')
+                    ->screenshot('directions-'.$direction.'-desktop')
+                    ->type('#dir-reference', 'missing')->press('Look up')->waitForText('Shipment not found')
+                    ->press('Use PRO-DEMO-7018')->waitFor('.scan-row')->press('Exceptions')
+                    ->assertSeeIn('.scan-detail', 'Delivery exception')->press('All 6')
+                    ->press('Jayco workspace')->waitFor('.company-profile')->assertSee('Classic')
+                    ->click('button.file-row')->waitFor('iframe[title="Jayco shipment preview"]')
+                    ->withinFrame('iframe', fn (Browser $frame) => $frame->waitFor('#journey-title'))
+                    ->press('Trailhead')->assertSeeIn('.palette-slip', '#305E4A')
+                    ->waitUntil('document.querySelector("iframe").contentWindow.location.search.includes("305E4A")')
+                    ->withinFrame('iframe', fn (Browser $frame) => $frame->waitFor('#journey-title'))
+                    ->screenshot('directions-'.$direction.'-studio')
+                    ->click('#direction-nav a[href$="/themes"]')->waitForText('Theme library')
+                    ->click('#direction-nav a[href$="/assets"]')->waitForText('Jayco collection')->press('Logo')
+                    ->assertSeeIn('.asset-detail', 'Jayco wordmark')
+                    ->click('#direction-nav a[href$="/access"]')->waitForText('Access directory')->click('.file-row:nth-of-type(3)')
+                    ->assertSeeLink('Manage permissions');
+                $viewport->execute('Emulation.setDeviceMetricsOverride', ['width' => 390, 'height' => 844, 'deviceScaleFactor' => 1, 'mobile' => true]);
+                $browser->assertScript('innerWidth', 390)->press('Sections')->click('#direction-nav a[href$="/lookup"]')
+                    ->waitFor('.scan-row')->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth')
+                    ->screenshot('directions-'.$direction.'-mobile');
+                if ($direction === 'signal') {
+                    $browser->click('button[aria-label="Inspect scans in Macon, GA"]')->assertSeeIn('.scan-detail', 'Out for delivery');
+                }
+                $browser->press('Sections')->click('#direction-nav a[href$="/companies"]')->waitFor('.company-profile')
+                    ->assertScript('document.documentElement.scrollWidth === document.documentElement.clientWidth');
+            }
+
+            $browser->click('nav[aria-label="Design directions"] a[href^="#manifest"]')
+                ->waitFor('.is-manifest .company-profile')->assertFragmentIs('manifest/companies')
+                ->back()->waitFor('.is-signal .company-profile');
+            $viewport->execute('Emulation.clearDeviceMetricsOverride');
+        });
+    }
+
+    public function test_lookup_only_staff_see_only_the_lookup_in_every_direction(): void
+    {
+        $this->seedCoreFixtures();
+        $staff = $this->makeStandardUser();
+        $this->browse(function (Browser $browser) use ($staff) {
+            $browser->loginAs($staff);
+            foreach (['manifest', 'fieldbook', 'signal'] as $direction) {
+                $browser->visit('/admin/portal-review/directions#'.$direction.'/access')
+                    ->waitFor('#dir-reference')->assertMissing('#direction-nav a[href$="/access"]')
+                    ->assertMissing('.dir-link[href*="users"]');
+            }
+        });
     }
 
     public function test_public_and_staff_footers_span_the_page_and_follow_the_content(): void

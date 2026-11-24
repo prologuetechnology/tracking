@@ -41,6 +41,7 @@ Route::prefix('admin')
             Route::controller(PortalReviewController::class)->prefix('portal-review')->name('portal-review.')
                 ->middleware('cache.headers:private;no_store')->group(function () {
                     Route::get('/', 'index')->name('index');
+                    Route::get('directions', 'directions')->name('directions');
                     Route::get('assets/{asset}', 'asset')->name('asset');
                     Route::get('classic', 'classic')->name('classic');
                     Route::get('preview', 'preview')->name('preview');
